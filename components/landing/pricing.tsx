@@ -61,15 +61,25 @@ export function Pricing() {
   return (
     <section id="pricing" className="py-20 lg:py-32 bg-white">
       <div className="container mx-auto px-6 lg:px-8">
-        {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto mb-12">
+        {/* Beta Launch Banner */}
+        <div className="text-center max-w-4xl mx-auto mb-12">
+          <div className="inline-flex items-center gap-2 bg-gradient-to-r from-green-500/10 via-brand-500/10 to-purple-500/10 border-2 border-green-400/50 px-6 py-3 rounded-full backdrop-blur-sm mb-8">
+            <span className="text-lg font-bold bg-gradient-to-r from-green-600 to-brand-600 bg-clip-text text-transparent">
+              🚀 BETA LAUNCH SPECIAL
+            </span>
+          </div>
+
           <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 tracking-tight">
-            <span className="text-slate-900">Learn more, </span>
-            <span className="bg-gradient-to-r from-brand-500 to-purple-600 bg-clip-text text-transparent">spend less.</span>
+            <span className="text-slate-900">Start Learning </span>
+            <span className="bg-gradient-to-r from-brand-500 to-purple-600 bg-clip-text text-transparent">Completely Free</span>
           </h2>
 
+          <p className="text-xl text-slate-600 mb-8">
+            All beta users get <strong className="text-brand-600">1 month of free access</strong> to all Pro features. No credit card required.
+          </p>
+
           {/* Toggle */}
-          <div className="flex items-center justify-center gap-4 mt-8">
+          <div className="flex items-center justify-center gap-4">
             <span className={`text-sm ${!isYearly ? 'text-slate-900 font-medium' : 'text-slate-500'}`}>
               Monthly
             </span>
@@ -93,12 +103,9 @@ export function Pricing() {
               </span>
             )}
           </div>
-        </div>
 
-        {/* Beta Notice */}
-        <div className="text-center mb-8">
-          <p className="text-sm font-semibold bg-gradient-to-r from-brand-600 to-purple-600 bg-clip-text text-transparent">
-            🎉 Beta testers get 1 month free access to all Pro features
+          <p className="text-sm text-slate-500 mt-4">
+            Pricing shown below takes effect after your free month
           </p>
         </div>
 
@@ -168,9 +175,20 @@ export function Pricing() {
         </div>
 
         {/* Bottom Notice */}
-        <div className="mt-12 text-center">
+        <div className="mt-12 text-center space-y-4">
+          <div className="bg-gradient-to-r from-green-50 to-brand-50 border border-green-200 rounded-2xl p-6 max-w-3xl mx-auto">
+            <p className="text-lg font-semibold text-slate-900 mb-2">
+              🎁 Beta Launch Benefits
+            </p>
+            <ul className="text-sm text-slate-700 space-y-2">
+              <li>✅ 1 month free access to all Pro features</li>
+              <li>✅ No credit card required to start</li>
+              <li>✅ Help shape the future of QodeBench with your feedback</li>
+              <li>✅ Priority access to new features as we launch them</li>
+            </ul>
+          </div>
           <p className="text-sm text-slate-500">
-            No credit card required during beta.{" "}
+            Questions about pricing?{" "}
             <Link href="/pricing" className="text-brand-600 hover:text-purple-600 font-medium hover:underline transition-colors">
               Compare all features →
             </Link>

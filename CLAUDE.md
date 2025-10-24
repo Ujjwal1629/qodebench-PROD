@@ -99,7 +99,8 @@ Project uses strict TypeScript (tsconfig.json:10). All code must pass type check
 ## Styling
 
 - **Tailwind CSS** with custom config (tailwind.config.ts)
-- **Primary brand color**: `#3B82F6` (QodeBench Blue)
+- **Primary brand color**: `#0ea5e9` (QodeBench Sky Blue - tailwind.config.ts:19)
+- **Accent color**: `#a855f7` (Purple - tailwind.config.ts:32)
 - **shadcn/ui components** in `components/ui/`
 - **CSS variables** defined in `app/globals.css` for theming
 

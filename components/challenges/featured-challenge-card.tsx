@@ -75,7 +75,9 @@ export function FeaturedChallengeCard({
 
           {/* Description */}
           <p className="text-base text-slate-700 line-clamp-3">
-            {challenge.description || 'No description available'}
+            {challenge.description
+              ? challenge.description.replace(/[#*`_~]/g, '')
+              : 'No description available'}
           </p>
 
           {/* Stats Row */}

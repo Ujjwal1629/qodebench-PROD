@@ -87,7 +87,7 @@ export function ChallengeCard({ challenge }: ChallengeCardProps) {
           {/* Description */}
           <p className="text-sm text-slate-600 line-clamp-2 flex-1">
             {challenge.description
-              ? truncate(challenge.description, 100)
+              ? truncate(challenge.description.replace(/[#*`_~]/g, ''), 100)
               : 'No description available'}
           </p>
 

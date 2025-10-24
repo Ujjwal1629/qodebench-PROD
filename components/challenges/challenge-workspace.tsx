@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { CodeEditor } from './code-editor';
 import { AILearningCompanion } from './ai-learning-companion';
 import { ValidationResult } from './validation-result';
+import ReactMarkdown from 'react-markdown';
 import {
   CheckCircle,
   Loader2,
@@ -225,9 +226,49 @@ export function ChallengeWorkspace({ challenge }: ChallengeWorkspaceProps) {
           Description
         </h2>
         <div className="prose prose-slate max-w-none">
-          <p className="leading-relaxed text-slate-700 whitespace-pre-line">
+          <ReactMarkdown
+            components={{
+              h1: ({ children }) => (
+                <h3 className="text-xl font-semibold text-slate-900 mt-4 mb-2">{children}</h3>
+              ),
+              h2: ({ children }) => (
+                <h4 className="text-lg font-semibold text-slate-900 mt-3 mb-2">{children}</h4>
+              ),
+              h3: ({ children }) => (
+                <h5 className="text-base font-semibold text-slate-900 mt-2 mb-1">{children}</h5>
+              ),
+              p: ({ children }) => (
+                <p className="text-slate-700 leading-relaxed mb-3">{children}</p>
+              ),
+              ul: ({ children }) => (
+                <ul className="list-disc list-outside ml-5 space-y-1.5 mb-3 text-slate-700">{children}</ul>
+              ),
+              ol: ({ children }) => (
+                <ol className="list-decimal list-outside ml-5 space-y-1.5 mb-3 text-slate-700">{children}</ol>
+              ),
+              li: ({ children }) => (
+                <li className="text-slate-700 leading-relaxed">{children}</li>
+              ),
+              strong: ({ children }) => (
+                <strong className="font-semibold text-slate-900">{children}</strong>
+              ),
+              em: ({ children }) => (
+                <em className="italic text-slate-700">{children}</em>
+              ),
+              code: ({ children }) => (
+                <code className="text-slate-800 font-mono text-sm border border-slate-200 px-1 py-0.5 rounded">
+                  {children}
+                </code>
+              ),
+              pre: ({ children }) => (
+                <pre className="bg-slate-50 border border-slate-200 text-slate-800 p-4 rounded-lg overflow-x-auto mb-3 font-mono text-sm">
+                  {children}
+                </pre>
+              ),
+            }}
+          >
             {challenge.description}
-          </p>
+          </ReactMarkdown>
         </div>
 
         {challenge.learning_objectives &&

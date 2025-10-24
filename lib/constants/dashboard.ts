@@ -58,13 +58,13 @@ export const NAV_ITEMS: NavItem[] = [
   },
   {
     title: 'AI Tools Guide',
-    href: '/ai-tools',
+    href: '/dashboard/ai-tools',
     icon: Sparkles,
     description: 'Master AI-assisted coding',
   },
   {
     title: 'Settings',
-    href: '/settings',
+    href: '/dashboard/settings',
     icon: Settings,
     description: 'Manage your account',
   },

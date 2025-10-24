@@ -5,16 +5,16 @@ import { Button } from "@/components/ui/button";
 
 export function Hero() {
   return (
-    <section className="relative min-h-screen flex items-center justify-center bg-gradient-to-br from-white via-brand-50/30 to-purple-50/20 pt-32">
+    <section className="relative bg-gradient-to-br from-white via-brand-50/30 to-purple-50/20 pt-24 pb-16 lg:pt-32 lg:pb-20">
       {/* Subtle decorative elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-40 -left-20 w-96 h-96 bg-gradient-to-br from-brand-200/40 to-brand-300/30 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute bottom-40 -right-20 w-[500px] h-[500px] bg-gradient-to-br from-purple-200/40 to-purple-300/30 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+        <div className="absolute top-20 -left-20 w-96 h-96 bg-gradient-to-br from-brand-200/40 to-brand-300/30 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute bottom-20 -right-20 w-[500px] h-[500px] bg-gradient-to-br from-purple-200/40 to-purple-300/30 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-gradient-to-br from-brand-100/20 to-purple-100/20 rounded-full blur-2xl" />
       </div>
 
-      <div className="container mx-auto px-6 lg:px-8 py-20 lg:py-32 relative z-10">
-        <div className="max-w-4xl mx-auto text-center space-y-8">
+      <div className="container mx-auto px-6 lg:px-8 relative z-10">
+        <div className="max-w-4xl mx-auto text-center space-y-6">
           {/* Beta Badge */}
           <div className="inline-flex items-center gap-2 bg-gradient-to-r from-brand-500/10 via-purple-500/10 to-brand-500/10 border border-brand-300/50 px-5 py-2.5 rounded-full backdrop-blur-sm">
             <span className="text-sm font-semibold bg-gradient-to-r from-brand-600 to-purple-600 bg-clip-text text-transparent">
@@ -31,12 +31,12 @@ export function Hero() {
           </h1>
 
           {/* Subheadline */}
-          <p className="text-xl md:text-2xl text-slate-600 leading-relaxed max-w-3xl mx-auto">
+          <p className="text-lg md:text-xl text-slate-600 leading-relaxed max-w-3xl mx-auto">
             Go beyond algorithms. Learn PRs, documentation, code reviews, and technical challenges that matter in actual developer jobs.
           </p>
 
           {/* Single CTA */}
-          <div className="pt-4">
+          <div className="pt-2">
             <Button
               asChild
               size="lg"
@@ -44,18 +44,68 @@ export function Hero() {
             >
               <Link href="/signup">Start learning for free →</Link>
             </Button>
+            <p className="text-sm text-slate-500 mt-4">
+              No credit card required • 1 month free beta access
+            </p>
           </div>
 
-          {/* Trust Indicators */}
+          {/* Quick Stats */}
           <div className="pt-8">
-            <p className="text-sm text-slate-500 mb-6">Loved by developers at</p>
-            <div className="flex flex-wrap justify-center items-center gap-8 md:gap-12 opacity-60">
-              {/* Placeholder for company logos */}
-              <div className="h-8 w-24 bg-slate-200 rounded" />
-              <div className="h-8 w-24 bg-slate-200 rounded" />
-              <div className="h-8 w-24 bg-slate-200 rounded" />
-              <div className="h-8 w-24 bg-slate-200 rounded" />
-              <div className="h-8 w-24 bg-slate-200 rounded" />
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-3xl mx-auto">
+              <div className="bg-white/60 backdrop-blur-sm border border-brand-200/50 rounded-xl p-4 shadow-sm">
+                <div className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-brand-600 to-purple-600 bg-clip-text text-transparent">
+                  100+
+                </div>
+                <div className="text-xs md:text-sm text-slate-600 font-medium mt-1">
+                  Challenges
+                </div>
+              </div>
+              <div className="bg-white/60 backdrop-blur-sm border border-brand-200/50 rounded-xl p-4 shadow-sm">
+                <div className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-brand-600 to-purple-600 bg-clip-text text-transparent">
+                  7
+                </div>
+                <div className="text-xs md:text-sm text-slate-600 font-medium mt-1">
+                  Career Levels
+                </div>
+              </div>
+              <div className="bg-white/60 backdrop-blur-sm border border-brand-200/50 rounded-xl p-4 shadow-sm">
+                <div className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-brand-600 to-purple-600 bg-clip-text text-transparent">
+                  AI
+                </div>
+                <div className="text-xs md:text-sm text-slate-600 font-medium mt-1">
+                  Powered
+                </div>
+              </div>
+              <div className="bg-white/60 backdrop-blur-sm border border-brand-200/50 rounded-xl p-4 shadow-sm">
+                <div className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-brand-600 to-purple-600 bg-clip-text text-transparent">
+                  Free
+                </div>
+                <div className="text-xs md:text-sm text-slate-600 font-medium mt-1">
+                  Beta Access
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Key Features Highlight */}
+          <div className="pt-8 pb-4">
+            <div className="flex flex-wrap justify-center gap-4 text-sm text-slate-600">
+              <div className="flex items-center gap-2 bg-white/60 backdrop-blur-sm border border-slate-200/50 rounded-full px-4 py-2">
+                <span className="text-green-600">✓</span>
+                <span>Real-world challenges</span>
+              </div>
+              <div className="flex items-center gap-2 bg-white/60 backdrop-blur-sm border border-slate-200/50 rounded-full px-4 py-2">
+                <span className="text-green-600">✓</span>
+                <span>Mock interviews</span>
+              </div>
+              <div className="flex items-center gap-2 bg-white/60 backdrop-blur-sm border border-slate-200/50 rounded-full px-4 py-2">
+                <span className="text-green-600">✓</span>
+                <span>Weekly competitions</span>
+              </div>
+              <div className="flex items-center gap-2 bg-white/60 backdrop-blur-sm border border-slate-200/50 rounded-full px-4 py-2">
+                <span className="text-green-600">✓</span>
+                <span>Instant AI feedback</span>
+              </div>
             </div>
           </div>
         </div>

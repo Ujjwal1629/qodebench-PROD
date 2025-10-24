@@ -64,19 +64,17 @@ export function Navbar() {
       >
         <div className={`flex items-center justify-between h-20 px-8 ${isScrolled ? "" : "max-w-7xl mx-auto"}`}>
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-3 group">
-            <div className="w-[50px] h-[50px] relative">
+          <Link href="/" className="flex items-center group">
+            <div className="h-12 w-auto relative group-hover:scale-105 transition-transform duration-300">
               <Image
-                src="/qodebench.svg"
-                alt="QodeBench Logo"
-                width={100}
-                height={160}
-                className="object-contain transition-all duration-300"
+                src="/qodeb.png"
+                alt="QodeBench"
+                width={180}
+                height={48}
+                className="object-contain h-12 w-auto"
+                priority
               />
             </div>
-            <span className="text-xl font-bold tracking-tight text-slate-900 transition-colors duration-300">
-              QodeBench
-            </span>
           </Link>
 
           {/* Desktop Navigation */}

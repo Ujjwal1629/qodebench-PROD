@@ -4,22 +4,20 @@ import { Github, Linkedin, Twitter } from "lucide-react";
 
 const footerLinks = {
   product: [
-    { name: "Challenges", href: "#features" },
-    { name: "Roadmap", href: "#how-it-works" },
-    { name: "Mock Interviews", href: "#features" },
-    { name: "Leaderboard", href: "/leaderboard" },
+    { name: "Challenges", href: "/signup" },
+    { name: "Mock Interviews", href: "/signup" },
+    { name: "Leaderboard", href: "/signup" },
+    { name: "AI Tools Guide", href: "/signup" },
   ],
   resources: [
-    { name: "Documentation", href: "/docs" },
+    { name: "Documentation", href: "/documentation" },
     { name: "Blog", href: "/blog" },
-    { name: "AI Tools Guide", href: "/guides" },
-    { name: "Tutorials", href: "/tutorials" },
   ],
   company: [
     { name: "About", href: "/about" },
     { name: "Careers", href: "/careers" },
     { name: "Contact", href: "/contact" },
-    { name: "Our Mission", href: "#about" },
+    { name: "Our Mission", href: "/mission" },
   ],
   legal: [
     { name: "Privacy Policy", href: "/privacy" },
@@ -114,19 +112,16 @@ export function Footer() {
           <div className="flex flex-col md:flex-row justify-between items-center gap-6">
             {/* Left: Logo and Copyright */}
             <div className="flex flex-col md:flex-row items-center gap-6">
-              <Link href="/" className="flex items-center gap-2.5">
-                <div className="w-8 h-8 relative">
+              <Link href="/" className="flex items-center">
+                <div className="h-10 w-auto">
                   <Image
-                    src="/qodebench.svg"
-                    alt="QodeBench Logo"
-                    width={32}
-                    height={32}
-                    className="object-contain"
+                    src="/qodeb.png"
+                    alt="QodeBench"
+                    width={150}
+                    height={40}
+                    className="object-contain h-10 w-auto"
                   />
                 </div>
-                <span className="text-base font-semibold text-slate-900">
-                  QodeBench
-                </span>
               </Link>
               <span className="text-sm text-slate-500">
                 © {new Date().getFullYear()} QodeBench. All rights reserved.
@@ -153,11 +148,11 @@ export function Footer() {
             </div>
           </div>
 
-          {/* Status Indicator */}
+          {/* Status Indicator
           <div className="mt-6 flex items-center justify-center md:justify-start gap-2">
             <div className="w-2 h-2 rounded-full bg-green-500" />
             <span className="text-sm text-slate-600">All services are online</span>
-          </div>
+          </div> */}
         </div>
       </div>
     </footer>

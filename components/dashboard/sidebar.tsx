@@ -1,11 +1,12 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { NAV_ITEMS } from '@/lib/constants/dashboard';
 import { useUIStore } from '@/store/ui-store';
-import { ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { formatPoints } from '@/lib/utils/format';
 
@@ -34,15 +35,26 @@ export function Sidebar({ user }: SidebarProps) {
         <div className="flex h-16 items-center border-b border-slate-200 px-6">
           {!sidebarCollapsed && (
             <Link href="/dashboard" className="flex items-center gap-2">
-              <Sparkles className="h-6 w-6 text-brand-600" />
-              <span className="text-xl font-bold text-slate-900">
-                QodeBench
-              </span>
+              <Image
+                src="/qodeb.png"
+                alt="QodeBench Logo"
+                width={140}
+                height={32}
+                className="h-8 w-auto"
+                priority
+              />
             </Link>
           )}
           {sidebarCollapsed && (
             <Link href="/dashboard" className="flex items-center justify-center w-full">
-              <Sparkles className="h-6 w-6 text-brand-600" />
+              <Image
+                src="/qodeb.png"
+                alt="QodeBench"
+                width={32}
+                height={32}
+                className="h-8 w-8 object-contain"
+                priority
+              />
             </Link>
           )}
         </div>

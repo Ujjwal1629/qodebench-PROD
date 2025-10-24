@@ -1,43 +1,55 @@
 "use client";
 
-import { FileText, Sparkles, TrendingUp, Mic, Trophy, Zap } from "lucide-react";
+import { FileText, Sparkles, TrendingUp, Mic, Trophy, Code2, Gift, Target } from "lucide-react";
 
 const features = [
   {
+    icon: Code2,
+    title: "100+ Real-World Challenges",
+    description:
+      "Master Python, JavaScript, React, Next.js, and Node.js through practical coding challenges that mirror actual development work",
+  },
+  {
     icon: FileText,
-    title: "Office Skills Challenges",
+    title: "Office Fundamentals",
     description:
-      "Learn to write RFCs, review PRs, create technical docs, and master workplace coding workflows",
-  },
-  {
-    icon: Sparkles,
-    title: "AI-Powered Evaluation",
-    description:
-      "Get instant, detailed feedback on your code quality, best practices, and improvements from advanced AI",
-  },
-  {
-    icon: TrendingUp,
-    title: "Career Roadmap",
-    description:
-      "Progress from Intern to Senior Developer with structured challenges matching each experience level",
+      "Learn essential workplace skills: writing RFCs, reviewing PRs, creating technical documentation, and mastering professional workflows",
   },
   {
     icon: Mic,
-    title: "Mock Interviews",
+    title: "AI-Powered Mock Interviews",
     description:
-      "Practice technical and behavioral interviews with AI-powered mock interview sessions",
+      "Practice technical interviews with voice-interactive AI interviewer. Get real-time hints and comprehensive feedback on your performance",
   },
   {
     icon: Trophy,
     title: "Code Friday Challenges",
     description:
-      "Compete in weekly challenges every Friday, climb leaderboards, and win rewards",
+      "Join weekly Friday competitions, compete on global leaderboards, and prove your skills against developers worldwide",
   },
   {
-    icon: Zap,
-    title: "AI Tools Mastery",
+    icon: TrendingUp,
+    title: "7-Level Progression System",
     description:
-      "Learn to leverage Cursor, Copilot, and AI assistants to 10x your productivity",
+      "Advance from Intern to Distinguished Engineer with structured challenges and clear career milestones at each experience level",
+  },
+  {
+    icon: Sparkles,
+    title: "AI-Powered Evaluation",
+    description:
+      "Receive instant, detailed feedback on your code quality, best practices, and areas for improvement from advanced AI analysis",
+  },
+  {
+    icon: Gift,
+    title: "Rewards & Recognition",
+    description:
+      "Earn points through challenges and competitions, then redeem them for exclusive QodeBench merchandise and rewards",
+  },
+  {
+    icon: Target,
+    title: "Personalized Learning Path",
+    description:
+      "Get recommended challenges based on your skill level and progress. Track your growth with detailed stats and activity insights",
   },
 ];
 
@@ -57,7 +69,7 @@ export function Features() {
         </div>
 
         {/* Features Grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-12 max-w-7xl mx-auto">
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-10 max-w-7xl mx-auto">
           {features.map((feature, index) => {
             const Icon = feature.icon;
             return (

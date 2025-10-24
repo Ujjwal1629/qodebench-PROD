@@ -79,7 +79,7 @@ export function RecommendedChallenges({ challenges }: RecommendedChallengesProps
 
                 {/* Description */}
                 <p className="text-sm text-slate-600 line-clamp-3">
-                  {challenge.description ? truncate(challenge.description, 120) : 'No description available'}
+                  {challenge.description ? truncate(challenge.description.replace(/[#*`_~]/g, ''), 120) : 'No description available'}
                 </p>
 
                 {/* Footer */}

@@ -98,7 +98,16 @@ export function useAuth() {
     setLoading(true);
     await supabase.auth.signOut();
     clearAuth();
-    router.push('/signin');
+
+    // Clear any cached data and force reload
+    if (typeof window !== 'undefined') {
+      // Clear browser history to prevent back button issues
+      window.history.replaceState(null, '', '/signin');
+      // Force a hard navigation to sign-in page
+      window.location.href = '/signin';
+    } else {
+      router.push('/signin');
+    }
   };
 
   return {

@@ -1,6 +1,6 @@
 'use client';
 
-import { Bell, Search, Settings, HelpCircle, LogOut, User, Menu } from 'lucide-react';
+import { Search, Settings, HelpCircle, LogOut, Menu } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   DropdownMenu,
@@ -58,7 +58,7 @@ export function TopBar({ pageTitle = 'Dashboard', user }: TopBarProps) {
           </h1>
         </div>
 
-        {/* Right: Search, Notifications, User menu */}
+        {/* Right: Search and User menu */}
         <div className="flex items-center gap-2 sm:gap-4">
           {/* Search bar (hidden on mobile) */}
           <div className="relative hidden sm:block">
@@ -69,13 +69,6 @@ export function TopBar({ pageTitle = 'Dashboard', user }: TopBarProps) {
               className="w-64 pl-9"
             />
           </div>
-
-          {/* Notifications */}
-          <Button variant="ghost" size="icon" className="relative">
-            <Bell className="h-5 w-5" />
-            {/* Badge for unread notifications */}
-            <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-red-500" />
-          </Button>
 
           {/* User dropdown */}
           <DropdownMenu>
@@ -105,15 +98,11 @@ export function TopBar({ pageTitle = 'Dashboard', user }: TopBarProps) {
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => router.push('/settings')}>
-                <User className="mr-2 h-4 w-4" />
-                <span>Profile</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => router.push('/settings')}>
+              <DropdownMenuItem onClick={() => router.push('/dashboard/settings')}>
                 <Settings className="mr-2 h-4 w-4" />
                 <span>Settings</span>
               </DropdownMenuItem>
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={() => router.push('/dashboard/help')}>
                 <HelpCircle className="mr-2 h-4 w-4" />
                 <span>Help & Support</span>
               </DropdownMenuItem>

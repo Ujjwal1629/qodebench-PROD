@@ -40,14 +40,31 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Protected routes check
-  if (
-    !user &&
-    !request.nextUrl.pathname.startsWith('/signin') &&
-    !request.nextUrl.pathname.startsWith('/signup') &&
-    request.nextUrl.pathname !== '/'
-  ) {
-    // Redirect to signin if accessing protected route
+  // Public routes that don't require authentication
+  const publicRoutes = [
+    '/',
+    '/signin',
+    '/signup',
+    '/about',
+    '/careers',
+    '/contact',
+    '/mission',
+    '/privacy',
+    '/terms',
+    '/cookies',
+    '/documentation',
+    '/blog',
+    '/ai-tools-guide',
+    '/tutorials',
+    '/auth/callback',
+  ];
+
+  const isPublicRoute = publicRoutes.some(route =>
+    request.nextUrl.pathname === route || request.nextUrl.pathname.startsWith(route + '/')
+  );
+
+  // Protected routes check - redirect to signin if not authenticated and not on a public route
+  if (!user && !isPublicRoute) {
     const url = request.nextUrl.clone();
     url.pathname = '/signin';
     return NextResponse.redirect(url);
@@ -58,6 +75,14 @@ export async function updateSession(request: NextRequest) {
     const url = request.nextUrl.clone();
     url.pathname = '/dashboard';
     return NextResponse.redirect(url);
+  }
+
+  // Add cache control headers to prevent browser caching of protected routes
+  // This prevents users from accessing cached pages after logout using back button
+  if (user && !request.nextUrl.pathname.startsWith('/signin') && !request.nextUrl.pathname.startsWith('/signup')) {
+    supabaseResponse.headers.set('Cache-Control', 'no-cache, no-store, max-age=0, must-revalidate');
+    supabaseResponse.headers.set('Pragma', 'no-cache');
+    supabaseResponse.headers.set('Expires', '0');
   }
 
   return supabaseResponse;
