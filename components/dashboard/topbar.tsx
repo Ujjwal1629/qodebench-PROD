@@ -1,0 +1,131 @@
+'use client';
+
+import { Bell, Search, Settings, HelpCircle, LogOut, User, Menu } from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { useAuth } from '@/hooks/use-auth';
+import { useRouter } from 'next/navigation';
+import { cn } from '@/lib/utils';
+import { useUIStore } from '@/store/ui-store';
+
+interface TopBarProps {
+  pageTitle?: string;
+  user?: {
+    username: string;
+    avatar_url: string | null;
+    full_name: string | null;
+  } | null;
+}
+
+export function TopBar({ pageTitle = 'Dashboard', user }: TopBarProps) {
+  const { signOut } = useAuth();
+  const router = useRouter();
+  const { sidebarCollapsed } = useUIStore();
+
+  const handleSignOut = async () => {
+    await signOut();
+    router.push('/signin');
+  };
+
+  return (
+    <header
+      className={cn(
+        'fixed top-0 z-30 h-16 w-full border-b border-slate-200 bg-white transition-all duration-300',
+        sidebarCollapsed ? 'lg:pl-20' : 'lg:pl-64'
+      )}
+    >
+      <div className="flex h-full items-center justify-between px-4 sm:px-6 lg:px-8">
+        {/* Left: Page title */}
+        <div className="flex items-center gap-4">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="lg:hidden"
+          >
+            <Menu className="h-5 w-5" />
+          </Button>
+          <h1 className="text-lg font-semibold text-slate-900 sm:text-xl">
+            {pageTitle}
+          </h1>
+        </div>
+
+        {/* Right: Search, Notifications, User menu */}
+        <div className="flex items-center gap-2 sm:gap-4">
+          {/* Search bar (hidden on mobile) */}
+          <div className="relative hidden sm:block">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            <Input
+              type="search"
+              placeholder="Search challenges..."
+              className="w-64 pl-9"
+            />
+          </div>
+
+          {/* Notifications */}
+          <Button variant="ghost" size="icon" className="relative">
+            <Bell className="h-5 w-5" />
+            {/* Badge for unread notifications */}
+            <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-red-500" />
+          </Button>
+
+          {/* User dropdown */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                className="relative h-10 w-10 rounded-full p-0"
+              >
+                <Avatar className="h-10 w-10">
+                  <AvatarImage
+                    src={user?.avatar_url || undefined}
+                    alt={user?.username || 'User'}
+                  />
+                  <AvatarFallback className="bg-brand-100 text-brand-700 font-semibold">
+                    {user?.username?.slice(0, 2).toUpperCase() || 'U'}
+                  </AvatarFallback>
+                </Avatar>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-56" align="end">
+              <DropdownMenuLabel>
+                <div className="flex flex-col space-y-1">
+                  <p className="text-sm font-medium">
+                    {user?.full_name || user?.username || 'User'}
+                  </p>
+                  <p className="text-xs text-slate-500">@{user?.username}</p>
+                </div>
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => router.push('/settings')}>
+                <User className="mr-2 h-4 w-4" />
+                <span>Profile</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => router.push('/settings')}>
+                <Settings className="mr-2 h-4 w-4" />
+                <span>Settings</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <HelpCircle className="mr-2 h-4 w-4" />
+                <span>Help & Support</span>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleSignOut} className="text-red-600">
+                <LogOut className="mr-2 h-4 w-4" />
+                <span>Sign Out</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </div>
+    </header>
+  );
+}

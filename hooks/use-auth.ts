@@ -1,0 +1,113 @@
+'use client';
+
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { createClient } from '@/lib/supabase/client';
+import { useAuthStore } from '@/store/auth-store';
+import { createUserProfile } from '@/lib/auth';
+import type { Provider } from '@supabase/supabase-js';
+
+export function useAuth() {
+  const router = useRouter();
+  const { user, loading, setUser, setLoading, clearAuth } = useAuthStore();
+  const supabase = createClient();
+
+  useEffect(() => {
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+    });
+
+    // Listen for auth changes
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, [supabase, setUser]);
+
+  const signIn = async (email: string, password: string) => {
+    setLoading(true);
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error) {
+      setLoading(false);
+      throw error;
+    }
+
+    router.push('/dashboard');
+  };
+
+  const signUp = async (
+    email: string,
+    password: string,
+    username?: string
+  ) => {
+    setLoading(true);
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          username: username,
+          full_name: '',
+        }
+      }
+    });
+
+    if (error) {
+      setLoading(false);
+      throw error;
+    }
+
+    // Profile is created automatically by the handle_new_user() trigger
+    // No need to create it manually anymore!
+
+    router.push('/dashboard');
+  };
+
+  const signInWithOAuth = async (provider: 'google' | 'github') => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: provider as Provider,
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`,
+      },
+    });
+
+    if (error) {
+      throw error;
+    }
+  };
+
+  const resetPassword = async (email: string) => {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/auth/callback?type=recovery`,
+    });
+
+    if (error) {
+      throw error;
+    }
+  };
+
+  const signOut = async () => {
+    setLoading(true);
+    await supabase.auth.signOut();
+    clearAuth();
+    router.push('/signin');
+  };
+
+  return {
+    user,
+    loading,
+    signIn,
+    signUp,
+    signInWithOAuth,
+    resetPassword,
+    signOut,
+  };
+}
