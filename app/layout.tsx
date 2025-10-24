@@ -33,10 +33,6 @@ export const metadata: Metadata = {
     title: "QodeBench - Master Real-World Coding Skills",
     description: "Master real-world coding skills with QodeBench. Practice, learn, and excel in software development.",
   },
-  icons: {
-    icon: "/favicon.ico",
-    apple: "/apple-touch-icon.png",
-  },
 };
 
 export default function RootLayout({

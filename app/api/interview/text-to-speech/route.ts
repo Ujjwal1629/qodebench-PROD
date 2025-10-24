@@ -1,15 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
 // Cache for common phrases to reduce API calls
 const ttsCache = new Map<string, Buffer>();
 
 export async function POST(request: NextRequest) {
   try {
+    // Initialize OpenAI client only when needed
+    const openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY || '',
+    });
+
     const { text, voice = 'nova', speed = 1.0 } = await request.json();
 
     if (!text) {

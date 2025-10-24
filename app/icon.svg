@@ -1,4 +1,46 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-  <rect width="100" height="100" rx="20" fill="#3B82F6"/>
-  <text x="50" y="75" font-family="Arial, sans-serif" font-size="70" font-weight="bold" fill="white" text-anchor="middle">Q</text>
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" viewBox="400 300 480 500" xml:space="preserve">
+<defs>
+</defs>
+<g transform="matrix(1.9211538461538462 0 0 1.9211538461538462 639.561842105263 666.4341751575123)" id="logo-logo"  >
+<g style=""  paint-order="stroke"   >
+		<g transform="matrix(0.6697695934403901 0 0 0.6697695934403901 -51.6338063951377 0.002118586804556344)"  >
+<g style=""  paint-order="stroke"   >
+		<g transform="matrix(1 0 0 1 0 0)"  >
+<linearGradient id="SVGID_2_73807" gradientUnits="userSpaceOnUse" gradientTransform="matrix(1 0 0 1 -100 -22.77)"  x1="0" y1="22.77" x2="200" y2="22.77">
+<stop offset="23.271739999999998%" style="stop-color:rgb(140,184,243);stop-opacity: 1"/>
+<stop offset="23.571180000000002%" style="stop-color:rgb(52,131,234);stop-opacity: 1"/>
+<stop offset="49.48305%" style="stop-color:rgb(52,131,234);stop-opacity: 1"/>
+<stop offset="49.58036%" style="stop-color:rgb(19,91,185);stop-opacity: 1"/>
+<stop offset="76.05456%" style="stop-color:rgb(19,91,185);stop-opacity: 1"/>
+<stop offset="76.77323%" style="stop-color:rgb(13,59,120);stop-opacity: 1"/>
+</linearGradient>
+<rect style="stroke: none; stroke-width: 0; stroke-dasharray: none; stroke-linecap: butt; stroke-dashoffset: 0; stroke-linejoin: miter; stroke-miterlimit: 4; fill: url(#SVGID_2_73807); fill-rule: nonzero; opacity: 1;"  paint-order="stroke"  x="-100" y="-22.77" rx="22.77" ry="22.77" width="200" height="45.54" />
+</g>
+</g>
+</g>
+		<g transform="matrix(-0.6697695934403901 0 0 0.6697695934403901 51.63380639513764 -0.0021185868044995004)"  >
+<g style=""  paint-order="stroke"   >
+		<g transform="matrix(1 0 0 1 0 0)"  >
+<linearGradient id="SVGID_2_73808" gradientUnits="userSpaceOnUse" gradientTransform="matrix(1 0 0 1 -100 -22.77)"  x1="0" y1="22.77" x2="200" y2="22.77">
+<stop offset="23.271739999999998%" style="stop-color:rgb(140,184,243);stop-opacity: 1"/>
+<stop offset="23.571180000000002%" style="stop-color:rgb(52,131,234);stop-opacity: 1"/>
+<stop offset="49.48305%" style="stop-color:rgb(52,131,234);stop-opacity: 1"/>
+<stop offset="49.58036%" style="stop-color:rgb(19,91,185);stop-opacity: 1"/>
+<stop offset="76.05456%" style="stop-color:rgb(19,91,185);stop-opacity: 1"/>
+<stop offset="76.77323%" style="stop-color:rgb(13,59,120);stop-opacity: 1"/>
+</linearGradient>
+<rect style="stroke: none; stroke-width: 0; stroke-dasharray: none; stroke-linecap: butt; stroke-dashoffset: 0; stroke-linejoin: miter; stroke-miterlimit: 4; fill: url(#SVGID_2_73808); fill-rule: nonzero; opacity: 1;"  paint-order="stroke"  x="-100" y="-22.77" rx="22.77" ry="22.77" width="200" height="45.54" />
+</g>
+</g>
+</g>
+</g>
+</g>
+<g transform="matrix(1.9211538461538462 0 0 1.9211538461538462 637.8172995951414 505.4158648727588)" id="tagline-e80bf389-68f1-4c4d-a260-e9f5e649624b-logo"  >
+<g style=""  paint-order="stroke"   >
+		<g transform="matrix(1 0 0 1 0 0)" id="tagline-e80bf389-68f1-4c4d-a260-e9f5e649624b-logo-path-0"  >
+<path style="stroke: none; stroke-width: 0; stroke-dasharray: none; stroke-linecap: butt; stroke-dashoffset: 0; stroke-linejoin: miter; stroke-miterlimit: 4; fill: rgb(8,39,78); fill-rule: nonzero; opacity: 1;"  paint-order="stroke"  transform=" translate(-68.16999999999999, 56.44)" d="M 68.17 2.72 C 79.22 2.72 89.42 0.34 98.09 -3.91 L 111.86 8.84 L 130.39 -11.22 L 119 -21.76 C 126.31 -31.96 130.39 -44.88 130.39 -59.67 C 130.39 -96.22 104.72 -121.72 68.17 -121.72 C 31.62 -121.72 5.95 -96.22 5.95 -59.67 C 5.95 -22.95 31.62 2.72 68.17 2.72 Z M 68.17 -22.78 C 47.6 -22.78 33.15 -37.91 33.15 -59.5 C 33.15 -81.09 47.6 -96.22 68.17 -96.22 C 88.74 -96.22 103.19 -81.09 103.19 -59.5 C 103.19 -52.36 101.66 -45.73 98.6 -40.29 L 86.53 -51.51 L 68.17 -31.45 L 76.67 -23.63 C 73.95 -23.12 71.06 -22.78 68.17 -22.78 Z" stroke-linecap="round" />
+</g>
+</g>
+</g>
 </svg>

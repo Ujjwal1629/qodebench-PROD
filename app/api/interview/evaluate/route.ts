@@ -2,10 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
 import { createClient } from '@/lib/supabase/server';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
 interface EvaluationResult {
   quality_score: number; // 0-10
   strengths: string[];
@@ -16,6 +12,11 @@ interface EvaluationResult {
 
 export async function POST(request: NextRequest) {
   try {
+    // Initialize OpenAI client only when needed
+    const openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY || '',
+    });
+
     const { responseId, sessionId } = await request.json();
 
     if (!responseId) {

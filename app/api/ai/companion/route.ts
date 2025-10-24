@@ -1,10 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY || '',
-});
-
 interface Message {
   role: 'user' | 'assistant';
   content: string;
@@ -13,6 +9,11 @@ interface Message {
 
 export async function POST(request: NextRequest) {
   try {
+    // Initialize OpenAI client only when needed
+    const openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY || '',
+    });
+
     const {
       challengeId,
       challengeTitle,
