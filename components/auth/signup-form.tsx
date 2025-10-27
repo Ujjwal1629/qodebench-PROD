@@ -35,6 +35,8 @@ type SignUpFormValues = z.infer<typeof signUpSchema>;
 
 export function SignUpForm() {
   const [isCheckingUsername, setIsCheckingUsername] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [registeredEmail, setRegisteredEmail] = useState('');
   const { signUp } = useAuth();
   const { toast } = useToast();
 
@@ -77,6 +79,8 @@ export function SignUpForm() {
         values.password,
         values.username
       );
+      setRegisteredEmail(values.email);
+      setIsSuccess(true);
       toast({
         title: 'Success',
         description: 'Account created successfully!',
@@ -89,6 +93,39 @@ export function SignUpForm() {
       });
     }
   };
+
+  if (isSuccess) {
+    return (
+      <Card className="w-full max-w-md">
+        <CardHeader className="space-y-1">
+          <CardTitle className="text-2xl font-bold">Registration Successful!</CardTitle>
+          <CardDescription>
+            Please verify your email to continue
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="rounded-lg bg-green-50 border border-green-200 p-4 text-sm text-green-800">
+            <p className="font-semibold mb-2">Check your email</p>
+            <p className="mb-2">
+              We&apos;ve sent a confirmation email to <span className="font-medium">{registeredEmail}</span>
+            </p>
+            <p className="text-green-700">
+              Please check your inbox and click the confirmation link to activate your account.
+              Don&apos;t forget to check your spam folder if you don&apos;t see it within a few minutes.
+            </p>
+          </div>
+        </CardContent>
+        <CardFooter>
+          <p className="text-sm text-center text-slate-600 w-full">
+            Already confirmed?{' '}
+            <Link href="/signin" className="text-brand-500 hover:text-brand-600 font-medium">
+              Sign in
+            </Link>
+          </p>
+        </CardFooter>
+      </Card>
+    );
+  }
 
   return (
     <Card className="w-full max-w-md">

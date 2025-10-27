@@ -91,6 +91,20 @@ export function ChallengeWorkspace({ challenge }: ChallengeWorkspaceProps) {
     setInfoBanner(null); // Clear any previous info banner
 
     try {
+      // Get previous validation attempt from localStorage
+      const storageKey = `validation_${challenge.id}`;
+      const previousAttemptData = localStorage.getItem(storageKey);
+      let previousAttempt = null;
+
+      if (previousAttemptData) {
+        try {
+          previousAttempt = JSON.parse(previousAttemptData);
+        } catch (e) {
+          // Invalid JSON, ignore
+          localStorage.removeItem(storageKey);
+        }
+      }
+
       const response = await fetch('/api/ai/validate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -98,6 +112,7 @@ export function ChallengeWorkspace({ challenge }: ChallengeWorkspaceProps) {
           challengeId: challenge.id,
           code,
           language: 'javascript',
+          previousAttempt, // Send previous validation for comparison
         }),
       });
 
@@ -107,6 +122,13 @@ export function ChallengeWorkspace({ challenge }: ChallengeWorkspaceProps) {
 
       const result = await response.json();
       setValidationResult(result);
+
+      // Save this validation to localStorage for next time
+      localStorage.setItem(storageKey, JSON.stringify({
+        code,
+        score: result.score,
+        timestamp: Date.now(),
+      }));
     } catch (error) {
       console.error('Error validating code:', error);
       alert('Failed to validate code. Please try again.');
@@ -141,6 +163,10 @@ export function ChallengeWorkspace({ challenge }: ChallengeWorkspaceProps) {
 
       await response.json();
       setHasSubmitted(true);
+
+      // Clear validation history from localStorage on successful submit
+      const storageKey = `validation_${challenge.id}`;
+      localStorage.removeItem(storageKey);
 
       // Show success message
       setTimeout(() => {

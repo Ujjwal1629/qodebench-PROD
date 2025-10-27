@@ -68,7 +68,9 @@ export function useAuth() {
     // Profile is created automatically by the handle_new_user() trigger
     // No need to create it manually anymore!
 
-    router.push('/dashboard');
+    // Don't redirect to dashboard - user needs to confirm email first
+    // The signup form will show a success message
+    setLoading(false);
   };
 
   const signInWithOAuth = async (provider: 'google' | 'github') => {

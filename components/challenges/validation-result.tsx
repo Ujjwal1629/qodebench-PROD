@@ -6,6 +6,10 @@ interface ValidationResultProps {
   result: {
     passed: boolean;
     score: number;
+    comparedToPrevious?: string;
+    codeChanges?: string;
+    scoreChange?: number;
+    scoreJustification?: string;
     strengths?: string[];
     improvements?: string[];
     codeQuality?: string;
@@ -16,7 +20,7 @@ interface ValidationResultProps {
 }
 
 export function ValidationResult({ result }: ValidationResultProps) {
-  const { passed, score, strengths, improvements, codeQuality, suggestions, pointsEarned, maxPoints } =
+  const { passed, score, comparedToPrevious, codeChanges, scoreChange, scoreJustification, strengths, improvements, codeQuality, suggestions, pointsEarned, maxPoints } =
     result;
 
   return (
@@ -63,12 +67,75 @@ export function ValidationResult({ result }: ValidationResultProps) {
         <div className="flex items-center gap-2 rounded-lg bg-amber-50 p-3">
           <Trophy className="h-5 w-5 text-amber-600" />
           <span className="font-semibold text-amber-900">
-            {pointsEarned} points earned
+            {pointsEarned} {maxPoints && `/ ${maxPoints}`} points earned
           </span>
-          {maxPoints && (
-            <span className="text-sm text-amber-700">
-              (out of {maxPoints})
-            </span>
+        </div>
+      )}
+
+      {/* Comparison with Previous Attempts */}
+      {comparedToPrevious && (
+        <div className="space-y-3">
+          <div className={`rounded-lg border p-4 ${
+            scoreChange && scoreChange > 0
+              ? 'bg-green-50 border-green-200'
+              : scoreChange && scoreChange < 0
+                ? 'bg-red-50 border-red-200'
+                : 'bg-blue-50 border-blue-200'
+          }`}>
+            <div className="flex items-center justify-between mb-2">
+              <h4 className={`flex items-center gap-2 font-semibold ${
+                scoreChange && scoreChange > 0
+                  ? 'text-green-900'
+                  : scoreChange && scoreChange < 0
+                    ? 'text-red-900'
+                    : 'text-blue-900'
+              }`}>
+                📊 Compared to Previous Attempt
+              </h4>
+              {scoreChange !== undefined && scoreChange !== 0 && (
+                <span className={`text-sm font-bold ${
+                  scoreChange > 0 ? 'text-green-700' : 'text-red-700'
+                }`}>
+                  {scoreChange > 0 ? '+' : ''}{scoreChange} points
+                </span>
+              )}
+              {scoreChange === 0 && (
+                <span className="text-sm font-bold text-blue-700">
+                  No change
+                </span>
+              )}
+            </div>
+            <p className={`text-sm leading-relaxed ${
+              scoreChange && scoreChange > 0
+                ? 'text-green-800'
+                : scoreChange && scoreChange < 0
+                  ? 'text-red-800'
+                  : 'text-blue-800'
+            }`}>
+              {comparedToPrevious}
+            </p>
+          </div>
+
+          {codeChanges && (
+            <div className="rounded-lg bg-slate-50 border border-slate-200 p-4">
+              <h4 className="mb-2 font-semibold text-slate-900">
+                🔍 Code Changes Detected
+              </h4>
+              <p className="text-sm leading-relaxed text-slate-700 whitespace-pre-line">
+                {codeChanges}
+              </p>
+            </div>
+          )}
+
+          {scoreJustification && (
+            <div className="rounded-lg bg-amber-50 border border-amber-200 p-4">
+              <h4 className="mb-2 font-semibold text-amber-900">
+                ⚖️ Why This Score?
+              </h4>
+              <p className="text-sm leading-relaxed text-amber-800">
+                {scoreJustification}
+              </p>
+            </div>
           )}
         </div>
       )}

@@ -1,6 +1,6 @@
 'use client';
 
-import { Search, Settings, HelpCircle, LogOut, Menu } from 'lucide-react';
+import { Settings, HelpCircle, LogOut, Menu } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   DropdownMenu,
@@ -11,7 +11,6 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { useAuth } from '@/hooks/use-auth';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
@@ -58,18 +57,8 @@ export function TopBar({ pageTitle = 'Dashboard', user }: TopBarProps) {
           </h1>
         </div>
 
-        {/* Right: Search and User menu */}
+        {/* Right: User menu */}
         <div className="flex items-center gap-2 sm:gap-4">
-          {/* Search bar (hidden on mobile) */}
-          <div className="relative hidden sm:block">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-            <Input
-              type="search"
-              placeholder="Search challenges..."
-              className="w-64 pl-9"
-            />
-          </div>
-
           {/* User dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

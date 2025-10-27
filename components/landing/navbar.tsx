@@ -93,7 +93,14 @@ export function Navbar() {
           </div>
 
           {/* Desktop CTA */}
-          <div className="hidden md:block">
+          <div className="hidden md:flex items-center gap-3">
+            <Button
+              asChild
+              variant="ghost"
+              className="text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+            >
+              <Link href="/signin">Login</Link>
+            </Button>
             <Button
               asChild
               className="bg-gradient-to-r from-brand-500 to-purple-500 hover:from-brand-600 hover:to-purple-600 text-white transition-all duration-300 font-medium px-6 shadow-lg shadow-brand-500/25 hover:shadow-xl hover:shadow-brand-500/30"
@@ -134,7 +141,14 @@ export function Navbar() {
               ))}
               <Button
                 asChild
-                className="w-full mt-2 bg-gradient-to-r from-brand-500 to-purple-500 hover:from-brand-600 hover:to-purple-600 text-white"
+                variant="outline"
+                className="w-full mt-2"
+              >
+                <Link href="/signin">Login</Link>
+              </Button>
+              <Button
+                asChild
+                className="w-full bg-gradient-to-r from-brand-500 to-purple-500 hover:from-brand-600 hover:to-purple-600 text-white"
               >
                 <Link href="/signup">Get Started</Link>
               </Button>

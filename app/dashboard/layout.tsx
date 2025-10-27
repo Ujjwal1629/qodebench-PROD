@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 import { Sidebar } from '@/components/dashboard/sidebar';
 import { TopBar } from '@/components/dashboard/topbar';
 import { MobileNav } from '@/components/dashboard/mobile-nav';
+import { MainContentWrapper } from '@/components/dashboard/main-content-wrapper';
 
 // Cache user profile data for better performance
 const getUserProfile = cache(async (userId: string) => {
@@ -53,12 +54,8 @@ export default async function DashboardLayout({
       {/* Top bar */}
       <TopBar user={userData} />
 
-      {/* Main content */}
-      <main className="min-h-screen pt-16 pb-20 lg:pb-8 lg:pl-64 transition-all duration-300">
-        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-          {children}
-        </div>
-      </main>
+      {/* Main content with dynamic padding based on sidebar state */}
+      <MainContentWrapper>{children}</MainContentWrapper>
 
       {/* Mobile navigation */}
       <MobileNav />
