@@ -98,7 +98,7 @@ export function RecommendedChallenges({ challenges }: RecommendedChallengesProps
 
                 {/* CTA */}
                 <Button asChild className="w-full">
-                  <Link href={`/challenges/${challenge.slug}`}>Start Challenge</Link>
+                  <Link href={`/dashboard/challenges/${challenge.slug}`}>Start Challenge</Link>
                 </Button>
               </div>
             </CardContent>

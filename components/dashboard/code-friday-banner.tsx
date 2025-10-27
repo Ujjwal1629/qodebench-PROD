@@ -123,7 +123,7 @@ export function CodeFridayBanner({ weeklyChallenge }: CodeFridayBannerProps) {
               asChild
               className="bg-white text-brand-600 hover:bg-brand-50"
             >
-              <Link href={`/challenges/${challenge?.slug}`}>
+              <Link href={`/dashboard/challenges/${challenge?.slug}`}>
                 {userParticipation?.hasParticipated ? 'View Challenge' : 'Join Challenge'}
               </Link>
             </Button>

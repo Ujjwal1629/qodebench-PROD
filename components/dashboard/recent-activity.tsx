@@ -48,7 +48,7 @@ export function RecentActivity({ submissions }: RecentActivityProps) {
           {submissions.map((submission) => (
             <Link
               key={submission.id}
-              href={`/challenges/${submission.challengeSlug}`}
+              href={`/dashboard/challenges/${submission.challengeSlug}`}
               className="block rounded-lg border border-slate-200 p-4 transition-colors hover:bg-slate-50"
             >
               <div className="flex items-start justify-between gap-4">
