@@ -1,5 +1,6 @@
 import {
   Home,
+  BookOpen,
   Code2,
   // Map, // Temporarily removed - Roadmap hidden
   Mic,
@@ -24,6 +25,12 @@ export const NAV_ITEMS: NavItem[] = [
     href: '/dashboard',
     icon: Home,
     description: 'Overview of your progress',
+  },
+  {
+    title: 'Learning',
+    href: '/dashboard/learning',
+    icon: BookOpen,
+    description: 'Structured learning paths',
   },
   {
     title: 'Challenges',
@@ -73,9 +80,9 @@ export const NAV_ITEMS: NavItem[] = [
 // Mobile navigation items (reduced set)
 export const MOBILE_NAV_ITEMS: NavItem[] = [
   NAV_ITEMS[0], // Dashboard
-  NAV_ITEMS[1], // Challenges
-  NAV_ITEMS[2], // Interviews (Roadmap removed, so index shifted)
-  NAV_ITEMS[6], // Settings (More) - index shifted after removing Roadmap
+  NAV_ITEMS[2], // Challenges (index shifted after adding Learning)
+  NAV_ITEMS[3], // Interviews
+  NAV_ITEMS[7], // Settings (More)
 ];
 
 // Experience levels and point thresholds

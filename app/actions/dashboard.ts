@@ -471,3 +471,33 @@ export const getOfficeFundamentalsChallenges = cache(async (): Promise<OfficeFun
     };
   }
 });
+
+/**
+ * Check if user skipped the assessment (onboarding completed but no quiz score)
+ */
+export const checkSkippedAssessment = cache(async (): Promise<boolean> => {
+  try {
+    const supabase = await createClient();
+
+    // Get authenticated user
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return false;
+
+    // Fetch user profile
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('onboarding_completed, quiz_score')
+      .eq('id', user.id)
+      .single();
+
+    if (!profile) return false;
+
+    // User skipped if onboarding is completed but no quiz score
+    return profile.onboarding_completed === true && profile.quiz_score === null;
+  } catch (error) {
+    console.error('Error in checkSkippedAssessment:', error);
+    return false;
+  }
+});

@@ -22,6 +22,9 @@ export type Database = {
           current_streak: number
           longest_streak: number
           challenges_completed: number
+          onboarding_completed: boolean
+          quiz_score: number | null
+          quiz_completed_at: string | null
           created_at: string
           updated_at: string
         }
@@ -37,6 +40,9 @@ export type Database = {
           current_streak?: number
           longest_streak?: number
           challenges_completed?: number
+          onboarding_completed?: boolean
+          quiz_score?: number | null
+          quiz_completed_at?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -52,6 +58,9 @@ export type Database = {
           current_streak?: number
           longest_streak?: number
           challenges_completed?: number
+          onboarding_completed?: boolean
+          quiz_score?: number | null
+          quiz_completed_at?: string | null
           created_at?: string
           updated_at?: string
         }

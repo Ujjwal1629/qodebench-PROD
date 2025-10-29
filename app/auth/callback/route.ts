@@ -53,37 +53,72 @@ export async function GET(request: NextRequest) {
         return recoveryResponse;
       }
 
-      // Google OAuth provides 'picture' or 'avatar_url'
+      // Google OAuth provides 'picture', GitHub provides 'avatar_url'
       const avatarUrl = data.user.user_metadata?.avatar_url ||
                         data.user.user_metadata?.picture ||
                         null;
 
-      // Check if user profile exists
-      const { data: profile } = await supabase
+      // Wait a moment for the database trigger to create the profile
+      // (The handle_new_user trigger runs on auth.users INSERT)
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      // Check if user profile exists (should exist from trigger)
+      let { data: profile, error: profileError } = await supabase
         .from('profiles')
-        .select('id, avatar_url')
+        .select('id, avatar_url, onboarding_completed, username')
         .eq('id', data.user.id)
         .single();
 
-      // If profile doesn't exist, create one for OAuth users
+      // If profile doesn't exist after trigger, create one manually
       if (!profile) {
-        const username = data.user.user_metadata?.full_name?.toLowerCase().replace(/\s+/g, '_') ||
-                        data.user.email?.split('@')[0] ||
-                        `user_${data.user.id.slice(0, 8)}`;
+        // Generate unique username
+        const baseUsername = data.user.user_metadata?.full_name?.toLowerCase().replace(/\s+/g, '_') ||
+                            data.user.user_metadata?.preferred_username?.toLowerCase() ||
+                            data.user.email?.split('@')[0] ||
+                            `user_${data.user.id.slice(0, 8)}`;
 
-        await supabase.from('profiles').insert({
+        // Add random suffix to ensure uniqueness
+        const username = `${baseUsername}_${Math.random().toString(36).substring(2, 6)}`;
+
+        const { error: insertError } = await supabase.from('profiles').insert({
           id: data.user.id,
           username: username,
-          full_name: data.user.user_metadata?.full_name || '',
+          full_name: data.user.user_metadata?.full_name || data.user.user_metadata?.name || '',
           avatar_url: avatarUrl,
-          experience_level: 'beginner',
         });
+
+        if (insertError) {
+          console.error('Error creating profile:', insertError);
+          // Continue anyway - middleware will catch this
+        }
+
+        // Fetch the profile again
+        const { data: newProfile } = await supabase
+          .from('profiles')
+          .select('id, avatar_url, onboarding_completed, username')
+          .eq('id', data.user.id)
+          .single();
+
+        profile = newProfile;
       } else if (avatarUrl && !profile.avatar_url) {
         // Update existing profile if it doesn't have an avatar
         await supabase
           .from('profiles')
           .update({ avatar_url: avatarUrl })
           .eq('id', data.user.id);
+      }
+
+      // Check if user needs to complete onboarding quiz
+      if (!profile || !profile.onboarding_completed) {
+        const quizUrl = new URL('/onboarding/quiz', origin);
+        const quizResponse = NextResponse.redirect(quizUrl);
+
+        // Copy cookies to quiz response
+        response.cookies.getAll().forEach(cookie => {
+          quizResponse.cookies.set(cookie);
+        });
+
+        return quizResponse;
       }
 
       // Return response with cookies properly set

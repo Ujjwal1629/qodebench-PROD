@@ -79,6 +79,37 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
+  // Check onboarding status for authenticated users
+  if (user) {
+    const isOnboardingRoute = request.nextUrl.pathname.startsWith('/onboarding');
+    const isDashboardOrProtectedRoute =
+      request.nextUrl.pathname.startsWith('/dashboard') ||
+      request.nextUrl.pathname.startsWith('/challenges') ||
+      request.nextUrl.pathname.startsWith('/leaderboard') ||
+      request.nextUrl.pathname.startsWith('/settings') ||
+      request.nextUrl.pathname.startsWith('/interviews') ||
+      request.nextUrl.pathname.startsWith('/rewards');
+
+    // Only check onboarding for protected routes
+    if (isDashboardOrProtectedRoute || isOnboardingRoute) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('onboarding_completed')
+        .eq('id', user.id)
+        .single();
+
+      // Redirect to quiz if onboarding not completed and not already on quiz page
+      if (profile && !profile.onboarding_completed && !request.nextUrl.pathname.startsWith('/onboarding/quiz')) {
+        const url = request.nextUrl.clone();
+        url.pathname = '/onboarding/quiz';
+        return NextResponse.redirect(url);
+      }
+
+      // Allow users to retake quiz if they skipped (onboarding completed but no quiz score)
+      // Don't redirect them away from quiz page in this case
+    }
+  }
+
   // Add cache control headers to prevent browser caching of protected routes
   // This prevents users from accessing cached pages after logout using back button
   if (user && !request.nextUrl.pathname.startsWith('/signin') && !request.nextUrl.pathname.startsWith('/signup')) {

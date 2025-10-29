@@ -1,4 +1,4 @@
-import { getUserStats, getRecentSubmissions, getRecommendedChallenges, getUserProfile, getWeeklyChallengeInfo, getOfficeFundamentalsChallenges } from '@/app/actions/dashboard';
+import { getUserStats, getRecentSubmissions, getRecommendedChallenges, getUserProfile, getWeeklyChallengeInfo, getOfficeFundamentalsChallenges, checkSkippedAssessment } from '@/app/actions/dashboard';
 import { WelcomeHeader } from '@/components/dashboard/welcome-header';
 import { StatsOverview } from '@/components/dashboard/stats-overview';
 import { ExperienceProgress } from '@/components/dashboard/experience-progress';
@@ -7,6 +7,7 @@ import { RecentActivity } from '@/components/dashboard/recent-activity';
 import { RecommendedChallenges } from '@/components/dashboard/recommended-challenges';
 import { CodeFridayBanner } from '@/components/dashboard/code-friday-banner';
 import { OfficeFundamentalsCard } from '@/components/dashboard/office-fundamentals-card';
+import { AssessmentBanner } from '@/components/dashboard/assessment-banner';
 
 export default async function DashboardPage() {
   // Fetch all dashboard data in parallel for optimal performance
@@ -17,6 +18,7 @@ export default async function DashboardPage() {
     profile,
     weeklyChallenge,
     officeFundamentals,
+    showAssessmentBanner,
   ] = await Promise.all([
     getUserStats(),
     getRecentSubmissions(5),
@@ -24,6 +26,7 @@ export default async function DashboardPage() {
     getUserProfile(),
     getWeeklyChallengeInfo(),
     getOfficeFundamentalsChallenges(),
+    checkSkippedAssessment(),
   ]);
 
   // Redirect if no user (handled by layout, but just in case)
@@ -50,6 +53,9 @@ export default async function DashboardPage() {
             : undefined
         }
       />
+
+      {/* Assessment Banner (if user skipped quiz) */}
+      {showAssessmentBanner && <AssessmentBanner />}
 
       {/* Code Friday Banner (if active) */}
       {weeklyChallenge && (
