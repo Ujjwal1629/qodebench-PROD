@@ -14,6 +14,7 @@ import { OAuthButtons } from '@/components/auth/oauth-buttons';
 import { PasswordStrengthIndicator } from '@/components/auth/password-strength-indicator';
 import { checkUsernameAvailability, validateUsername } from '@/lib/auth';
 import Link from 'next/link';
+import { AlertCircle } from 'lucide-react';
 
 const signUpSchema = z.object({
   username: z
@@ -35,6 +36,11 @@ type SignUpFormValues = z.infer<typeof signUpSchema>;
 
 export function SignUpForm() {
   const [isCheckingUsername, setIsCheckingUsername] = useState(false);
+  const [emailError, setEmailError] = useState<{
+    message: string;
+    providers?: string[];
+    hasPassword?: boolean;
+  } | null>(null);
   const [isSuccess, setIsSuccess] = useState(false);
   const [registeredEmail, setRegisteredEmail] = useState('');
   const { signUp } = useAuth();
@@ -72,6 +78,19 @@ export function SignUpForm() {
     }
   };
 
+  const handleEmailBlur = async () => {
+    const email = form.getValues('email');
+
+    // Clear previous email error
+    setEmailError(null);
+
+    // Just validate email format - we'll check existence during signup
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email || !emailRegex.test(email)) {
+      return;
+    }
+  };
+
   const onSubmit = async (values: SignUpFormValues) => {
     try {
       await signUp(
@@ -86,9 +105,20 @@ export function SignUpForm() {
         description: 'Account created successfully!',
       });
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to sign up';
+
+      // Check if error is about existing user
+      if (errorMessage.toLowerCase().includes('already registered') ||
+          errorMessage.toLowerCase().includes('user already exists') ||
+          errorMessage.toLowerCase().includes('already been registered')) {
+        setEmailError({
+          message: 'This email is already registered. Please sign in instead.',
+        });
+      }
+
       toast({
         title: 'Error',
-        description: error instanceof Error ? error.message : 'Failed to sign up',
+        description: errorMessage,
         variant: 'destructive',
       });
     }
@@ -138,6 +168,38 @@ export function SignUpForm() {
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <CardContent className="space-y-4">
+            {emailError && (
+              <div className="rounded-lg bg-red-50 border border-red-200 p-4">
+                <div className="flex items-start gap-3">
+                  <AlertCircle className="h-5 w-5 text-red-600 mt-0.5 flex-shrink-0" />
+                  <div className="flex-1">
+                    <h4 className="text-sm font-semibold text-red-900 mb-1">
+                      Email Already Registered
+                    </h4>
+                    <p className="text-sm text-red-800 mb-2">
+                      An account with this email already exists.
+                    </p>
+                    <div className="text-sm text-red-800 space-y-1">
+                      <p>Please try:</p>
+                      <ul className="list-disc list-inside space-y-1 ml-2">
+                        <li>
+                          <Link href="/signin" className="font-medium underline hover:text-red-900">
+                            Sign in with your password
+                          </Link>
+                        </li>
+                        <li>Sign in using Google or GitHub buttons below</li>
+                        <li>
+                          <Link href="/reset-password" className="font-medium underline hover:text-red-900">
+                            Reset your password
+                          </Link>
+                          {' '}if you forgot it
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
             <FormField
               control={form.control}
               name="username"
@@ -174,6 +236,17 @@ export function SignUpForm() {
                       placeholder="you@example.com"
                       disabled={form.formState.isSubmitting}
                       {...field}
+                      onBlur={(e) => {
+                        field.onBlur();
+                        handleEmailBlur();
+                      }}
+                      onChange={(e) => {
+                        field.onChange(e);
+                        // Clear email error when user starts typing
+                        if (emailError) {
+                          setEmailError(null);
+                        }
+                      }}
                     />
                   </FormControl>
                   <FormMessage />

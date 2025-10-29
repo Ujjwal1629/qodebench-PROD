@@ -62,7 +62,17 @@ export function useAuth() {
 
     if (error) {
       setLoading(false);
+      // Provide more user-friendly error messages
+      if (error.message.toLowerCase().includes('user already registered')) {
+        throw new Error('This email is already registered. Please sign in or use password reset.');
+      }
       throw error;
+    }
+
+    // Check if user already exists (Supabase doesn't always throw error for existing users)
+    if (data?.user?.identities && data.user.identities.length === 0) {
+      setLoading(false);
+      throw new Error('This email is already registered. Please sign in or use password reset.');
     }
 
     // Profile is created automatically by the handle_new_user() trigger
