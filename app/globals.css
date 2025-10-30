@@ -69,6 +69,43 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  /* Ensure prose content wraps properly */
+  .prose {
+    max-width: 100% !important;
+    width: 100%;
+  }
+
+  .prose p,
+  .prose li,
+  .prose h1,
+  .prose h2,
+  .prose h3,
+  .prose h4,
+  .prose h5,
+  .prose h6,
+  .prose td,
+  .prose th,
+  .prose strong,
+  .prose em,
+  .prose span {
+    overflow-wrap: break-word !important;
+    word-wrap: break-word !important;
+    word-break: break-word !important;
+    max-width: 100%;
+  }
+
+  /* Ensure code elements wrap */
+  .prose code {
+    white-space: pre-wrap !important;
+    word-break: break-word !important;
+  }
+
+  /* Ensure all text content can wrap */
+  .break-words * {
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+  }
 }
 
 @layer utilities {
@@ -86,5 +123,57 @@
   .animate-wave {
     animation: wave 2.5s infinite;
     transform-origin: 70% 70%;
+  }
+
+  @keyframes blink {
+    0%, 49% { opacity: 1; }
+    50%, 100% { opacity: 0; }
+  }
+
+  .animate-cursor {
+    animation: blink 1s infinite;
+  }
+
+  /* Custom Scrollbar Utilities */
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+    border-radius: 4px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
+  }
+
+  .scrollbar-thumb-purple-300::-webkit-scrollbar-thumb {
+    background-color: #d8b4fe;
+  }
+
+  .scrollbar-thumb-purple-400::-webkit-scrollbar-thumb {
+    background-color: #c084fc;
+  }
+
+  .scrollbar-track-purple-50::-webkit-scrollbar-track {
+    background-color: #faf5ff;
+  }
+
+  .scrollbar-thin:hover::-webkit-scrollbar-thumb {
+    background-color: #c084fc;
+  }
+
+  /* Firefox scrollbar */
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: #d8b4fe #faf5ff;
+  }
+
+  /* Utility for word breaking */
+  .overflow-wrap-anywhere {
+    overflow-wrap: anywhere;
   }
 }

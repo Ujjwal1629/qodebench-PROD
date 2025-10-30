@@ -36,19 +36,38 @@ QodeBench uses Next.js 14 with App Router. Key architectural patterns:
 **Auth Flow**:
 - Middleware intercepts all requests (middleware.ts:9-18 matcher pattern)
 - Session validated via `updateSession()` in lib/supabase/middleware.ts:4
-- Protected routes redirect to `/signin` if unauthenticated (middleware.ts:44-54)
-- Auth pages redirect to `/dashboard` if authenticated (middleware.ts:56-61)
+- Protected routes redirect to `/signin` if unauthenticated (middleware.ts:69-73)
+- Auth pages redirect to `/dashboard` if authenticated (middleware.ts:76-80)
+- Onboarding flow checks profile completion (middleware.ts:82-111)
 
 **State Management**:
 - Client-side auth state: Zustand store (`store/auth-store.ts`)
 - Auth operations: `useAuth` hook (`hooks/use-auth.ts`)
-- Real-time sync via `onAuthStateChange` listener (use-auth.ts:20-24)
+- Real-time sync via `onAuthStateChange` listener (use-auth.ts:22-26)
 
 ### Data Fetching
 
 - **React Query**: Configured in `components/providers/query-provider.tsx`
 - **Server Components**: Use `createClient()` from `lib/supabase/server.ts`
 - **Client Components**: Use `createClient()` from `lib/supabase/client.ts`
+
+### Database Schema
+
+The app uses a comprehensive Supabase schema defined in `supabase/migrations/`:
+
+**Core Tables**:
+- `profiles`: User profiles with experience level, points, streaks
+- `challenges`: Coding challenges with test cases and difficulty levels
+- `submissions`: User code submissions with AI feedback
+- `leaderboard_entries`: Rankings (global, weekly, monthly)
+- `mock_interviews`: Interview sessions with AI evaluation
+- `learning_modules`, `learning_lessons`: Structured learning content
+- `chat_sessions`, `chat_messages`: Learning chat history
+
+**Key Features**:
+- Automatic profile creation via database trigger `handle_new_user()`
+- Row Level Security (RLS) policies on all tables
+- Support for weekly challenges and learning paths
 
 ### Environment Variables
 
@@ -92,6 +111,18 @@ The space between `createServerClient` and `supabase.auth.getUser()` must remain
 
 Uses React Hook Form + Zod for type-safe validation. See `components/auth/signin-form.tsx` and `signup-form.tsx` for patterns.
 
+### API Routes
+
+All API routes follow Next.js 14 Route Handler pattern in `app/api/`:
+- Always check auth first using `await createClient()` then `supabase.auth.getUser()`
+- Return proper HTTP status codes
+- Use TypeScript for type safety
+
+**AI Integration**:
+- OpenAI API calls in routes like `api/ai/hint`, `api/ai/companion`
+- Challenge validation in `api/challenges/submit`
+- Interview evaluation in `api/interview/evaluate`
+
 ### TypeScript Strict Mode
 
 Project uses strict TypeScript (tsconfig.json:10). All code must pass type checking with strict mode enabled.
@@ -111,3 +142,5 @@ Project uses strict TypeScript (tsconfig.json:10). All code must pass type check
 3. **Auth state sync**: useAuth hook must be called in client components wrapped in QueryProvider
 4. **Protected routes**: Non-auth, non-home routes require authentication by default
 5. **Cookies API**: Server components use `await cookies()` (Next.js 15 pattern)
+6. **Onboarding**: Users are redirected to `/onboarding/quiz` until profile completion
+7. **Profile creation**: Automatic via database trigger - don't create manually in auth flow
