@@ -137,10 +137,12 @@ export function ChatInterface({ lessonId, lessonTitle, lessonContent }: ChatInte
     }
   };
 
-  const welcomeMessage = {
+  const welcomeMessage: Record<ChatMode, string> = {
     chat: `Hi! I'm your development mentor. With years of experience in web development, I'm here to help you master ${lessonTitle}. Ask me anything about the concepts, best practices, or real-world applications.`,
     example: `Ready to see how professionals implement these concepts? I'll show you production-ready code examples and explain the reasoning behind design decisions.`,
     hint: `Thinking through the quiz? I'll guide you with strategic hints that help you learn, not just find answers. Let's develop your problem-solving skills.`,
+    explain: `Hi! I'm your development mentor. With years of experience in web development, I'm here to help you master ${lessonTitle}. Ask me anything about the concepts, best practices, or real-world applications.`,
+    progress: `Hi! I'm your development mentor. With years of experience in web development, I'm here to help you master ${lessonTitle}. Ask me anything about the concepts, best practices, or real-world applications.`,
   };
 
   // Generate suggested questions based on lesson title

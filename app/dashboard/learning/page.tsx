@@ -89,53 +89,60 @@ export default function LearningPage() {
         <div className="grid gap-6 md:grid-cols-2">
           {learningPaths.map((path) => {
             const Icon = path.icon;
-            const CardWrapper = path.available ? Link : 'div';
 
-            return (
-              <CardWrapper
-                key={path.title}
-                href={path.available ? path.href! : undefined}
-                className={path.available ? 'block transition-transform hover:scale-105' : ''}
-              >
-                <Card className={`relative overflow-hidden h-full ${
-                  path.available
-                    ? 'border-2 border-sky-200 bg-sky-50/30 hover:border-sky-400 cursor-pointer'
-                    : ''
-                }`}>
-                  <CardHeader>
-                    <div className="flex items-start justify-between">
-                      <div className={`rounded-lg p-3 ${
-                        path.available ? 'bg-sky-100' : 'bg-primary/10'
-                      }`}>
-                        <Icon className={`h-6 w-6 ${
-                          path.available ? 'text-sky-600' : 'text-primary'
-                        }`} />
-                      </div>
-                      <Badge variant="secondary">{path.lessons} lessons</Badge>
+            const cardContent = (
+              <Card className={`relative overflow-hidden h-full ${
+                path.available
+                  ? 'border-2 border-sky-200 bg-sky-50/30 hover:border-sky-400 cursor-pointer'
+                  : ''
+              }`}>
+                <CardHeader>
+                  <div className="flex items-start justify-between">
+                    <div className={`rounded-lg p-3 ${
+                      path.available ? 'bg-sky-100' : 'bg-primary/10'
+                    }`}>
+                      <Icon className={`h-6 w-6 ${
+                        path.available ? 'text-sky-600' : 'text-primary'
+                      }`} />
                     </div>
-                    <CardTitle className="mt-4">{path.title}</CardTitle>
-                    <CardDescription>{path.description}</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    {path.available ? (
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2 text-sm font-medium text-sky-700">
-                          <CheckCircle className="h-4 w-4" />
-                          Available Now
-                        </div>
-                        <ArrowRight className="h-5 w-5 text-sky-600" />
+                    <Badge variant="secondary">{path.lessons} lessons</Badge>
+                  </div>
+                  <CardTitle className="mt-4">{path.title}</CardTitle>
+                  <CardDescription>{path.description}</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {path.available ? (
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2 text-sm font-medium text-sky-700">
+                        <CheckCircle className="h-4 w-4" />
+                        Available Now
                       </div>
-                    ) : (
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <span className="flex items-center gap-1">
-                          <span className="h-2 w-2 rounded-full bg-orange-500"></span>
-                          Coming Soon
-                        </span>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </CardWrapper>
+                      <ArrowRight className="h-5 w-5 text-sky-600" />
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <span className="flex items-center gap-1">
+                        <span className="h-2 w-2 rounded-full bg-orange-500"></span>
+                        Coming Soon
+                      </span>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            );
+
+            return path.available && path.href ? (
+              <Link
+                key={path.title}
+                href={path.href}
+                className="block transition-transform hover:scale-105"
+              >
+                {cardContent}
+              </Link>
+            ) : (
+              <div key={path.title}>
+                {cardContent}
+              </div>
             );
           })}
         </div>

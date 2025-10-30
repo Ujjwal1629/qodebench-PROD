@@ -11,7 +11,7 @@ interface MultipleChoiceQuestionProps {
   question: {
     id: string;
     question_text: string;
-    options: Record<string, string>;
+    options?: Record<string, string>;
     code_example?: string | null;
     difficulty: 'easy' | 'medium' | 'hard';
   };
@@ -58,7 +58,7 @@ export function MultipleChoiceQuestion({
           disabled={disabled}
           className="space-y-3"
         >
-          {Object.entries(question.options).map(([key, value]) => (
+          {question.options && Object.entries(question.options).map(([key, value]) => (
             <div
               key={key}
               className={`flex items-center space-x-3 p-4 rounded-lg border-2 transition-colors ${
