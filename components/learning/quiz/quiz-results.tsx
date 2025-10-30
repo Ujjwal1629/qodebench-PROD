@@ -39,7 +39,7 @@ export function QuizResults({ results, onRetry, nextLessonUrl }: QuizResultsProp
           <p className="text-lg text-muted-foreground mt-2">
             {passed
               ? 'Great job! You scored above 80%. You can move on to the next lesson.'
-              : 'You can continue to the next lesson or retry to improve your score.'}
+              : 'You need to score 80% or higher to unlock the next lesson. Retry the quiz to improve your score.'}
           </p>
         </CardHeader>
         <CardContent>
@@ -61,17 +61,25 @@ export function QuizResults({ results, onRetry, nextLessonUrl }: QuizResultsProp
           </div>
 
           <div className="mt-6 flex flex-col sm:flex-row gap-3">
-            {nextLessonUrl && (
-              <Button asChild className="flex-1 bg-sky-600 hover:bg-sky-700">
-                <Link href={nextLessonUrl}>
-                  Next Lesson
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
+            {passed ? (
+              <>
+                {nextLessonUrl && (
+                  <Button asChild className="flex-1 bg-sky-600 hover:bg-sky-700">
+                    <Link href={nextLessonUrl}>
+                      Next Lesson
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </Link>
+                  </Button>
+                )}
+                <Button onClick={onRetry} variant="outline" className="flex-1">
+                  Retry Quiz
+                </Button>
+              </>
+            ) : (
+              <Button onClick={onRetry} className="w-full bg-sky-600 hover:bg-sky-700">
+                Retry Quiz to Unlock Next Lesson
               </Button>
             )}
-            <Button onClick={onRetry} variant="outline" className="flex-1">
-              Retry Quiz
-            </Button>
           </div>
         </CardContent>
       </Card>

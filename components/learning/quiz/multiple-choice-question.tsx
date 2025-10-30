@@ -61,6 +61,7 @@ export function MultipleChoiceQuestion({
           {question.options && Object.entries(question.options).map(([key, value]) => (
             <div
               key={key}
+              onClick={() => !disabled && onAnswerChange(key)}
               className={`flex items-center space-x-3 p-4 rounded-lg border-2 transition-colors ${
                 selectedAnswer === key
                   ? 'border-sky-500 bg-sky-50'

@@ -53,6 +53,7 @@ export function TrueFalseQuestion({
           className="grid grid-cols-2 gap-4"
         >
           <div
+            onClick={() => !disabled && onAnswerChange('true')}
             className={`flex items-center justify-center space-x-3 p-6 rounded-lg border-2 transition-colors ${
               selectedAnswer === 'true'
                 ? 'border-green-500 bg-green-50'
@@ -70,6 +71,7 @@ export function TrueFalseQuestion({
           </div>
 
           <div
+            onClick={() => !disabled && onAnswerChange('false')}
             className={`flex items-center justify-center space-x-3 p-6 rounded-lg border-2 transition-colors ${
               selectedAnswer === 'false'
                 ? 'border-red-500 bg-red-50'

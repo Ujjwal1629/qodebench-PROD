@@ -15,7 +15,7 @@ export default function LearningPage() {
       icon: Layout,
       title: 'HTML & CSS Fundamentals',
       description: 'Master the building blocks of web development',
-      lessons: 3,
+      lessons: 18,
       available: true,
       href: '/dashboard/learning/html-css',
     },

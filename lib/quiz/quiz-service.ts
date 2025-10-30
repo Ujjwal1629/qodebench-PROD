@@ -109,8 +109,10 @@ export class QuizService {
       throw new Error('Failed to save quiz session');
     }
 
-    // 5. Update lesson progress (allow continuation regardless of score)
-    await this.updateLessonProgress(userId, submission.lesson_id);
+    // 5. Update lesson progress only if passed
+    if (passed) {
+      await this.updateLessonProgress(userId, submission.lesson_id);
+    }
 
     return {
       session_id: sessionResult.id,
