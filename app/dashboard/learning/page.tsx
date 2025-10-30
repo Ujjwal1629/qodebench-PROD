@@ -24,7 +24,8 @@ export default function LearningPage() {
       title: 'JavaScript Essentials',
       description: 'Learn modern JavaScript from basics to advanced',
       lessons: 18,
-      available: false,
+      available: true,
+      href: '/dashboard/learning/javascript',
     },
     {
       icon: Rocket,

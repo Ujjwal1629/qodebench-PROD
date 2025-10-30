@@ -11,15 +11,46 @@ import {
 
 const PASS_THRESHOLD = 80; // 80% required to pass
 
+// Learning path IDs mapped to table prefixes
+const LEARNING_PATH_TABLES: Record<string, string> = {
+  'e7f9a1b2-c3d4-5e6f-7a8b-9c0d1e2f3a4b': 'html_css', // HTML & CSS Fundamentals
+  'a1b2c3d4-e5f6-7890-abcd-ef1234567890': 'javascript', // JavaScript Essentials
+};
+
 export class QuizService {
+  /**
+   * Get table prefix for a lesson
+   */
+  private static async getTablePrefix(lessonId: string): Promise<string> {
+    const supabase = await createClient();
+
+    const { data: lesson } = await supabase
+      .from('ai_learning_lessons')
+      .select('learning_path_id')
+      .eq('id', lessonId)
+      .single();
+
+    if (!lesson) {
+      throw new Error('Lesson not found');
+    }
+
+    const prefix = LEARNING_PATH_TABLES[lesson.learning_path_id];
+    if (!prefix) {
+      throw new Error(`No quiz tables configured for learning path: ${lesson.learning_path_id}`);
+    }
+
+    return prefix;
+  }
+
   /**
    * Get all quiz questions for a lesson
    */
   static async getQuestionsForLesson(lessonId: string): Promise<QuizQuestion[]> {
     const supabase = await createClient();
+    const tablePrefix = await this.getTablePrefix(lessonId);
 
     const { data, error } = await supabase
-      .from('html_css_quiz_questions')
+      .from(`${tablePrefix}_quiz_questions`)
       .select('*')
       .eq('lesson_id', lessonId)
       .order('order_index', { ascending: true });
@@ -36,6 +67,7 @@ export class QuizService {
     submission: QuizSubmissionRequest
   ): Promise<QuizSubmissionResponse> {
     const supabase = await createClient();
+    const tablePrefix = await this.getTablePrefix(submission.lesson_id);
 
     // 1. Fetch all questions for the lesson
     const questions = await this.getQuestionsForLesson(submission.lesson_id);
@@ -79,7 +111,7 @@ export class QuizService {
     }));
 
     const { error: attemptsError } = await supabase
-      .from('html_css_quiz_attempts')
+      .from(`${tablePrefix}_quiz_attempts`)
       .insert(attempts);
 
     if (attemptsError) {
@@ -99,7 +131,7 @@ export class QuizService {
     };
 
     const { data: sessionResult, error: sessionError } = await supabase
-      .from('html_css_quiz_sessions')
+      .from(`${tablePrefix}_quiz_sessions`)
       .insert(sessionData)
       .select()
       .single();
@@ -187,9 +219,10 @@ export class QuizService {
     lessonId: string
   ): Promise<QuizSession | null> {
     const supabase = await createClient();
+    const tablePrefix = await this.getTablePrefix(lessonId);
 
     const { data, error } = await supabase
-      .from('html_css_quiz_sessions')
+      .from(`${tablePrefix}_quiz_sessions`)
       .select('*')
       .eq('user_id', userId)
       .eq('lesson_id', lessonId)
@@ -206,9 +239,10 @@ export class QuizService {
    */
   static async hasPassedQuiz(userId: string, lessonId: string): Promise<boolean> {
     const supabase = await createClient();
+    const tablePrefix = await this.getTablePrefix(lessonId);
 
     const { data } = await supabase
-      .from('html_css_quiz_sessions')
+      .from(`${tablePrefix}_quiz_sessions`)
       .select('passed')
       .eq('user_id', userId)
       .eq('lesson_id', lessonId)
