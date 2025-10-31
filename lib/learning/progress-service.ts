@@ -72,6 +72,7 @@ export class ProgressService {
 
   /**
    * Get all lessons for a learning path with access status
+   * OPTIMIZED: Uses a single query with JOINs instead of N+1 queries
    */
   static async getLessonsWithAccess(
     userId: string,
@@ -88,7 +89,102 @@ export class ProgressService {
   > {
     const supabase = await createClient();
 
-    // Get all lessons for the path
+    // Get table prefix for this learning path
+    const tablePrefix = QuizService.getTablePrefixByPathId(learningPathId);
+    if (!tablePrefix) {
+      // Fallback to old behavior if path not found
+      return this.getLessonsWithAccessLegacy(userId, learningPathId);
+    }
+
+    // OPTIMIZED: Fetch lessons and quiz sessions in parallel (2 queries instead of 70+)
+    const [lessonsResult, quizSessionsResult] = await Promise.all([
+      // Get all lessons for the path
+      supabase
+        .from('ai_learning_lessons')
+        .select('*')
+        .eq('learning_path_id', learningPathId)
+        .order('order_index', { ascending: true }),
+
+      // Get all quiz sessions for this user in this learning path
+      supabase
+        .from(`${tablePrefix}_quiz_sessions` as any)
+        .select('lesson_id, score_percentage, passed, completed_at')
+        .eq('user_id', userId)
+        .order('completed_at', { ascending: false })
+    ]);
+
+    if (lessonsResult.error || !lessonsResult.data) {
+      console.error('Error fetching lessons:', lessonsResult.error);
+      return [];
+    }
+
+    // Create a map of lesson_id -> latest quiz session for quick lookup
+    const quizSessionMap = new Map();
+    if (quizSessionsResult.data) {
+      for (const session of quizSessionsResult.data) {
+        // Only store the first (most recent) session for each lesson
+        if (!quizSessionMap.has(session.lesson_id)) {
+          quizSessionMap.set(session.lesson_id, session);
+        }
+      }
+    }
+
+    // Process lessons and determine access in memory
+    const lessonsWithStatus = lessonsResult.data.map((lesson: any, index: number) => {
+      // Get the latest quiz session from our map
+      const latestQuiz = quizSessionMap.get(lesson.id);
+
+      const quizPassed = latestQuiz?.passed || false;
+      const latestScore = latestQuiz?.score_percentage;
+
+      // Determine access: first lesson always accessible, others require previous completion
+      let canAccess = false;
+      if (lesson.order_index === 1) {
+        canAccess = true;
+      } else if (index > 0) {
+        // Check if previous lesson is completed
+        const previousLesson = lessonsResult.data[index - 1] as any;
+        const previousQuiz = quizSessionMap.get(previousLesson.id);
+        canAccess = previousQuiz?.passed || false;
+      }
+
+      return {
+        ...lesson,
+        can_access: canAccess,
+        is_completed: quizPassed,
+        quiz_passed: quizPassed,
+        latest_score: latestScore,
+      };
+    });
+
+    return lessonsWithStatus as Array<
+      Lesson & {
+        can_access: boolean;
+        is_completed: boolean;
+        quiz_passed: boolean;
+        latest_score?: number;
+      }
+    >;
+  }
+
+  /**
+   * Legacy implementation (fallback for unknown learning paths)
+   */
+  private static async getLessonsWithAccessLegacy(
+    userId: string,
+    learningPathId: string
+  ): Promise<
+    Array<
+      Lesson & {
+        can_access: boolean;
+        is_completed: boolean;
+        quiz_passed: boolean;
+        latest_score?: number;
+      }
+    >
+  > {
+    const supabase = await createClient();
+
     const { data: lessons, error } = await supabase
       .from('ai_learning_lessons')
       .select('*')
@@ -99,7 +195,6 @@ export class ProgressService {
       return [];
     }
 
-    // Check access and completion status for each lesson
     const lessonsWithStatus = await Promise.all(
       lessons.map(async (lesson) => {
         const accessCheck = await this.canAccessLesson(userId, lesson.id);
@@ -120,11 +215,67 @@ export class ProgressService {
 
   /**
    * Get user's overall progress for a learning path
+   * OPTIMIZED: Uses SQL aggregation instead of N individual queries
    */
   static async getLearningPathProgress(userId: string, learningPathId: string) {
     const supabase = await createClient();
 
-    // Get all lessons in the path
+    // Get table prefix for this learning path
+    const tablePrefix = QuizService.getTablePrefixByPathId(learningPathId);
+    if (!tablePrefix) {
+      // Fallback to old behavior if path not found
+      return this.getLearningPathProgressLegacy(userId, learningPathId);
+    }
+
+    // OPTIMIZED: Fetch data in parallel (2 queries instead of 19+)
+    const [lessonsResult, passedQuizzesResult] = await Promise.all([
+      // Count total lessons
+      supabase
+        .from('ai_learning_lessons')
+        .select('id', { count: 'exact' })
+        .eq('learning_path_id', learningPathId),
+
+      // Get all passed quiz sessions for this user
+      supabase
+        .from(`${tablePrefix}_quiz_sessions` as any)
+        .select('lesson_id')
+        .eq('user_id', userId)
+        .eq('passed', true)
+    ]);
+
+    const totalLessons = lessonsResult.count || 0;
+
+    if (totalLessons === 0) {
+      return {
+        total_lessons: 0,
+        completed_lessons: 0,
+        progress_percentage: 0,
+      };
+    }
+
+    // Count unique lessons that have been passed
+    const uniquePassedLessons = new Set(
+      passedQuizzesResult.data?.map(session => session.lesson_id) || []
+    );
+    const completedCount = uniquePassedLessons.size;
+    const progressPercentage = Math.round((completedCount / totalLessons) * 100);
+
+    return {
+      total_lessons: totalLessons,
+      completed_lessons: completedCount,
+      progress_percentage: progressPercentage,
+    };
+  }
+
+  /**
+   * Legacy implementation (fallback for unknown learning paths)
+   */
+  private static async getLearningPathProgressLegacy(
+    userId: string,
+    learningPathId: string
+  ) {
+    const supabase = await createClient();
+
     const { data: lessons } = await supabase
       .from('ai_learning_lessons')
       .select('id')
@@ -138,7 +289,6 @@ export class ProgressService {
       };
     }
 
-    // Count completed lessons (passed quizzes)
     const completionChecks = await Promise.all(
       lessons.map((lesson) => QuizService.hasPassedQuiz(userId, lesson.id))
     );

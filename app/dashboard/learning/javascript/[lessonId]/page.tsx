@@ -46,8 +46,12 @@ export default async function LessonPage({ params }: { params: Promise<{ lessonI
     );
   }
 
-  // Check if user can access this lesson
-  const accessCheck = await ProgressService.canAccessLesson(user.id, lessonId);
+  // OPTIMIZED: Parallelize independent queries for faster loading
+  const [accessCheck, quizQuestions, nextLesson] = await Promise.all([
+    ProgressService.canAccessLesson(user.id, lessonId),
+    QuizService.getQuestionsForLesson(lessonId),
+    ProgressService.getNextLesson(user.id, lessonId),
+  ]);
 
   if (!accessCheck.can_access) {
     return (
@@ -80,14 +84,9 @@ export default async function LessonPage({ params }: { params: Promise<{ lessonI
     );
   }
 
-  // Mark lesson as started
-  await ProgressService.markLessonAsStarted(user.id, lessonId);
+  // Mark lesson as started (non-blocking - fire and forget)
+  ProgressService.markLessonAsStarted(user.id, lessonId);
 
-  // Get quiz questions
-  const quizQuestions = await QuizService.getQuestionsForLesson(lessonId);
-
-  // Get next lesson URL
-  const nextLesson = await ProgressService.getNextLesson(user.id, lessonId);
   const nextLessonUrl = nextLesson ? `/dashboard/learning/javascript/${nextLesson.id}` : null;
 
   // Theory Panel Component

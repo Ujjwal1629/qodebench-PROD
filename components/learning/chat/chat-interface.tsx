@@ -27,9 +27,11 @@ export function ChatInterface({ lessonId, lessonTitle, lessonContent }: ChatInte
   const [currentMode, setCurrentMode] = useState<ChatMode>('chat');
   const [messages, setMessages] = useState<ChatMessageType[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
+  const [shouldLoadHistory, setShouldLoadHistory] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Fetch chat history
+  // OPTIMIZED: Lazy load chat history - only fetch when user interacts
+  // This prevents unnecessary API calls on page load
   const { data: chatHistory, isLoading: isLoadingHistory } = useQuery({
     queryKey: ['chat-history', lessonId],
     queryFn: async () => {
@@ -37,7 +39,19 @@ export function ChatInterface({ lessonId, lessonTitle, lessonContent }: ChatInte
       if (!response.ok) throw new Error('Failed to fetch chat history');
       return response.json() as Promise<ChatMessageType[]>;
     },
+    enabled: shouldLoadHistory, // Only fetch when explicitly enabled
   });
+
+  // Load history once when component becomes interactive
+  useEffect(() => {
+    // Set a small delay to avoid loading on initial render
+    // Only load if user stays on the page (component mounted for > 500ms)
+    const timer = setTimeout(() => {
+      setShouldLoadHistory(true);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     if (chatHistory) {

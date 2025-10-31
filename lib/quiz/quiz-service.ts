@@ -19,6 +19,14 @@ const LEARNING_PATH_TABLES: Record<string, string> = {
 
 export class QuizService {
   /**
+   * Get table prefix by learning path ID (no database query needed)
+   * OPTIMIZED: Direct lookup from in-memory mapping
+   */
+  static getTablePrefixByPathId(learningPathId: string): string | null {
+    return LEARNING_PATH_TABLES[learningPathId] || null;
+  }
+
+  /**
    * Get table prefix for a lesson
    */
   private static async getTablePrefix(lessonId: string): Promise<string> {
