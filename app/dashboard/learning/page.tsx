@@ -1,7 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { BookOpen, Code2, Database, Layout, Rocket, ArrowRight, Sparkles, CheckCircle } from 'lucide-react';
+import { BookOpen, Code2, Database, Layout, Rocket, ArrowRight, Sparkles, CheckCircle, Briefcase } from 'lucide-react';
 import Link from 'next/link';
 
 export const metadata = {
@@ -42,6 +42,14 @@ export default function LearningPage() {
       lessons: 14,
       available: true,
       href: '/dashboard/learning/backend-apis',
+    },
+    {
+      icon: Briefcase,
+      title: 'Office Fundamentals for Developers',
+      description: 'Master Git branching, code reviews, RCA, documentation, and professional communication',
+      lessons: 16,
+      available: true,
+      href: '/dashboard/learning/office-fundamentals',
     },
   ];
 
