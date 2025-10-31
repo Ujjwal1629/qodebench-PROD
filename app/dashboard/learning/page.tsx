@@ -38,9 +38,10 @@ export default function LearningPage() {
     {
       icon: Database,
       title: 'Backend & APIs',
-      description: 'Create robust server-side applications',
+      description: 'Create robust server-side applications with Node.js, Express, databases, and security',
       lessons: 14,
-      available: false,
+      available: true,
+      href: '/dashboard/learning/backend-apis',
     },
   ];
 
