@@ -91,7 +91,7 @@ export default async function LessonPage({ params }: { params: Promise<{ lessonI
 
   // Theory Panel Component
   const TheoryPanel = () => (
-    <div className="space-y-8 max-w-4xl mx-auto px-4 py-2">
+    <div className="space-y-6 max-w-4xl mx-auto">
       <Link
         href="/dashboard/learning/javascript"
         className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-sky-600 transition-colors"

@@ -57,7 +57,7 @@ export default async function LessonPage({ params }: { params: Promise<{ lessonI
     return (
       <div className="container max-w-4xl py-10 space-y-4">
         <Link
-          href="/dashboard/learning/javascript"
+          href="/dashboard/learning/html-css"
           className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-sky-600"
         >
           <ArrowLeft className="h-4 w-4" />
@@ -72,7 +72,7 @@ export default async function LessonPage({ params }: { params: Promise<{ lessonI
               <div className="mt-4">
                 <p className="text-sm mb-2">Complete this lesson first:</p>
                 <Button asChild className="bg-sky-600 hover:bg-sky-700">
-                  <Link href={`/dashboard/learning/javascript/${accessCheck.required_lesson.id}`}>
+                  <Link href={`/dashboard/learning/html-css/${accessCheck.required_lesson.id}`}>
                     Go to {accessCheck.required_lesson.title}
                   </Link>
                 </Button>
@@ -87,13 +87,13 @@ export default async function LessonPage({ params }: { params: Promise<{ lessonI
   // Mark lesson as started (non-blocking - fire and forget)
   ProgressService.markLessonAsStarted(user.id, lessonId);
 
-  const nextLessonUrl = nextLesson ? `/dashboard/learning/javascript/${nextLesson.id}` : null;
+  const nextLessonUrl = nextLesson ? `/dashboard/learning/html-css/${nextLesson.id}` : null;
 
   // Theory Panel Component
   const TheoryPanel = () => (
-    <div className="space-y-8 max-w-4xl mx-auto px-4 py-2">
+    <div className="space-y-6 max-w-4xl mx-auto">
       <Link
-        href="/dashboard/learning/javascript"
+        href="/dashboard/learning/html-css"
         className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-sky-600 transition-colors"
       >
         <ArrowLeft className="h-3.5 w-3.5" />

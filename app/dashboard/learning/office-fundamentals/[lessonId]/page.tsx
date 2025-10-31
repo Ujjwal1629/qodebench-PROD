@@ -90,7 +90,7 @@ export default async function LessonPage({ params }: { params: Promise<{ lessonI
 
   // Theory Panel Component
   const TheoryPanel = () => (
-    <div className="space-y-6 max-w-4xl mx-auto">
+    <div className="space-y-8 max-w-4xl mx-auto px-4 py-2">
       <Link
         href="/dashboard/learning/office-fundamentals"
         className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-sky-600 transition-colors"
@@ -116,22 +116,45 @@ export default async function LessonPage({ params }: { params: Promise<{ lessonI
         </div>
       </div>
 
-      <div className="prose prose-slate max-w-none">
+      <div className="prose prose-lg prose-slate max-w-none
+        prose-headings:font-bold prose-headings:tracking-tight
+        prose-h1:text-4xl prose-h1:mb-6 prose-h1:mt-8 prose-h1:text-slate-900
+        prose-h2:text-3xl prose-h2:mb-5 prose-h2:mt-8 prose-h2:text-slate-800
+        prose-h3:text-2xl prose-h3:mb-4 prose-h3:mt-6 prose-h3:text-slate-800
+        prose-h4:text-xl prose-h4:mb-3 prose-h4:mt-5
+        prose-p:mb-6 prose-p:leading-relaxed prose-p:text-slate-700
+        prose-ul:my-6 prose-ul:space-y-2 prose-li:my-2 prose-li:leading-relaxed
+        prose-ol:my-6 prose-ol:space-y-2
+        prose-code:bg-slate-100 prose-code:text-slate-800 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded
+        prose-pre:bg-slate-900 prose-pre:my-6 prose-pre:rounded-lg prose-pre:shadow-lg
+        prose-blockquote:border-l-4 prose-blockquote:border-sky-500 prose-blockquote:bg-sky-50 prose-blockquote:py-2 prose-blockquote:px-4 prose-blockquote:my-6
+        prose-strong:text-slate-900 prose-strong:font-semibold
+        prose-table:my-6
+        prose-img:rounded-lg prose-img:shadow-md">
         <ReactMarkdown
           components={{
             code({ node, inline, className, children, ...props }: any) {
               const match = /language-(\w+)/.exec(className || '');
               return !inline && match ? (
-                <SyntaxHighlighter
-                  style={vscDarkPlus}
-                  language={match[1]}
-                  PreTag="div"
-                  {...props}
-                >
-                  {String(children).replace(/\n$/, '')}
-                </SyntaxHighlighter>
+                <div className="rounded-lg overflow-hidden my-5 border border-slate-700 shadow-lg">
+                  <SyntaxHighlighter
+                    style={vscDarkPlus}
+                    language={match[1]}
+                    PreTag="div"
+                    customStyle={{
+                      margin: 0,
+                      padding: '1.25rem',
+                      fontSize: '0.875rem',
+                      lineHeight: '1.6',
+                      borderRadius: 0
+                    }}
+                    {...props}
+                  >
+                    {String(children).replace(/\n$/, '')}
+                  </SyntaxHighlighter>
+                </div>
               ) : (
-                <code className={className} {...props}>
+                <code className="text-sm" {...props}>
                   {children}
                 </code>
               );
