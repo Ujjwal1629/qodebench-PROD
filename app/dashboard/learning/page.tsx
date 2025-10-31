@@ -29,10 +29,11 @@ export default function LearningPage() {
     },
     {
       icon: Rocket,
-      title: 'React & Next.js',
-      description: 'Build modern web applications with React',
-      lessons: 15,
-      available: false,
+      title: 'React & Next.js Mastery',
+      description: 'Build modern web applications with React and Next.js',
+      lessons: 28,
+      available: true,
+      href: '/dashboard/learning/react-nextjs',
     },
     {
       icon: Database,
