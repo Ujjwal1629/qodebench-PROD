@@ -1,69 +1,23 @@
 import { Suspense } from 'react';
 import { Metadata } from 'next';
-import {
-  getChallengesWithProgress,
-  getWeeklyChallenge,
-  getUserChallengeStats,
-  getInProgressChallenges,
-  getCategoryStats,
-  ChallengeFilters,
-} from '@/app/actions/challenges';
-import { getOfficeFundamentalsChallenges } from '@/app/actions/dashboard';
-import { ChallengesFilters } from '@/components/challenges/challenges-filters';
-import { ChallengesGrid } from '@/components/challenges/challenges-grid';
-import { ChallengesPagination } from '@/components/challenges/challenges-pagination';
-import { FeaturedChallengeCard } from '@/components/challenges/featured-challenge-card';
-import { ContinueSection } from '@/components/challenges/continue-section';
-import { CategoryCards } from '@/components/challenges/category-cards';
+import { getTierProgress, getChallengesByTier } from '@/app/actions/challenges';
+import { TierCard } from '@/components/challenges/tier-card';
 import { Badge } from '@/components/ui/badge';
-import { Code2 } from 'lucide-react';
+import { Code2, Sparkles } from 'lucide-react';
+import { TIER_ORDER } from '@/lib/constants/dashboard';
 
 export const metadata: Metadata = {
   title: 'Challenges | QodeBench',
-  description: 'Master coding skills with real-world challenges',
+  description: 'Progress through tiers and master full-stack web development',
 };
 
-interface ChallengesPageProps {
-  searchParams: Promise<{
-    search?: string;
-    difficulty?: string;
-    category?: string;
-    status?: 'all' | 'not_started' | 'in_progress' | 'completed';
-    sort?: 'newest' | 'popular' | 'points' | 'difficulty';
-    page?: string;
-  }>;
-}
+export default async function ChallengesPage() {
+  // Fetch tier progress
+  const tierProgress = await getTierProgress();
 
-export default async function ChallengesPage({
-  searchParams,
-}: ChallengesPageProps) {
-  // Parse search params
-  const params = await searchParams;
-  const filters: ChallengeFilters = {
-    searchQuery: params.search,
-    difficulty: params.difficulty,
-    category: params.category,
-    status: params.status || 'all',
-    sort: params.sort || 'newest',
-    page: parseInt(params.page || '1', 10),
-  };
-
-  // Check if we should show category cards (no filters active)
-  const showCategoryCards = !filters.searchQuery &&
-    !filters.difficulty &&
-    !filters.category &&
-    filters.status === 'all';
-
-  // Fetch data in parallel
-  const [challengesData, weeklyChallenge, userStats, inProgressChallenges, categoryStats, officeFundamentals] =
-    await Promise.all([
-      getChallengesWithProgress(filters, showCategoryCards), // Exclude office-fundamentals when showing category cards
-      getWeeklyChallenge(),
-      getUserChallengeStats(),
-      getInProgressChallenges(),
-      getCategoryStats(),
-      getOfficeFundamentalsChallenges(),
-    ]);
+  // Calculate total stats
+  const totalCompleted = tierProgress.reduce((sum, tier) => sum + tier.completed, 0);
+  const totalChallenges = tierProgress.reduce((sum, tier) => sum + tier.total, 0);
 
   return (
     <div className="space-y-8">
@@ -76,84 +30,90 @@ export default async function ChallengesPage({
           <div>
             <h1 className="text-3xl font-bold text-slate-900">Challenges</h1>
             <p className="text-slate-600">
-              Master coding skills with real-world challenges
+              Progress through tiers and master full-stack web development
             </p>
           </div>
         </div>
 
-        {/* User Stats */}
+        {/* Overall Stats */}
         <div className="flex flex-wrap items-center gap-3">
-            <Badge variant="outline" className="px-3 py-1 text-sm">
-              <span className="font-semibold text-green-600">
-                {userStats.completed}
-              </span>
-              <span className="mx-1 text-slate-400">/</span>
-              <span className="text-slate-600">{userStats.total}</span>
-              <span className="ml-1 text-slate-500">Completed</span>
-            </Badge>
-            {userStats.inProgress > 0 && (
-              <Badge variant="outline" className="px-3 py-1 text-sm">
-                <span className="font-semibold text-blue-600">
-                  {userStats.inProgress}
-                </span>
-                <span className="ml-1 text-slate-500">In Progress</span>
-              </Badge>
-            )}
-          </div>
+          <Badge variant="outline" className="px-3 py-1 text-sm">
+            <span className="font-semibold text-green-600">{totalCompleted}</span>
+            <span className="mx-1 text-slate-400">/</span>
+            <span className="text-slate-600">{totalChallenges}</span>
+            <span className="ml-1 text-slate-500">Completed</span>
+          </Badge>
+          <Badge variant="outline" className="px-3 py-1 text-sm">
+            <Sparkles className="h-3 w-3 mr-1 text-yellow-600" />
+            <span className="text-slate-600">{tierProgress.filter(t => t.isUnlocked).length}/4 Tiers Unlocked</span>
+          </Badge>
         </div>
-
-        {/* Featured Weekly Challenge */}
-        {weeklyChallenge && (
-          <FeaturedChallengeCard challenge={weeklyChallenge} />
-        )}
-
-        {/* Continue Where You Left Off */}
-        {inProgressChallenges.length > 0 && (
-          <ContinueSection challenges={inProgressChallenges} />
-        )}
-
-        {/* Category Cards - Show only when no filters are active */}
-        {showCategoryCards && (
-          <CategoryCards
-            stats={categoryStats}
-            officeFundamentalsChallenges={officeFundamentals.challenges}
-          />
-        )}
-
-        {/* Filters */}
-        <div className="rounded-lg bg-white p-6 shadow-sm">
-          <Suspense fallback={<div>Loading filters...</div>}>
-            <ChallengesFilters />
-          </Suspense>
-        </div>
-
-        {/* All Challenges Section */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold text-slate-900">
-              All Challenges
-            </h2>
-            <p className="text-sm text-slate-600">
-              {challengesData.total} challenge
-              {challengesData.total !== 1 ? 's' : ''}
-            </p>
-          </div>
-
-          {/* Challenges Grid */}
-          <ChallengesGrid challenges={challengesData.challenges} />
-
-        {/* Pagination */}
-        {challengesData.totalPages > 1 && (
-          <div className="pt-4">
-            <ChallengesPagination
-              currentPage={challengesData.page}
-              totalPages={challengesData.totalPages}
-              total={challengesData.total}
-              pageSize={challengesData.pageSize}
-            />
-          </div>
-        )}
       </div>
+
+      {/* Progressive Learning Path Explanation */}
+      <div className="rounded-lg bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 p-6">
+        <h2 className="text-lg font-semibold text-slate-900 mb-2 flex items-center gap-2">
+          🎯 Your Learning Path
+        </h2>
+        <p className="text-slate-700 leading-relaxed">
+          Progress through <strong>4 tiers</strong> of challenges: <strong>Beginner</strong> (coding basics) → <strong>Intermediate</strong> (features & bugs) → <strong>Office Workflow</strong> (professional practices) → <strong>Advanced</strong> (real-world simulations).
+          Complete challenges sequentially within each tier to unlock the next!
+        </p>
+      </div>
+
+      {/* Tier Cards */}
+      <div className="space-y-6">
+        <h2 className="text-2xl font-bold text-slate-900">Challenge Tiers</h2>
+
+        <Suspense fallback={<TierCardsLoading />}>
+          <TierCards tierProgress={tierProgress} />
+        </Suspense>
+      </div>
+    </div>
+  );
+}
+
+// Server component to load challenges for each tier
+async function TierCards({ tierProgress }: { tierProgress: Awaited<ReturnType<typeof getTierProgress>> }) {
+  // Load challenges for each unlocked tier
+  const tierData = await Promise.all(
+    TIER_ORDER.map(async (tierId) => {
+      const tier = tierProgress.find(t => t.tier === tierId);
+      if (!tier) return null;
+
+      // Only load challenges for unlocked tiers or the next tier that can be unlocked
+      if (tier.isUnlocked || tier.unlockRequirement?.includes('Complete')) {
+        const { challenges } = await getChallengesByTier(tierId);
+        return { ...tier, challenges };
+      }
+
+      return { ...tier, challenges: [] };
+    })
+  );
+
+  return (
+    <div className="grid gap-6">
+      {tierData.filter(Boolean).map((tier) => (
+        <TierCard
+          key={tier!.tier}
+          tierStats={tier!}
+          challenges={tier!.challenges}
+        />
+      ))}
+    </div>
+  );
+}
+
+// Loading skeleton for tier cards
+function TierCardsLoading() {
+  return (
+    <div className="grid gap-6">
+      {[1, 2, 3, 4].map((i) => (
+        <div
+          key={i}
+          className="h-64 rounded-lg border-2 border-slate-200 bg-slate-50 animate-pulse"
+        />
+      ))}
     </div>
   );
 }

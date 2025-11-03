@@ -57,18 +57,23 @@ QodeBench uses Next.js 15 (with React 19) and App Router. Key architectural patt
 The app uses a comprehensive Supabase schema defined in `supabase/migrations/`:
 
 **Core Tables**:
-- `profiles`: User profiles with experience level, points, streaks
-- `challenges`: Coding challenges with test cases and difficulty levels
+- `profiles`: User profiles with experience level, points, streaks, onboarding status
+- `challenges`: Coding challenges with test cases, difficulty levels, and validation types
+  - `challenge_type`: 'code' | 'document' | 'mixed' (for smart editor selection)
+  - `response_format`: 'javascript' | 'typescript' | 'markdown' | 'text' | 'json'
+  - `validation_type`: 'test_cases' | 'ai_only' | 'hybrid' (structure + AI quality)
 - `submissions`: User code submissions with AI feedback
 - `leaderboard_entries`: Rankings (global, weekly, monthly)
 - `mock_interviews`: Interview sessions with AI evaluation
-- `learning_modules`, `learning_lessons`: Structured learning content
+- `learning_modules`, `learning_lessons`, `learning_quizzes`: Structured learning content
 - `chat_sessions`, `chat_messages`: Learning chat history
+- `digital_badges`, `user_badges`: Badge system for achievements
 
 **Key Features**:
 - Automatic profile creation via database trigger `handle_new_user()`
 - Row Level Security (RLS) policies on all tables
 - Support for weekly challenges and learning paths
+- Hybrid validation system for flexible challenge types
 
 ### Environment Variables
 
@@ -120,16 +125,17 @@ All API routes follow Next.js 15 Route Handler pattern in `app/api/`:
 - Use TypeScript for type safety
 
 **API Structure**:
-- `api/ai/`: AI-powered features (hints, companion chat, feedback)
+- `api/ai/`: AI-powered features (hints, companion chat, feedback, validation)
 - `api/auth/`: Authentication endpoints
 - `api/challenges/`: Challenge submission and validation
-- `api/interview/`: Mock interview system with evaluation
-- `api/learning/` & `api/learn/`: Learning module endpoints with chat sessions
+- `api/interview/`: Mock interview system with evaluation (text-to-speech, voice-to-text, evaluate, report generation)
+- `api/learning/`: Learning module endpoints with chat sessions (quiz submission, chat history, messages)
 - `api/debug/`: Debug utilities
 
 **AI Integration**:
 - OpenAI API calls in routes like `api/ai/hint`, `api/ai/companion`
 - Challenge validation with test case execution in `api/challenges/submit`
+- Hybrid validation in `api/ai/validate-hybrid` (structure checks + AI quality assessment)
 - Interview evaluation in `api/interview/evaluate`
 
 ### TypeScript Strict Mode
@@ -144,6 +150,24 @@ The project uses React 19, which includes:
 - Enhanced Server Components support
 - Updated hooks behavior (ensure compatibility when adding new dependencies)
 
+## Component Organization
+
+**Component Structure**:
+- `components/ui/`: shadcn/ui base components (Button, Card, Dialog, etc.)
+- `components/auth/`: Authentication forms (signin, signup)
+- `components/challenges/`: Challenge-related components
+  - Editor components: `code-editor.tsx`, `markdown-editor.tsx`, `text-editor.tsx`, `flexible-editor.tsx`
+  - Challenge UI: `challenge-workspace.tsx`, `challenge-card.tsx`, `validation-result.tsx`
+  - Learning: `ai-learning-companion.tsx`, `hint-section.tsx`
+- `components/dashboard/`: Dashboard-specific components
+- `components/providers/`: Context providers (QueryProvider, theme provider)
+
+**Component Patterns**:
+- Use `"use client"` directive for client components with hooks/interactivity
+- Server components by default for data fetching
+- Separate business logic into custom hooks in `hooks/`
+- Keep component files focused on presentation; extract logic to hooks
+
 ## Styling
 
 - **Tailwind CSS** with custom config (tailwind.config.ts)
@@ -151,6 +175,65 @@ The project uses React 19, which includes:
 - **Accent color**: `#a855f7` (Purple - tailwind.config.ts:32)
 - **shadcn/ui components** in `components/ui/`
 - **CSS variables** defined in `app/globals.css` for theming
+- **Animation**: Uses `tailwindcss-animate` plugin and Framer Motion for complex animations
+
+### Challenge Validation System
+
+QodeBench supports multiple validation types for different challenge formats:
+
+**Validation Types**:
+1. **test_cases**: Traditional unit test validation for code challenges
+2. **ai_only**: Pure AI-based quality assessment (0-100 score)
+3. **hybrid**: Two-phase validation combining structure checks (50%) + AI quality (50%)
+
+**Editor Components**:
+- `code-editor.tsx`: Monaco-based editor for JavaScript/TypeScript/JSON
+- `markdown-editor.tsx`: Write/Preview tabs for markdown content
+- `text-editor.tsx`: Plain text editor for simple responses
+- `flexible-editor.tsx`: Smart router that selects editor based on `challenge.response_format`
+
+**Challenge Workspace Pattern**:
+```typescript
+// Reads challenge metadata
+const { challenge_type, response_format, validation_type } = challenge;
+
+// Selects appropriate editor
+<FlexibleEditor responseFormat={response_format} />
+
+// Routes to correct validation endpoint
+const endpoint = validationType === 'hybrid' || validationType === 'ai_only'
+  ? '/api/ai/validate-hybrid'
+  : '/api/challenges/submit';
+```
+
+**Hybrid Validation Flow** (`/api/ai/validate-hybrid`):
+1. **Structure Phase (50 points)**: Objective checks for required sections, length, formatting
+2. **Quality Phase (50 points)**: AI assessment of clarity, completeness, professionalism
+3. **Final Score**: Always 0-100, with 70+ being passing
+
+See `HYBRID_VALIDATION_IMPLEMENTATION.md` for detailed implementation guide.
+
+### Learning Modules & Mock Interviews
+
+**Learning System**:
+- **Modules**: HTML/CSS, JavaScript, React/Next.js, Backend/APIs, Office Fundamentals
+- **Structure**: Each module has lessons with content, quizzes, and chat-based learning
+- **AI Companion**: Interactive chat feature for asking questions during lessons
+- **Progress Tracking**: Quiz scores, lesson completion stored in database
+- **Migration Files**: `011_html_css`, `012_javascript`, `013_react_nextjs`, `014_backend_apis`, `015_office_fundamentals`
+
+**Mock Interview System**:
+- **Voice Interaction**: Speech-to-text and text-to-speech for realistic interviews
+- **AI Evaluation**: Real-time feedback on technical answers
+- **Report Generation**: Comprehensive performance reports after interviews
+- **Session Management**: Track interview progress, allow abandonment
+- **API Endpoints**: `voice-to-text`, `text-to-speech`, `evaluate`, `generate-report`, `abandon`
+
+**Badge & Rewards System**:
+- Digital badges for achievements
+- Leaderboard system (global, weekly, monthly)
+- Merchandise rewards for top performers
+- Points and streaks for engagement tracking
 
 ## Key Gotchas
 
@@ -163,3 +246,5 @@ The project uses React 19, which includes:
 7. **Profile creation**: Automatic via database trigger - don't create manually in auth flow
 8. **Cache control**: Middleware sets no-cache headers on protected routes to prevent back-button access after logout (middleware.ts:115-119)
 9. **React 19**: When adding new dependencies, verify React 19 compatibility
+10. **Challenge editors**: Use `FlexibleEditor` component, not hardcoded `CodeEditor`, to support different response formats
+11. **Validation scores**: Always enforce 0-100 range; hybrid validation uses 50/50 split for structure/quality

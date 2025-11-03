@@ -130,8 +130,8 @@ function ProfileContent({ data, badges }: { data: any; badges: BadgeType[] }) {
           </div>
         )}
 
-        {/* Badges */}
-        {badges.length > 0 && (
+        {/* Hidden for beta - Badges/Achievements */}
+        {/* {badges.length > 0 && (
           <div>
             <h3 className="font-semibold mb-3">Achievements ({badges.length})</h3>
             <div className="grid grid-cols-3 gap-2">
@@ -154,7 +154,7 @@ function ProfileContent({ data, badges }: { data: any; badges: BadgeType[] }) {
               </p>
             )}
           </div>
-        )}
+        )} */}
 
         {/* Recent Activity */}
         {recentActivity.length > 0 && (

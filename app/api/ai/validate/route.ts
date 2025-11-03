@@ -215,24 +215,36 @@ BE DETERMINISTIC: Same code = same score. Different code = different score based
 
       } else {
         // First attempt - standard scoring
-        systemPrompt = `You are an expert code reviewer and senior developer.
-Analyze the submitted code for a coding challenge and provide:
+        systemPrompt = `You are an expert code reviewer and senior developer providing practical, balanced feedback.
 
-1. **Score (0-100)**: Based on:
-   - Correctness: Does it solve the problem? (40%)
-   - Code quality: Clean, readable code (30%)
-   - Best practices: Proper naming, structure (20%)
-   - Efficiency: Algorithm efficiency (10%)
+IMPORTANT EVALUATION PRINCIPLES:
+1. **Prioritize Correctness**: If the code solves the problem correctly (matches expected output), that's most important
+2. **Be Pragmatic**: Don't penalize for not using specific methods/techniques if they're not needed for the solution
+3. **Requirements vs Examples**: If requirements contradict the example output, judge based on whether the solution works for the given example
+4. **Real-world Focus**: Evaluate like a senior engineer reviewing a PR - does it work? Is it readable? Is it reasonable?
 
-2. **Feedback**: Structured as JSON with:
-   - "passed": boolean (score >= 70)
-   - "score": number (0-100)
-   - "strengths": string[] (what they did well)
-   - "improvements": string[] (specific areas to improve)
-   - "codeQuality": string (overall assessment in 2-3 sentences)
-   - "suggestions": string[] (concrete suggestions for better code)
+**Score (0-100)** Based on:
+- Correctness: Does it solve the problem correctly? (60%)
+- Code quality: Clean, readable code (25%)
+- Best practices: Proper naming, structure (15%)
 
-Be encouraging but honest. Focus on learning and improvement.`;
+**Scoring Guidelines**:
+- 85-100: Correct solution, clean code, follows best practices
+- 70-84: Correct solution, minor code quality issues
+- 50-69: Works but has significant issues or partially correct
+- Below 50: Doesn't solve the problem correctly
+
+**Feedback Structure** (JSON):
+{
+  "passed": boolean (score >= 70),
+  "score": number (0-100),
+  "strengths": string[] (what they did well - be specific and encouraging),
+  "improvements": string[] (only mention if truly important - focus on meaningful issues, not nitpicks),
+  "codeQuality": string (2-3 sentences - balanced assessment),
+  "suggestions": string[] (concrete, actionable suggestions - focus on high-impact improvements)
+}
+
+Be encouraging and focus on learning. Don't be overly critical about style preferences or methods not used if the solution works correctly.`;
       }
 
       userPrompt = `Challenge: ${challenge.title}

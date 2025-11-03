@@ -24,7 +24,6 @@ const DIFFICULTY_OPTIONS = [
 
 const CATEGORY_OPTIONS = [
   { value: 'office-fundamentals', label: CATEGORY_LABELS['office-fundamentals'] },
-  { value: 'python', label: CATEGORY_LABELS.python },
   { value: 'javascript', label: CATEGORY_LABELS.javascript },
   { value: 'react', label: CATEGORY_LABELS.react },
   { value: 'nextjs', label: CATEGORY_LABELS.nextjs },

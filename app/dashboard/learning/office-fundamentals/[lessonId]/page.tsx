@@ -194,10 +194,8 @@ export default async function LessonPage({ params }: { params: Promise<{ lessonI
     <div className="h-full flex flex-col">
       <QuizComponent
         lessonId={lessonId}
-        userId={user.id}
         questions={quizQuestions}
         nextLessonUrl={nextLessonUrl}
-        backUrl="/dashboard/learning/office-fundamentals"
       />
     </div>
   );
@@ -206,8 +204,6 @@ export default async function LessonPage({ params }: { params: Promise<{ lessonI
     <SplitScreenLayout
       leftPanel={<TheoryPanel />}
       rightPanel={<QuizPanel />}
-      leftTitle="Theory"
-      rightTitle="Quiz"
     />
   );
 }

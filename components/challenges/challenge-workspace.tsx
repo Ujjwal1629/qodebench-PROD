@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { CodeEditor } from './code-editor';
+import { FlexibleEditor } from './flexible-editor';
 import { AILearningCompanion } from './ai-learning-companion';
 import { ValidationResult } from './validation-result';
 import ReactMarkdown from 'react-markdown';
@@ -18,6 +18,7 @@ import {
   Send,
   AlertCircle,
   X,
+  XCircle,
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -27,12 +28,63 @@ interface ChallengeWorkspaceProps {
 
 export function ChallengeWorkspace({ challenge }: ChallengeWorkspaceProps) {
   const router = useRouter();
-  const starterCode = challenge.starter_code?.javascript || '// Write your solution here';
+
+  // Get response format and challenge type with intelligent fallback
+  const isOfficeChallenge = challenge.category === 'office' || challenge.category === 'office-fundamentals';
+
+  // Detect document challenges by title/slug patterns
+  const documentKeywords = ['description', 'rca', 'root cause', 'meeting', 'notes', 'communication', 'incident', 'documentation', 'email', 'stakeholder'];
+  const isLikelyDocument = documentKeywords.some(keyword =>
+    challenge.title?.toLowerCase().includes(keyword) ||
+    challenge.slug?.toLowerCase().includes(keyword)
+  );
+
+  const responseFormat = challenge.response_format ||
+    (isOfficeChallenge && isLikelyDocument ? 'markdown' : 'javascript');
+  const challengeType = challenge.challenge_type ||
+    (isOfficeChallenge && isLikelyDocument ? 'document' : 'code');
+  const validationType = challenge.validation_type || 'ai_only';
+
+  // Determine starter code based on response format
+  const getStarterCode = () => {
+    if (challenge.starter_code?.[responseFormat]) {
+      return challenge.starter_code[responseFormat];
+    }
+
+    // Check for markdown starter in old format
+    if (responseFormat === 'markdown' && challenge.starter_code?.markdown) {
+      return challenge.starter_code.markdown;
+    }
+
+    // Default starter code based on response format
+    switch (responseFormat) {
+      case 'markdown':
+        // Smart defaults based on challenge type
+        if (challenge.slug?.includes('pr-description') || challenge.title?.toLowerCase().includes('pr description')) {
+          return '## Summary\n\nBriefly describe what this PR does and why.\n\n## Changes Made\n\n- Change 1\n- Change 2\n\n## Testing\n\nHow was this tested?\n\n## Related Issues\n\nFixes #';
+        }
+        if (challenge.slug?.includes('rca') || challenge.title?.toLowerCase().includes('root cause')) {
+          return '## Incident Summary\n\n**Date:** \n**Duration:** \n**Impact:** \n\n## Timeline\n\n- Time: Event description\n\n## Root Cause\n\n### Analysis\n\n## Action Items\n\n- [ ] Action 1\n- [ ] Action 2';
+        }
+        return '## Your Response\n\nWrite your response here using markdown formatting.\n\n### Section 1\n\n- Point 1\n- Point 2\n\n### Section 2\n\nMore details...';
+      case 'text':
+        return 'Write your response here...';
+      case 'typescript':
+        return '// Write your TypeScript solution here\n\nfunction solution() {\n  // Your code here\n}';
+      case 'json':
+        return '{\n  "key": "value"\n}';
+      default:
+        return '// Write your solution here\n\nfunction solution() {\n  // Your code here\n}';
+    }
+  };
+
+  const starterCode = getStarterCode();
   const [code, setCode] = useState(starterCode);
   const [validationResult, setValidationResult] = useState<any>(null);
   const [isValidating, setIsValidating] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [hasSubmitted, setHasSubmitted] = useState(false);
+  const [submissionResult, setSubmissionResult] = useState<any>(null);
   const [infoBanner, setInfoBanner] = useState<{ show: boolean; message: string; title: string } | null>(null);
 
   const difficultyColors = {
@@ -56,8 +108,10 @@ export function ChallengeWorkspace({ challenge }: ChallengeWorkspaceProps) {
     if (!code.trim()) {
       setInfoBanner({
         show: true,
-        title: 'Please write some code first!',
-        message: 'The code editor is empty. Write your solution before validating.'
+        title: challengeType === 'document' ? 'Please write your response first!' : 'Please write some code first!',
+        message: challengeType === 'document'
+          ? 'The editor is empty. Write your response before validating.'
+          : 'The code editor is empty. Write your solution before validating.'
       });
       return;
     }
@@ -69,19 +123,19 @@ export function ChallengeWorkspace({ challenge }: ChallengeWorkspaceProps) {
     if (normalizedCode === normalizedStarter) {
       setInfoBanner({
         show: true,
-        title: 'Please modify the code before validating!',
-        message: 'The current code is the same as the starter code. Make your changes and try again.'
+        title: 'Please modify the content before validating!',
+        message: 'The current content is the same as the starter template. Make your changes and try again.'
       });
       return;
     }
 
-    // Check if code is too short (less than 20 characters excluding comments/whitespace)
-    const codeWithoutComments = code.replace(/\/\/.*$/gm, '').replace(/\/\*[\s\S]*?\*\//g, '').trim();
-    if (codeWithoutComments.length < 20) {
+    // Check minimum length
+    const minLength = responseFormat === 'markdown' || responseFormat === 'text' ? 50 : 20;
+    if (code.trim().length < minLength) {
       setInfoBanner({
         show: true,
-        title: 'Your solution seems incomplete!',
-        message: 'Please write a more complete solution before validating.'
+        title: 'Your response seems too short!',
+        message: `Please write at least ${minLength} characters before validating.`
       });
       return;
     }
@@ -91,33 +145,43 @@ export function ChallengeWorkspace({ challenge }: ChallengeWorkspaceProps) {
     setInfoBanner(null); // Clear any previous info banner
 
     try {
-      // Get previous validation attempt from localStorage
+      // Determine which validation endpoint to use
+      // Use hybrid validation for all Office Fundamentals challenges
+      const useHybridValidation = isOfficeChallenge;
+
+      const validationEndpoint = useHybridValidation
+        ? '/api/ai/validate-hybrid'
+        : '/api/ai/validate';
+
+      // Get previous validation attempt from localStorage (for non-hybrid only)
       const storageKey = `validation_${challenge.id}`;
-      const previousAttemptData = localStorage.getItem(storageKey);
       let previousAttempt = null;
 
-      if (previousAttemptData) {
-        try {
-          previousAttempt = JSON.parse(previousAttemptData);
-        } catch (e) {
-          // Invalid JSON, ignore
-          localStorage.removeItem(storageKey);
+      if (!useHybridValidation) {
+        const previousAttemptData = localStorage.getItem(storageKey);
+        if (previousAttemptData) {
+          try {
+            previousAttempt = JSON.parse(previousAttemptData);
+          } catch (e) {
+            localStorage.removeItem(storageKey);
+          }
         }
       }
 
-      const response = await fetch('/api/ai/validate', {
+      const response = await fetch(validationEndpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           challengeId: challenge.id,
           code,
-          language: 'javascript',
-          previousAttempt, // Send previous validation for comparison
+          language: responseFormat,
+          ...(previousAttempt && { previousAttempt }),
         }),
       });
 
       if (!response.ok) {
-        throw new Error('Validation failed');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Validation failed');
       }
 
       const result = await response.json();
@@ -129,9 +193,9 @@ export function ChallengeWorkspace({ challenge }: ChallengeWorkspaceProps) {
         score: result.score,
         timestamp: Date.now(),
       }));
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error validating code:', error);
-      alert('Failed to validate code. Please try again.');
+      alert(error.message || 'Failed to validate. Please try again.');
     } finally {
       setIsValidating(false);
     }
@@ -152,7 +216,7 @@ export function ChallengeWorkspace({ challenge }: ChallengeWorkspaceProps) {
         body: JSON.stringify({
           challengeId: challenge.id,
           code,
-          language: 'javascript',
+          language: responseFormat,
           validationResult,
         }),
       });
@@ -161,17 +225,13 @@ export function ChallengeWorkspace({ challenge }: ChallengeWorkspaceProps) {
         throw new Error('Submission failed');
       }
 
-      await response.json();
+      const result = await response.json();
       setHasSubmitted(true);
+      setSubmissionResult(result);
 
       // Clear validation history from localStorage on successful submit
       const storageKey = `validation_${challenge.id}`;
       localStorage.removeItem(storageKey);
-
-      // Show success message
-      setTimeout(() => {
-        router.push('/dashboard/challenges');
-      }, 2000);
     } catch (error) {
       console.error('Error submitting code:', error);
       alert('Failed to submit. Please try again.');
@@ -330,12 +390,17 @@ export function ChallengeWorkspace({ challenge }: ChallengeWorkspaceProps) {
               Your Solution
             </h2>
             <div className="mb-3 text-xs text-slate-500 italic">
-              💡 Write your code below. Make sure to modify the starter code before validating.
+              {challengeType === 'document'
+                ? '💡 Write your response below using proper formatting. Make sure to include all required sections.'
+                : '💡 Write your code below. Make sure to modify the starter code before validating.'}
             </div>
-            <CodeEditor
-              starterCode={starterCode}
-              language="javascript"
-              onCodeChange={setCode}
+            <FlexibleEditor
+              responseFormat={responseFormat}
+              value={code}
+              onChange={setCode}
+              placeholder={challengeType === 'document'
+                ? 'Write your response here...'
+                : 'Write your solution here...'}
             />
             <div className="mt-4 flex flex-col sm:flex-row gap-3">
               <Button
@@ -404,15 +469,100 @@ export function ChallengeWorkspace({ challenge }: ChallengeWorkspaceProps) {
         </div>
       </div>
 
-      {/* Success Message */}
-      {hasSubmitted && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="rounded-lg bg-white p-8 text-center shadow-xl">
-            <CheckCircle className="mx-auto mb-4 h-16 w-16 text-green-600" />
-            <h3 className="mb-2 text-2xl font-bold text-slate-900">
-              Submission Complete!
-            </h3>
-            <p className="text-slate-600">Redirecting to challenges...</p>
+      {/* Submission Result Modal */}
+      {hasSubmitted && submissionResult && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-in fade-in duration-200">
+          <div className="rounded-xl bg-white p-8 text-center shadow-2xl max-w-md w-full animate-in zoom-in-95 duration-300">
+            {validationResult.passed ? (
+              <>
+                <CheckCircle className="mx-auto mb-4 h-16 w-16 text-green-600" />
+                <h3 className="mb-2 text-2xl font-bold text-slate-900">
+                  Challenge Passed! 🎉
+                </h3>
+                <p className="text-slate-600 mb-2">
+                  Earned {submissionResult.pointsEarned} points
+                </p>
+
+                {/* Tier Unlocked Message */}
+                {submissionResult.tierUnlocked && (
+                  <div className="my-4 p-3 bg-purple-50 border border-purple-200 rounded-lg">
+                    <p className="text-purple-900 font-semibold">
+                      🚀 {submissionResult.tierUnlocked} tier unlocked!
+                    </p>
+                  </div>
+                )}
+
+                {/* Action Buttons */}
+                <div className="mt-6 space-y-3">
+                  {submissionResult.nextChallenge ? (
+                    <>
+                      <Button
+                        asChild
+                        className="w-full"
+                        size="lg"
+                      >
+                        <Link href={`/dashboard/challenges/${submissionResult.nextChallenge.slug}`}>
+                          Next Challenge →
+                        </Link>
+                      </Button>
+                      <Button
+                        asChild
+                        variant="outline"
+                        className="w-full"
+                      >
+                        <Link href="/dashboard/challenges">
+                          Back to Challenges
+                        </Link>
+                      </Button>
+                    </>
+                  ) : (
+                    <Button
+                      asChild
+                      className="w-full"
+                      size="lg"
+                    >
+                      <Link href="/dashboard/challenges">
+                        Back to Challenges
+                      </Link>
+                    </Button>
+                  )}
+                </div>
+              </>
+            ) : (
+              <>
+                <XCircle className="mx-auto mb-4 h-16 w-16 text-orange-600" />
+                <h3 className="mb-2 text-2xl font-bold text-slate-900">
+                  Keep Trying!
+                </h3>
+                <p className="text-slate-600 mb-6">
+                  Your solution didn't pass this time. Review the feedback and try again!
+                </p>
+
+                {/* Action Buttons */}
+                <div className="space-y-3">
+                  <Button
+                    onClick={() => {
+                      setHasSubmitted(false);
+                      setSubmissionResult(null);
+                      setValidationResult(null);
+                    }}
+                    className="w-full"
+                    size="lg"
+                  >
+                    Retry Challenge
+                  </Button>
+                  <Button
+                    asChild
+                    variant="outline"
+                    className="w-full"
+                  >
+                    <Link href="/dashboard/challenges">
+                      Back to Challenges
+                    </Link>
+                  </Button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}

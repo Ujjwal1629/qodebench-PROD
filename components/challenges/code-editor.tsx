@@ -1,31 +1,23 @@
 'use client';
 
-import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Play, RotateCcw } from 'lucide-react';
 
 interface CodeEditorProps {
-  starterCode: string;
+  value: string;
+  onChange: (value: string) => void;
   language: string;
-  onCodeChange: (code: string) => void;
+  placeholder?: string;
 }
 
 export function CodeEditor({
-  starterCode,
+  value,
+  onChange,
   language,
-  onCodeChange,
+  placeholder,
 }: CodeEditorProps) {
-  const [code, setCode] = useState(starterCode);
-
   const handleCodeChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const newCode = e.target.value;
-    setCode(newCode);
-    onCodeChange(newCode);
-  };
-
-  const handleReset = () => {
-    setCode(starterCode);
-    onCodeChange(starterCode);
+    onChange(e.target.value);
   };
 
   return (
@@ -36,27 +28,18 @@ export function CodeEditor({
             {language}
           </div>
           <span className="text-sm text-slate-500">
-            {code.split('\n').length} lines
+            {(value || '').split('\n').length} lines
           </span>
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleReset}
-          className="gap-2"
-        >
-          <RotateCcw className="h-4 w-4" />
-          Reset
-        </Button>
       </div>
 
       <div className="relative">
         <textarea
-          value={code}
+          value={value || ''}
           onChange={handleCodeChange}
           className="min-h-[400px] w-full rounded-lg border border-slate-300 bg-slate-50 p-4 font-mono text-sm leading-relaxed text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
           spellCheck={false}
-          placeholder="Write your code here..."
+          placeholder={placeholder || "Write your code here..."}
         />
       </div>
 

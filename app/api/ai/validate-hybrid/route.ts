@@ -1,0 +1,352 @@
+import { NextRequest, NextResponse } from 'next/server';
+import OpenAI from 'openai';
+import { createClient } from '@/lib/supabase/server';
+
+interface StructureValidation {
+  weight: number;
+  required_sections?: string[];
+  min_length?: number;
+  max_length?: number;
+  format_checks?: string[];
+}
+
+interface AIQualityCheck {
+  weight: number;
+  criteria: Record<string, any>;
+}
+
+interface ValidationResult {
+  passed: boolean;
+  score: number;
+  scoreBreakdown: {
+    structure?: {
+      score: number;
+      weight: number;
+      feedback: string[];
+    };
+    quality: {
+      score: number;
+      weight: number;
+      feedback: any;
+    };
+  };
+  strengths: string[];
+  improvements: string[];
+  codeQuality: string;
+  pointsEarned: number;
+}
+
+export async function POST(req: NextRequest) {
+  try {
+    const openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY || '',
+    });
+
+    const supabase = await createClient();
+
+    // Check auth
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { challengeId, code, language } = await req.json();
+
+    if (!challengeId || !code) {
+      return NextResponse.json(
+        { error: 'Challenge ID and code are required' },
+        { status: 400 }
+      );
+    }
+
+    // Get challenge details
+    const { data: challenge } = await supabase
+      .from('challenges')
+      .select('*')
+      .eq('id', challengeId)
+      .single();
+
+    if (!challenge) {
+      return NextResponse.json(
+        { error: 'Challenge not found' },
+        { status: 404 }
+      );
+    }
+
+    const validationType = challenge.validation_type || 'ai_only';
+    const testCases = challenge.test_cases || [];
+    const responseFormat = challenge.response_format || 'javascript';
+
+    let structureScore = 0;
+    let structureFeedback: string[] = [];
+    let aiScore = 0;
+    let aiFeedback: any = {};
+
+    // PHASE 1: Structure Validation (if hybrid)
+    if (validationType === 'hybrid' && testCases[0]?.structure_validation) {
+      const structureValidation: StructureValidation = testCases[0].structure_validation;
+      const structureWeight = structureValidation.weight || 50;
+
+      let totalStructureScore = 0;
+      let checks = 0;
+
+      // Check required sections
+      if (structureValidation.required_sections && structureValidation.required_sections.length > 0) {
+        const requiredSections = structureValidation.required_sections;
+        const foundSections = requiredSections.filter((section) =>
+          code.includes(section)
+        );
+
+        const sectionScore = (foundSections.length / requiredSections.length) * 100;
+        totalStructureScore += sectionScore;
+        checks++;
+
+        if (foundSections.length === requiredSections.length) {
+          structureFeedback.push('✅ All required sections present');
+        } else {
+          const missingSections = requiredSections.filter(
+            (s) => !code.includes(s)
+          );
+          structureFeedback.push(
+            `⚠️ Missing sections: ${missingSections.join(', ')}`
+          );
+        }
+      }
+
+      // Check length
+      if (structureValidation.min_length) {
+        const minLength = structureValidation.min_length;
+        const lengthScore = code.length >= minLength ? 100 : (code.length / minLength) * 100;
+        totalStructureScore += lengthScore;
+        checks++;
+
+        if (code.length >= minLength) {
+          structureFeedback.push(`✅ Adequate length (${code.length} characters)`);
+        } else {
+          structureFeedback.push(
+            `⚠️ Too short (${code.length}/${minLength} characters)`
+          );
+        }
+      }
+
+      if (structureValidation.max_length) {
+        const maxLength = structureValidation.max_length;
+        if (code.length > maxLength) {
+          structureFeedback.push(
+            `⚠️ Too long (${code.length}/${maxLength} characters)`
+          );
+          totalStructureScore += 50;
+        } else {
+          totalStructureScore += 100;
+        }
+        checks++;
+      }
+
+      // Check format
+      if (structureValidation.format_checks && structureValidation.format_checks.length > 0) {
+        const formatChecks = structureValidation.format_checks;
+        let formatScore = 100;
+        const formatIssues: string[] = [];
+
+        if (formatChecks.includes('has_headings')) {
+          const hasHeadings = /^#{1,6}\s+.+$/m.test(code);
+          if (!hasHeadings) {
+            formatScore -= 33;
+            formatIssues.push('missing headings');
+          }
+        }
+
+        if (formatChecks.includes('has_bullet_points')) {
+          const hasBullets = /^[\s]*[-*+]\s+.+$/m.test(code);
+          if (!hasBullets) {
+            formatScore -= 33;
+            formatIssues.push('missing bullet points');
+          }
+        }
+
+        if (formatChecks.includes('proper_markdown')) {
+          // Check for common markdown elements
+          const hasMarkdown =
+            /^#{1,6}\s+.+$/m.test(code) || // headings
+            /\*\*.+\*\*/.test(code) || // bold
+            /\*.+\*/.test(code) || // italic
+            /^[\s]*[-*+]\s+.+$/m.test(code); // lists
+
+          if (!hasMarkdown) {
+            formatScore -= 34;
+            formatIssues.push('no markdown formatting detected');
+          }
+        }
+
+        totalStructureScore += formatScore;
+        checks++;
+
+        if (formatIssues.length === 0) {
+          structureFeedback.push('✅ Proper formatting');
+        } else {
+          structureFeedback.push(`⚠️ Formatting issues: ${formatIssues.join(', ')}`);
+        }
+      }
+
+      // Calculate average structure score
+      const avgStructureScore = checks > 0 ? totalStructureScore / checks : 0;
+      structureScore = (avgStructureScore * structureWeight) / 100;
+    }
+
+    // PHASE 2: AI Quality Check
+    const aiWeight =
+      validationType === 'hybrid'
+        ? testCases[0]?.ai_quality_check?.weight || 50
+        : 100;
+
+    const aiCriteria =
+      validationType === 'hybrid'
+        ? testCases[0]?.ai_quality_check?.criteria
+        : testCases[0]?.criteria;
+
+    // Fallback criteria for Office Fundamentals challenges without proper structure
+    const defaultCriteria = {
+      clarity: {
+        weight: 30,
+        description: 'Clear and concise communication',
+      },
+      completeness: {
+        weight: 40,
+        description: 'All important details covered',
+      },
+      professionalism: {
+        weight: 30,
+        description: 'Professional tone and well-structured format',
+      },
+    };
+
+    const finalCriteria = aiCriteria || defaultCriteria;
+
+    // Log warning if using fallback
+    if (!aiCriteria) {
+      console.warn(
+        `Challenge ${challenge.slug} missing validation criteria, using default`
+      );
+    }
+
+    // Build criteria text for AI prompt
+    const criteriaText = Object.entries(finalCriteria)
+      .map(([area, details]: [string, any]) => {
+        const weight = typeof details === 'object' ? details.weight : details;
+        const description = typeof details === 'object' ? details.description : '';
+        const checks = typeof details === 'object' && details.checks
+          ? `\n   Checks:\n   - ${details.checks.join('\n   - ')}`
+          : '';
+
+        return `**${area}** (Weight: ${weight}%)${description ? `\n   ${description}` : ''}${checks}`;
+      })
+      .join('\n\n');
+
+    const systemPrompt = `You are an expert reviewer evaluating ${responseFormat === 'markdown' ? 'documentation' : 'code'}.
+
+${validationType === 'hybrid' ? 'Note: Structure has already been validated separately. Focus ONLY on content QUALITY.' : ''}
+
+Evaluation Criteria:
+${criteriaText}
+
+CRITICAL SCORING RULES:
+1. Score must be between 0-100 (integer)
+2. Be fair but realistic - perfect score (100) is rare
+3. 70+ = Passed (good quality)
+4. 50-69 = Needs improvement
+5. Below 50 = Significant issues
+
+Return JSON:
+{
+  "score": number (0-100),
+  "scoreBreakdown": {
+    "area_name": { "score": number, "feedback": string }
+  },
+  "strengths": string[] (2-4 specific things done well),
+  "improvements": string[] (2-4 specific actionable improvements),
+  "codeQuality": string (2-3 sentence overall assessment)
+}`;
+
+    const userPrompt = `Challenge: ${challenge.title}
+
+${challenge.description ? `Description: ${challenge.description.substring(0, 500)}...` : ''}
+
+Learning Objectives:
+${challenge.learning_objectives?.join('\n') || 'N/A'}
+
+Submitted Solution (${language || responseFormat}):
+\`\`\`${language || responseFormat}
+${code}
+\`\`\`
+
+Evaluate this submission. Return ONLY valid JSON.`;
+
+    try {
+      const completion = await openai.chat.completions.create({
+        model: 'gpt-4o-mini',
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userPrompt },
+        ],
+        response_format: { type: 'json_object' },
+        temperature: 0.3,
+        max_tokens: 1500,
+      });
+
+      const aiResult = JSON.parse(completion.choices[0].message.content || '{}');
+
+      // Ensure score is within bounds
+      const rawAIScore = Math.max(0, Math.min(100, aiResult.score || 0));
+      aiScore = (rawAIScore * aiWeight) / 100;
+      aiFeedback = aiResult;
+
+    } catch (error) {
+      console.error('OpenAI API error:', error);
+      return NextResponse.json(
+        { error: 'AI validation failed. Please try again.' },
+        { status: 500 }
+      );
+    }
+
+    // FINAL SCORE CALCULATION
+    const finalScore = Math.round(structureScore + aiScore);
+    const passed = finalScore >= 70;
+
+    // Calculate points earned (proportional to score)
+    const pointsEarned = Math.round((finalScore / 100) * challenge.points);
+
+    const result: ValidationResult = {
+      passed,
+      score: finalScore,
+      scoreBreakdown: {
+        ...(validationType === 'hybrid' && {
+          structure: {
+            score: Math.round(structureScore),
+            weight: testCases[0]?.structure_validation?.weight || 0,
+            feedback: structureFeedback,
+          },
+        }),
+        quality: {
+          score: Math.round(aiScore),
+          weight: aiWeight,
+          feedback: aiFeedback.scoreBreakdown || {},
+        },
+      },
+      strengths: aiFeedback.strengths || [],
+      improvements: aiFeedback.improvements || [],
+      codeQuality: aiFeedback.codeQuality || 'No detailed feedback available.',
+      pointsEarned,
+    };
+
+    return NextResponse.json(result);
+  } catch (error) {
+    console.error('Validation error:', error);
+    return NextResponse.json(
+      { error: 'Validation failed. Please try again.' },
+      { status: 500 }
+    );
+  }
+}

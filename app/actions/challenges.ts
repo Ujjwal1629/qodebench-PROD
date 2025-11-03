@@ -595,3 +595,325 @@ export const getCategoryStats = cache(async (): Promise<CategoryStat[]> => {
     return [];
   }
 });
+
+// ============================================================================
+// TIER-BASED CHALLENGE SYSTEM FUNCTIONS
+// ============================================================================
+
+import { ChallengeTier, TIERS, TIER_ORDER } from '@/lib/constants/dashboard';
+import {
+  isChallengeUnlocked,
+  getCompletionStatsByTier,
+  getNextChallengeInTier,
+  type Challenge as UnlockChallenge,
+  type UserProgress,
+} from '@/lib/utils/challenge-unlock';
+
+export type TierProgressStats = {
+  tier: ChallengeTier;
+  name: string;
+  description: string;
+  icon: string;
+  completed: number;
+  total: number;
+  percentage: number;
+  isUnlocked: boolean;
+  unlockRequirement?: string;
+  nextChallenge?: {
+    id: string;
+    slug: string;
+    title: string;
+    order: number;
+  } | null;
+};
+
+/**
+ * Get tier progress for all tiers
+ */
+export const getTierProgress = cache(async (): Promise<TierProgressStats[]> => {
+  try {
+    const supabase = await createClient();
+
+    // Get authenticated user
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    // Get all active challenges
+    const { data: challenges } = await supabase
+      .from('challenges')
+      .select('id, slug, title, tier, order_in_tier, unlock_requirement_type, unlock_requirement_count, previous_challenge_id')
+      .eq('is_active', true)
+      .order('tier')
+      .order('order_in_tier');
+
+    if (!challenges) {
+      return TIER_ORDER.map((tierId) => {
+        const tierInfo = TIERS[tierId];
+        return {
+          tier: tierId,
+          name: tierInfo.name,
+          description: tierInfo.description,
+          icon: tierInfo.icon,
+          completed: 0,
+          total: tierInfo.totalChallenges,
+          percentage: 0,
+          isUnlocked: tierId === 'beginner',
+          unlockRequirement: tierInfo.unlockRequirement.description,
+          nextChallenge: null,
+        };
+      });
+    }
+
+    // Get user progress if authenticated
+    let userProgress: UserProgress[] = [];
+    if (user) {
+      const { data: progressData } = await supabase
+        .from('roadmap_progress')
+        .select('challenge_id, status')
+        .eq('user_id', user.id);
+
+      userProgress = progressData || [];
+    }
+
+    // Calculate completion stats by tier
+    const statsByTier = getCompletionStatsByTier(
+      challenges as unknown as UnlockChallenge[],
+      userProgress
+    );
+
+    // Build tier progress array
+    const tierProgress: TierProgressStats[] = TIER_ORDER.map((tierId) => {
+      const tierInfo = TIERS[tierId];
+      const stats = statsByTier[tierId];
+      const percentage = stats.total > 0 ? Math.round((stats.completed / stats.total) * 100) : 0;
+
+      // Check if tier is unlocked
+      let isUnlocked = tierInfo.unlockRequirement.type === 'none';
+      if (
+        tierInfo.unlockRequirement.type === 'tier_completion' &&
+        tierInfo.unlockRequirement.previousTier &&
+        tierInfo.unlockRequirement.requiredCount
+      ) {
+        const previousTier = tierInfo.unlockRequirement.previousTier;
+        const requiredCount = tierInfo.unlockRequirement.requiredCount;
+        const previousCompleted = statsByTier[previousTier].completed;
+        isUnlocked = previousCompleted >= requiredCount;
+      }
+
+      // Get next challenge in tier
+      const nextChallenge = user
+        ? getNextChallengeInTier(tierId, challenges as unknown as UnlockChallenge[], userProgress)
+        : null;
+
+      return {
+        tier: tierId,
+        name: tierInfo.name,
+        description: tierInfo.description,
+        icon: tierInfo.icon,
+        completed: stats.completed,
+        total: stats.total,
+        percentage,
+        isUnlocked,
+        unlockRequirement: tierInfo.unlockRequirement.description,
+        nextChallenge: nextChallenge
+          ? {
+              id: nextChallenge.id,
+              slug: nextChallenge.slug,
+              title: nextChallenge.title,
+              order: nextChallenge.order_in_tier,
+            }
+          : null,
+      };
+    });
+
+    return tierProgress;
+  } catch (error) {
+    console.error('Error fetching tier progress:', error);
+    return [];
+  }
+});
+
+/**
+ * Get challenges by tier with unlock status
+ */
+export const getChallengesByTier = cache(
+  async (tier: ChallengeTier): Promise<{
+    challenges: (ChallengeWithProgress & {
+      order_in_tier: number;
+      isUnlocked: boolean;
+      unlockReason?: string;
+    })[];
+    tierInfo: TierProgressStats;
+  }> => {
+    try {
+      const supabase = await createClient();
+
+      // Get authenticated user
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      // Get all challenges in this tier
+      const { data: challenges } = await supabase
+        .from('challenges')
+        .select('*')
+        .eq('tier', tier)
+        .eq('is_active', true)
+        .order('order_in_tier');
+
+      if (!challenges || challenges.length === 0) {
+        const tierInfo = TIERS[tier];
+        return {
+          challenges: [],
+          tierInfo: {
+            tier,
+            name: tierInfo.name,
+            description: tierInfo.description,
+            icon: tierInfo.icon,
+            completed: 0,
+            total: 0,
+            percentage: 0,
+            isUnlocked: tier === 'beginner',
+            unlockRequirement: tierInfo.unlockRequirement.description,
+            nextChallenge: null,
+          },
+        };
+      }
+
+      // Get all challenges and user progress for unlock checks
+      const { data: allChallenges } = await supabase
+        .from('challenges')
+        .select('id, slug, title, tier, order_in_tier, unlock_requirement_type, unlock_requirement_count, previous_challenge_id')
+        .eq('is_active', true);
+
+      let userProgress: UserProgress[] = [];
+      if (user) {
+        const { data: progressData } = await supabase
+          .from('roadmap_progress')
+          .select('challenge_id, status, attempts')
+          .eq('user_id', user.id);
+
+        userProgress = progressData || [];
+      }
+
+      // Map challenges with unlock status
+      const challengesWithUnlock = challenges
+        .filter((challenge) => challenge.order_in_tier !== null) // Filter out challenges without order
+        .map((challenge) => {
+          const progress = userProgress.find((p) => p.challenge_id === challenge.id);
+          const unlockStatus = isChallengeUnlocked(
+            challenge as unknown as UnlockChallenge,
+            (allChallenges || []) as unknown as UnlockChallenge[],
+            userProgress
+          );
+
+          return {
+            ...challenge,
+            order_in_tier: challenge.order_in_tier!, // Assert non-null after filter
+            userProgress: progress
+              ? { status: progress.status }
+              : null,
+            isUnlocked: unlockStatus.isUnlocked,
+            unlockReason: unlockStatus.reason,
+          };
+        });
+
+      // Get tier stats
+      const tierStats = await getTierProgress();
+      const currentTierStats = tierStats.find((t) => t.tier === tier) || {
+        tier,
+        name: TIERS[tier].name,
+        description: TIERS[tier].description,
+        icon: TIERS[tier].icon,
+        completed: 0,
+        total: challenges.length,
+        percentage: 0,
+        isUnlocked: tier === 'beginner',
+        unlockRequirement: TIERS[tier].unlockRequirement.description,
+        nextChallenge: null,
+      };
+
+      return {
+        challenges: challengesWithUnlock,
+        tierInfo: currentTierStats,
+      };
+    } catch (error) {
+      console.error('Error fetching challenges by tier:', error);
+      const tierInfo = TIERS[tier];
+      return {
+        challenges: [],
+        tierInfo: {
+          tier,
+          name: tierInfo.name,
+          description: tierInfo.description,
+          icon: tierInfo.icon,
+          completed: 0,
+          total: 0,
+          percentage: 0,
+          isUnlocked: tier === 'beginner',
+          unlockRequirement: tierInfo.unlockRequirement.description,
+          nextChallenge: null,
+        },
+      };
+    }
+  }
+);
+
+/**
+ * Check if a specific challenge is unlocked
+ */
+export const checkChallengeUnlocked = cache(
+  async (challengeId: string): Promise<{ isUnlocked: boolean; reason?: string }> => {
+    try {
+      const supabase = await createClient();
+
+      // Get authenticated user
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        return { isUnlocked: false, reason: 'Not authenticated' };
+      }
+
+      // Get the challenge
+      const { data: challenge } = await supabase
+        .from('challenges')
+        .select('id, slug, title, tier, order_in_tier, unlock_requirement_type, unlock_requirement_count, previous_challenge_id')
+        .eq('id', challengeId)
+        .eq('is_active', true)
+        .single();
+
+      if (!challenge) {
+        return { isUnlocked: false, reason: 'Challenge not found' };
+      }
+
+      // Get all challenges
+      const { data: allChallenges } = await supabase
+        .from('challenges')
+        .select('id, slug, title, tier, order_in_tier, unlock_requirement_type, unlock_requirement_count, previous_challenge_id')
+        .eq('is_active', true);
+
+      // Get user progress
+      const { data: progressData } = await supabase
+        .from('roadmap_progress')
+        .select('challenge_id, status')
+        .eq('user_id', user.id);
+
+      const userProgress: UserProgress[] = progressData || [];
+
+      // Check unlock status
+      const unlockStatus = isChallengeUnlocked(
+        challenge as unknown as UnlockChallenge,
+        (allChallenges || []) as unknown as UnlockChallenge[],
+        userProgress
+      );
+
+      return unlockStatus;
+    } catch (error) {
+      console.error('Error checking challenge unlock status:', error);
+      return { isUnlocked: false, reason: 'Error checking unlock status' };
+    }
+  }
+);
