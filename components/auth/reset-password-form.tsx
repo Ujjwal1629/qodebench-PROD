@@ -11,6 +11,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
+import { AlertCircle, Clock } from 'lucide-react';
 
 const resetPasswordSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
@@ -20,6 +21,7 @@ type ResetPasswordFormValues = z.infer<typeof resetPasswordSchema>;
 
 export function ResetPasswordForm() {
   const [isSuccess, setIsSuccess] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const { resetPassword } = useAuth();
   const { toast } = useToast();
 
@@ -31,6 +33,9 @@ export function ResetPasswordForm() {
   });
 
   const onSubmit = async (values: ResetPasswordFormValues) => {
+    // Clear previous errors
+    setErrorMessage(null);
+
     try {
       await resetPassword(values.email);
       setIsSuccess(true);
@@ -40,11 +45,9 @@ export function ResetPasswordForm() {
       });
       form.reset();
     } catch (error) {
-      toast({
-        title: 'Error',
-        description: error instanceof Error ? error.message : 'Failed to send reset link',
-        variant: 'destructive',
-      });
+      const message = error instanceof Error ? error.message : 'Failed to send reset link';
+      setErrorMessage(message);
+      // Don't show toast - inline message is clearer
     }
   };
 
@@ -77,6 +80,29 @@ export function ResetPasswordForm() {
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
             <CardContent className="space-y-4">
+              {errorMessage && (
+                <div className="rounded-lg bg-red-50 border border-red-200 p-4">
+                  <div className="flex items-start gap-3">
+                    {errorMessage.toLowerCase().includes('security purposes') ||
+                     errorMessage.toLowerCase().includes('12 seconds') ? (
+                      <Clock className="h-5 w-5 text-red-600 mt-0.5 flex-shrink-0" />
+                    ) : (
+                      <AlertCircle className="h-5 w-5 text-red-600 mt-0.5 flex-shrink-0" />
+                    )}
+                    <div className="flex-1">
+                      <h4 className="text-sm font-semibold text-red-900 mb-1">
+                        {errorMessage.toLowerCase().includes('security purposes') ||
+                         errorMessage.toLowerCase().includes('12 seconds')
+                          ? 'Please Wait'
+                          : 'Error'}
+                      </h4>
+                      <p className="text-sm text-red-800">
+                        {errorMessage}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
               <FormField
                 control={form.control}
                 name="email"
@@ -89,6 +115,13 @@ export function ResetPasswordForm() {
                         placeholder="you@example.com"
                         disabled={form.formState.isSubmitting}
                         {...field}
+                        onChange={(e) => {
+                          field.onChange(e);
+                          // Clear error when user starts typing
+                          if (errorMessage) {
+                            setErrorMessage(null);
+                          }
+                        }}
                       />
                     </FormControl>
                     <FormMessage />

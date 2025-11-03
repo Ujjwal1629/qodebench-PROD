@@ -114,6 +114,8 @@ export function SignUpForm() {
         setEmailError({
           message: 'This email is already registered. Please sign in instead.',
         });
+        // Don't show toast for email already registered - inline message is clearer
+        return;
       }
 
       toast({
