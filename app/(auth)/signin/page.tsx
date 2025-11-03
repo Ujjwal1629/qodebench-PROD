@@ -1,5 +1,5 @@
-import { SignInForm } from '@/components/auth/signin-form';
+import { redirect } from 'next/navigation';
 
 export default function SignInPage() {
-  return <SignInForm />;
+  redirect('/');
 }
