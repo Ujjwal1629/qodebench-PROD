@@ -30,16 +30,47 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { passed, score, codeQuality, improvements, suggestions } =
+    const { passed, score, codeQuality, improvements, suggestions, strengths } =
       validationResult;
 
-    // Calculate points based on validation result
-    console.log('Fetching challenge details...');
-    const { data: challenge, error: challengeFetchError } = await supabase
-      .from('challenges')
-      .select('points')
-      .eq('id', challengeId)
-      .single();
+    const pointsEarned = validationResult.pointsEarned || 0;
+
+    // Parallelize independent database operations
+    console.log('Executing parallel database operations...');
+    const [
+      { data: challenge, error: challengeFetchError },
+      { data: submission, error: submissionError }
+    ] = await Promise.all([
+      // Fetch challenge details
+      supabase
+        .from('challenges')
+        .select('points, tier, order_in_tier')
+        .eq('id', challengeId)
+        .single(),
+
+      // Create submission
+      supabase
+        .from('submissions')
+        .insert({
+          user_id: user.id,
+          challenge_id: challengeId,
+          code,
+          language: language || 'javascript',
+          status: passed ? 'passed' : 'failed',
+          ai_feedback: JSON.stringify({
+            codeQuality,
+            improvements,
+            ...(suggestions && { suggestions }),
+            ...(strengths && { strengths }),
+          }),
+          score,
+          passed_tests: passed ? 1 : 0,
+          total_tests: 1,
+          points_earned: pointsEarned,
+        })
+        .select()
+        .single()
+    ]);
 
     if (challengeFetchError) {
       console.error('Challenge fetch error:', challengeFetchError);
@@ -56,31 +87,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const pointsEarned = validationResult.pointsEarned || 0;
-    console.log('Creating submission...');
-
-    // Create submission
-    const { data: submission, error: submissionError } = await supabase
-      .from('submissions')
-      .insert({
-        user_id: user.id,
-        challenge_id: challengeId,
-        code,
-        language: language || 'javascript',
-        status: passed ? 'passed' : 'failed',
-        ai_feedback: JSON.stringify({
-          codeQuality,
-          improvements,
-          suggestions,
-        }),
-        score,
-        passed_tests: passed ? 1 : 0,
-        total_tests: 1,
-        points_earned: pointsEarned,
-      })
-      .select()
-      .single();
-
     if (submissionError) {
       console.error('Submission error:', submissionError);
       return NextResponse.json(
@@ -89,9 +95,8 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    console.log('Updating roadmap progress...');
-    // Update roadmap progress
-    const { error: progressError } = await supabase
+    // Update roadmap progress (non-blocking - fire and forget)
+    supabase
       .from('roadmap_progress')
       .upsert(
         {
@@ -105,76 +110,48 @@ export async function POST(req: NextRequest) {
         {
           onConflict: 'user_id,challenge_id',
         }
-      );
+      )
+      .then(({ error }) => {
+        if (error) console.error('Progress update error:', error);
+      });
 
-    if (progressError) {
-      console.error('Progress update error:', progressError);
-      // Don't fail the whole request if progress update fails
-    }
-
-    // Check if this completion unlocks a new tier
+    // Check if this completion unlocks a new tier (simplified and faster)
     let tierUnlocked = null;
     let nextChallenge = null;
 
-    if (passed) {
+    if (passed && challenge.tier) {
       try {
-        // Get the completed challenge details
-        const { data: completedChallenge, error: challengeError } = await supabase
-          .from('challenges')
-          .select('tier, order_in_tier')
-          .eq('id', challengeId)
-          .single();
+        // Parallelize tier unlock queries
+        const [
+          { data: allChallenges },
+          { data: progressData }
+        ] = await Promise.all([
+          // Only get tier-based challenges from the same tier (optimized)
+          supabase
+            .from('challenges')
+            .select('id, slug, title, tier, order_in_tier')
+            .eq('is_active', true)
+            .eq('tier', challenge.tier)
+            .order('order_in_tier'),
 
-        if (challengeError) {
-          console.error('Error fetching challenge details:', challengeError);
-        }
+          // Get user progress
+          supabase
+            .from('roadmap_progress')
+            .select('challenge_id, status')
+            .eq('user_id', user.id)
+        ]);
 
-        // Get all challenges and user progress (filter only tier-based challenges)
-        const { data: allChallenges, error: allChallengesError } = await supabase
-          .from('challenges')
-          .select('id, slug, title, tier, order_in_tier, unlock_requirement_type, unlock_requirement_count, previous_challenge_id')
-          .eq('is_active', true)
-          .not('tier', 'is', null); // Only get challenges with tier information
-
-        if (allChallengesError) {
-          console.error('Error fetching all challenges:', allChallengesError);
-        }
-
-        const { data: progressData, error: progressError } = await supabase
-          .from('roadmap_progress')
-          .select('challenge_id, status')
-          .eq('user_id', user.id);
-
-        if (progressError) {
-          console.error('Error fetching progress data:', progressError);
-        }
-
-        // Only proceed with tier unlock logic if we have tier information for this challenge
-        if (completedChallenge?.tier && allChallenges && allChallenges.length > 0) {
-          // Dynamically import unlock utilities to avoid circular dependencies
-          const { checkTierUnlock, getNextChallengeInTier } = await import('@/lib/utils/challenge-unlock');
-
+        if (allChallenges && allChallenges.length > 0) {
+          // Find next challenge in tier
           const userProgress = progressData || [];
-
-          // Check for tier unlock
-          const unlockResult = checkTierUnlock(
-            { ...completedChallenge, id: challengeId } as any,
-            allChallenges as any,
-            userProgress as any
+          const completedIds = new Set(
+            userProgress.filter(p => p.status === 'completed').map(p => p.challenge_id)
           );
+          completedIds.add(challengeId); // Add current
 
-          if (unlockResult.tierUnlocked) {
-            tierUnlocked = unlockResult.tierUnlocked;
-          }
-
-          // Get next challenge in current tier
-          const next = getNextChallengeInTier(
-            completedChallenge.tier as any,
-            allChallenges as any,
-            [
-              ...userProgress,
-              { challenge_id: challengeId, status: 'completed' as const },
-            ] as any
+          const next = allChallenges.find(
+            c => c.id !== challengeId && !completedIds.has(c.id) &&
+            (c.order_in_tier || 0) > (challenge.order_in_tier || 0)
           );
 
           if (next) {
@@ -184,8 +161,6 @@ export async function POST(req: NextRequest) {
               title: next.title,
             };
           }
-        } else {
-          console.log('Challenge does not have tier information, skipping tier unlock logic');
         }
       } catch (tierError) {
         // Don't fail submission if tier unlock logic fails

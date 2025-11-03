@@ -60,11 +60,12 @@ export function TopBar({ pageTitle = 'Dashboard', user }: TopBarProps) {
         {/* Right: User menu */}
         <div className="flex items-center gap-2 sm:gap-4">
           {/* User dropdown */}
-          <DropdownMenu>
+          <DropdownMenu modal={false}>
             <DropdownMenuTrigger asChild>
               <Button
                 variant="ghost"
                 className="relative h-10 w-10 rounded-full p-0"
+                suppressHydrationWarning
               >
                 <Avatar className="h-10 w-10">
                   <AvatarImage

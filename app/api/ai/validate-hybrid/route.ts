@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
 import { createClient } from '@/lib/supabase/server';
+import { validationCache } from '@/lib/utils/validation-cache';
 
 interface StructureValidation {
   weight: number;
@@ -13,6 +14,13 @@ interface StructureValidation {
 interface AIQualityCheck {
   weight: number;
   criteria: Record<string, any>;
+}
+
+interface ImprovedFeedback {
+  issue: string;
+  yourCode: string | null;
+  betterApproach: string;
+  explanation: string;
 }
 
 interface ValidationResult {
@@ -31,17 +39,13 @@ interface ValidationResult {
     };
   };
   strengths: string[];
-  improvements: string[];
+  improvements: ImprovedFeedback[];
   codeQuality: string;
   pointsEarned: number;
 }
 
 export async function POST(req: NextRequest) {
   try {
-    const openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY || '',
-    });
-
     const supabase = await createClient();
 
     // Check auth
@@ -61,6 +65,17 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
+
+    // Check cache first - instant response if found
+    const cachedResult = validationCache.get(challengeId, code);
+    if (cachedResult) {
+      console.log('✅ Hybrid cache hit for challenge:', challengeId);
+      return NextResponse.json(cachedResult);
+    }
+
+    const openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY || '',
+    });
 
     // Get challenge details
     const { data: challenge } = await supabase
@@ -245,44 +260,30 @@ export async function POST(req: NextRequest) {
       })
       .join('\n\n');
 
-    const systemPrompt = `You are an expert reviewer evaluating ${responseFormat === 'markdown' ? 'documentation' : 'code'}.
+    const systemPrompt = `${responseFormat === 'markdown' ? 'Documentation' : 'Code'} quality evaluator. ${validationType === 'hybrid' ? 'Structure validated separately - focus on QUALITY only.' : ''}
 
-${validationType === 'hybrid' ? 'Note: Structure has already been validated separately. Focus ONLY on content QUALITY.' : ''}
-
-Evaluation Criteria:
+Criteria:
 ${criteriaText}
 
-CRITICAL SCORING RULES:
-1. Score must be between 0-100 (integer)
-2. Be fair but realistic - perfect score (100) is rare
-3. 70+ = Passed (good quality)
-4. 50-69 = Needs improvement
-5. Below 50 = Significant issues
-
-Return JSON:
+Score 0-100 (70+ = Pass). Return JSON:
 {
-  "score": number (0-100),
-  "scoreBreakdown": {
-    "area_name": { "score": number, "feedback": string }
-  },
-  "strengths": string[] (2-4 specific things done well),
-  "improvements": string[] (2-4 specific actionable improvements),
-  "codeQuality": string (2-3 sentence overall assessment)
+  "score": number,
+  "scoreBreakdown": {"area_name": {"score": number, "feedback": string}},
+  "strengths": string[],
+  "improvements": [{"issue": string, "yourCode": string|null, "betterApproach": string, "explanation": string}],
+  "codeQuality": string
 }`;
 
     const userPrompt = `Challenge: ${challenge.title}
 
-${challenge.description ? `Description: ${challenge.description.substring(0, 500)}...` : ''}
+${challenge.description ? `${challenge.description.substring(0, 250)}...` : ''}
 
-Learning Objectives:
-${challenge.learning_objectives?.join('\n') || 'N/A'}
-
-Submitted Solution (${language || responseFormat}):
+Solution (${language || responseFormat}):
 \`\`\`${language || responseFormat}
 ${code}
 \`\`\`
 
-Evaluate this submission. Return ONLY valid JSON.`;
+Return JSON only.`;
 
     try {
       const completion = await openai.chat.completions.create({
@@ -293,7 +294,7 @@ Evaluate this submission. Return ONLY valid JSON.`;
         ],
         response_format: { type: 'json_object' },
         temperature: 0.3,
-        max_tokens: 1500,
+        max_tokens: 1000, // Reduced from 1500 (optimized prompts)
       });
 
       const aiResult = JSON.parse(completion.choices[0].message.content || '{}');
@@ -340,6 +341,9 @@ Evaluate this submission. Return ONLY valid JSON.`;
       codeQuality: aiFeedback.codeQuality || 'No detailed feedback available.',
       pointsEarned,
     };
+
+    // Store in cache for future identical submissions
+    validationCache.set(challengeId, code, result);
 
     return NextResponse.json(result);
   } catch (error) {

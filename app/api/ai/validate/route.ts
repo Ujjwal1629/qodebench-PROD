@@ -1,14 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
 import { createClient } from '@/lib/supabase/server';
+import { validationCache } from '@/lib/utils/validation-cache';
 
 export async function POST(req: NextRequest) {
   try {
-    // Initialize OpenAI client only when needed
-    const openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY || '',
-    });
-
     const supabase = await createClient();
 
     // Check auth
@@ -29,6 +25,18 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Check cache first - instant response if found
+    const cachedResult = validationCache.get(challengeId, code);
+    if (cachedResult) {
+      console.log('✅ Cache hit for challenge:', challengeId);
+      return NextResponse.json(cachedResult);
+    }
+
+    // Initialize OpenAI client only when needed
+    const openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY || '',
+    });
+
     // Get challenge details
     const { data: challenge } = await supabase
       .from('challenges')
@@ -43,14 +51,14 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Get previous submissions for this user and challenge
+    // Get only the last submission for comparison (reduced from 3 to 1 for performance)
     const { data: previousSubmissions } = await supabase
       .from('submissions')
-      .select('code, score, ai_feedback, status, submitted_at')
+      .select('score, status, submitted_at')
       .eq('user_id', user.id)
       .eq('challenge_id', challengeId)
       .order('submitted_at', { ascending: false })
-      .limit(3); // Get last 3 attempts for context
+      .limit(1);
 
     // Check if this is an office challenge with AI validation criteria
     const isOfficeChallenge = challenge.category === 'office' || challenge.category === 'office-fundamentals';
@@ -63,61 +71,38 @@ export async function POST(req: NextRequest) {
     let userPrompt = '';
 
     if (isOfficeChallenge && aiValidationCriteria) {
-      // Office challenge with AI validation criteria
+      // Office challenge with AI validation criteria (optimized)
       const criteriaText = Object.entries(aiValidationCriteria)
         .map(([area, details]: [string, any]) => {
-          const checks = details.checks?.join('\n   - ') || '';
-          return `**${area}** (Weight: ${details.weight}%)
-   ${details.description}
-   Checks:
-   - ${checks}`;
+          return `${area} (${details.weight}%): ${details.description || ''}`;
         })
-        .join('\n\n');
+        .join('\n');
 
-      const bestPractices = challenge.test_cases[0].best_practices_reference?.join('\n- ') || '';
-
-      systemPrompt = `You are an expert reviewer specializing in code review, documentation, and professional development practices.
-
-For this office essentials challenge, evaluate the submission using these criteria:
+      systemPrompt = `Office essentials evaluator. Score based on:
 
 ${criteriaText}
 
-Best Practices Reference:
-- ${bestPractices}
-
-Return a JSON object with:
+Return JSON:
 {
   "passed": boolean (score >= 70),
-  "score": number (0-100, weighted average of all areas),
-  "scoreBreakdown": {
-    "area_name": { "score": number, "feedback": string }
-  },
-  "strengths": string[] (what they did well),
-  "improvements": string[] (specific, actionable improvements),
-  "bestPracticesValidation": {
-    "followed": string[] (practices they followed correctly),
-    "missed": string[] (practices they should apply)
-  },
-  "codeQuality": string (overall assessment in 2-3 sentences),
-  "suggestions": string[] (concrete suggestions for improvement),
-  "realWorldContext": string (explain how this applies in real work scenarios, 2-3 sentences)
-}
-
-Be thorough but encouraging. Focus on learning and real-world applicability.`;
+  "score": number (0-100),
+  "scoreBreakdown": {"area_name": {"score": number, "feedback": string}},
+  "strengths": string[],
+  "improvements": [{"issue": string, "yourCode": string|null, "betterApproach": string, "explanation": string}],
+  "codeQuality": string,
+  "suggestions": string[]
+}`;
 
       userPrompt = `Challenge: ${challenge.title}
 
-Description: ${challenge.description}
+${challenge.description ? `${challenge.description.substring(0, 300)}...` : ''}
 
-Learning Objectives:
-${challenge.learning_objectives?.join('\n') || 'N/A'}
-
-Submitted Solution (${language || 'text'}):
+Solution (${language || 'text'}):
 \`\`\`${language || 'text'}
 ${code}
 \`\`\`
 
-Evaluate this submission using the AI validation criteria provided. Return ONLY a valid JSON object.`;
+Return JSON only.`;
     } else {
       // Traditional code challenge
       const hasPreviousAttempts = previousSubmissions && previousSubmissions.length > 0;
@@ -126,140 +111,78 @@ Evaluate this submission using the AI validation criteria provided. Return ONLY 
       const hasPreviousValidation = previousAttempt && previousAttempt.code && previousAttempt.score;
 
       if (hasPreviousValidation) {
-        // Compare to previous VALIDATION attempt (in current session)
+        // Compare to previous VALIDATION attempt (optimized)
         const lastScore = previousAttempt.score;
-        const lastCode = previousAttempt.code;
 
-        systemPrompt = `You are an expert code reviewer providing DETERMINISTIC scoring by comparing code changes.
+        systemPrompt = `Code reviewer: Previous attempt scored ${lastScore}/100.
 
-CRITICAL RULES - FOLLOW EXACTLY:
-1. Previous validation attempt scored ${lastScore}/100
-2. Compare line-by-line: What's DIFFERENT in the new code?
-3. Score changes based on actual code differences:
-   - NO changes = EXACT SAME score (${lastScore}/100)
-   - Minor formatting/whitespace only = ±1 point max
-   - Fixed a bug/issue = +10 to +20 points
-   - Added new features = +15 to +30 points
-   - Made it worse/broke something = -10 to -30 points
-4. You MUST explain EXACTLY what code changed
+Evaluate the new code objectively:
+- If code appears identical/minimal changes: score near ${lastScore}
+- If significant improvements: score higher
+- If issues introduced: score lower
 
-Previous Validation Attempt:
-\`\`\`
-${lastCode}
-\`\`\`
-Score: ${lastScore}/100
-
-Analyze the NEW code below and return JSON:
+Return JSON:
 {
-  "score": number (0-100, STRICTLY based on actual code differences from previous validation),
+  "score": number (0-100),
   "passed": boolean (score >= 70),
-  "comparedToPrevious": string (SPECIFIC code changes: "You changed X to Y which improved/worsened Z"),
-  "codeChanges": string (detailed list of actual code differences found),
-  "scoreChange": number (difference from previous validation: ${lastScore}),
-  "scoreJustification": string (explain why score changed or stayed same),
   "strengths": string[],
   "improvements": string[],
   "suggestions": string[]
-}
-
-BE DETERMINISTIC: Same code = same score. Different code = different score based on changes.`;
+}`;
 
       } else if (hasPreviousAttempts) {
-        // Compare to previous SUBMISSION (from DB)
+        // Compare to previous SUBMISSION (from DB) - simplified version
         const lastSubmission = previousSubmissions![0];
         const lastScore = lastSubmission.score || 0;
 
-        // Build detailed comparison
-        const previousContext = previousSubmissions!
-          .map((sub, index) => {
-            return `Submission ${previousSubmissions!.length - index} (${new Date(sub.submitted_at).toLocaleDateString()}):
-- Score: ${sub.score}/100
-- Status: ${sub.status}
-- Full Code:
-\`\`\`
-${sub.code}
-\`\`\``;
-          })
-          .join('\n\n---\n\n');
+        systemPrompt = `You are a code reviewer. Previous submission scored ${lastScore}/100 on ${new Date(lastSubmission.submitted_at).toLocaleDateString()}.
 
-        systemPrompt = `You are an expert code reviewer providing DETERMINISTIC scoring by comparing code changes.
+Evaluate the new code objectively:
+- Score (0-100): Correctness (60%) + Code quality (25%) + Best practices (15%)
+- Pass threshold: 70+
+- Be fair and consistent
 
-CRITICAL RULES - FOLLOW EXACTLY:
-1. Last submission scored ${lastScore}/100
-2. Compare line-by-line: What's DIFFERENT in the new code?
-3. Score changes based on actual code differences:
-   - NO changes = EXACT SAME score (${lastScore}/100)
-   - Minor formatting only = ±2 points max
-   - Fixed a bug/issue = +10 to +20 points
-   - Added new features = +15 to +30 points
-   - Made it worse/broke something = -10 to -30 points
-4. You MUST explain EXACTLY what code changed
-
-Previous Submission History:
-${previousContext}
-
-Analyze the NEW code below and return JSON:
+Return JSON:
 {
-  "score": number (0-100, STRICTLY based on actual code differences from last submission),
+  "score": number (0-100),
   "passed": boolean (score >= 70),
-  "comparedToPrevious": string (SPECIFIC code changes: "You changed X to Y which improved/worsened Z"),
-  "codeChanges": string (detailed list of actual code differences found),
-  "scoreChange": number (difference from last score: ${lastScore}),
-  "scoreJustification": string (explain why score changed or stayed same),
   "strengths": string[],
   "improvements": string[],
   "suggestions": string[]
-}
-
-BE DETERMINISTIC: Same code = same score. Different code = different score based on changes.`;
+}`;
 
       } else {
-        // First attempt - standard scoring
-        systemPrompt = `You are an expert code reviewer and senior developer providing practical, balanced feedback.
+        // First attempt - optimized prompt
+        systemPrompt = `Code reviewer: Evaluate objectively and provide constructive feedback.
 
-IMPORTANT EVALUATION PRINCIPLES:
-1. **Prioritize Correctness**: If the code solves the problem correctly (matches expected output), that's most important
-2. **Be Pragmatic**: Don't penalize for not using specific methods/techniques if they're not needed for the solution
-3. **Requirements vs Examples**: If requirements contradict the example output, judge based on whether the solution works for the given example
-4. **Real-world Focus**: Evaluate like a senior engineer reviewing a PR - does it work? Is it readable? Is it reasonable?
+Score (0-100):
+- Correctness (60%): Does it solve the problem?
+- Code quality (25%): Clean and readable?
+- Best practices (15%): Proper structure?
 
-**Score (0-100)** Based on:
-- Correctness: Does it solve the problem correctly? (60%)
-- Code quality: Clean, readable code (25%)
-- Best practices: Proper naming, structure (15%)
+Pass: 70+
 
-**Scoring Guidelines**:
-- 85-100: Correct solution, clean code, follows best practices
-- 70-84: Correct solution, minor code quality issues
-- 50-69: Works but has significant issues or partially correct
-- Below 50: Doesn't solve the problem correctly
-
-**Feedback Structure** (JSON):
+Return JSON:
 {
-  "passed": boolean (score >= 70),
+  "passed": boolean,
   "score": number (0-100),
-  "strengths": string[] (what they did well - be specific and encouraging),
-  "improvements": string[] (only mention if truly important - focus on meaningful issues, not nitpicks),
-  "codeQuality": string (2-3 sentences - balanced assessment),
-  "suggestions": string[] (concrete, actionable suggestions - focus on high-impact improvements)
-}
-
-Be encouraging and focus on learning. Don't be overly critical about style preferences or methods not used if the solution works correctly.`;
+  "strengths": string[],
+  "improvements": [{"issue": string, "yourCode": string|null, "betterApproach": string, "explanation": string}],
+  "codeQuality": string,
+  "suggestions": string[]
+}`;
       }
 
       userPrompt = `Challenge: ${challenge.title}
 
-Description: ${challenge.description}
+${challenge.description ? `Description: ${challenge.description.substring(0, 300)}...` : ''}
 
-Learning Objectives:
-${challenge.learning_objectives?.join('\n') || 'N/A'}
-
-Submitted Code (${language}):
+Code (${language}):
 \`\`\`${language}
 ${code}
 \`\`\`
 
-Analyze this code and return ONLY a valid JSON object with the structure specified in the system prompt.`;
+Return valid JSON only.`;
     }
 
     // Validate code using OpenAI
@@ -276,7 +199,7 @@ Analyze this code and return ONLY a valid JSON object with the structure specifi
         },
       ],
       temperature: 0.1, // Very low temperature for consistency
-      max_tokens: isOfficeChallenge ? 1500 : 1200, // More tokens for comparison
+      max_tokens: isOfficeChallenge ? 1000 : 800, // Reduced tokens (optimized prompts)
       response_format: { type: 'json_object' },
     });
 
@@ -284,29 +207,22 @@ Analyze this code and return ONLY a valid JSON object with the structure specifi
       completion.choices[0].message.content || '{}'
     );
 
-    // Calculate points earned based on score and difficulty
-    const difficultyMultiplier = {
-      easy: 1,
-      medium: 1.5,
-      hard: 2,
-    };
-
-    const multiplier = difficultyMultiplier[
-      challenge.difficulty as keyof typeof difficultyMultiplier
-    ] || 1;
-
-    const maxPossiblePoints = Math.round(challenge.points * multiplier);
-
+    // Calculate points earned based on score (proportional to base points)
     const pointsEarned = result.passed
-      ? Math.round((result.score / 100) * challenge.points * multiplier)
+      ? Math.round((result.score / 100) * challenge.points)
       : 0;
 
-    return NextResponse.json({
+    const response = {
       ...result,
       pointsEarned,
-      maxPoints: maxPossiblePoints, // Now shows actual max with multiplier
+      maxPoints: challenge.points,
       difficulty: challenge.difficulty,
-    });
+    };
+
+    // Store in cache for future identical submissions
+    validationCache.set(challengeId, code, response);
+
+    return NextResponse.json(response);
   } catch (error) {
     console.error('Error validating code:', error);
     return NextResponse.json(

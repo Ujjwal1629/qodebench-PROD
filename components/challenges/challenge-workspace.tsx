@@ -29,6 +29,11 @@ interface ChallengeWorkspaceProps {
 export function ChallengeWorkspace({ challenge }: ChallengeWorkspaceProps) {
   const router = useRouter();
 
+  // Scroll to top when challenge changes
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }, [challenge.id]);
+
   // Get response format and challenge type with intelligent fallback
   const isOfficeChallenge = challenge.category === 'office' || challenge.category === 'office-fundamentals';
 
@@ -471,7 +476,11 @@ export function ChallengeWorkspace({ challenge }: ChallengeWorkspaceProps) {
 
       {/* Submission Result Modal */}
       {hasSubmitted && submissionResult && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-in fade-in duration-200">
+        <div
+  className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-in fade-in duration-200"
+  style={{ marginTop: "auto" }}
+>
+
           <div className="rounded-xl bg-white p-8 text-center shadow-2xl max-w-md w-full animate-in zoom-in-95 duration-300">
             {validationResult.passed ? (
               <>

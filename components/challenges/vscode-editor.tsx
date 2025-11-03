@@ -3,28 +3,30 @@
 import { useState, useRef, useEffect } from 'react';
 import {
   Play,
+  RotateCcw,
+  Code2,
   FileCode,
+  Settings,
   Maximize2,
   Minimize2,
   Copy,
-  Check,
-  Code2
+  Check
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
-interface CodeEditorProps {
+interface VSCodeEditorProps {
   value: string;
   onChange: (value: string) => void;
   language: string;
   placeholder?: string;
 }
 
-export function CodeEditor({
+export function VSCodeEditor({
   value,
   onChange,
   language,
   placeholder,
-}: CodeEditorProps) {
+}: VSCodeEditorProps) {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [copied, setCopied] = useState(false);
   const [lineCount, setLineCount] = useState(1);
@@ -35,43 +37,6 @@ export function CodeEditor({
     const lines = (value || '').split('\n').length;
     setLineCount(lines);
   }, [value]);
-
-  // Get intelligent language display name
-  const getLanguageDisplay = () => {
-    const code = value || '';
-
-    // Check for React indicators
-    if (code.includes('import React') || code.includes('from "react"') || code.includes('from \'react\'') ||
-        code.includes('useState') || code.includes('useEffect') || code.includes('<')) {
-      return 'React';
-    }
-
-    // Check for Next.js indicators
-    if (code.includes('next/') || code.includes('from "next') || code.includes('from \'next')) {
-      return 'Next.js';
-    }
-
-    // Check for TypeScript
-    if (language === 'typescript' || code.includes(': string') || code.includes(': number') ||
-        code.includes('interface ') || code.includes('type ')) {
-      return 'TypeScript';
-    }
-
-    // Default to JavaScript or the provided language
-    return language.charAt(0).toUpperCase() + language.slice(1);
-  };
-
-  const displayLanguage = getLanguageDisplay();
-
-  // Get file extension
-  const getFileExtension = () => {
-    if (displayLanguage === 'TypeScript') return 'ts';
-    if (displayLanguage === 'React' || displayLanguage === 'Next.js') return 'jsx';
-    if (language === 'json') return 'json';
-    return 'js';
-  };
-
-  const fileExtension = getFileExtension();
 
   const handleCodeChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     onChange(e.target.value);
@@ -115,7 +80,7 @@ export function CodeEditor({
           <div className="flex items-center gap-2 ml-4">
             <FileCode className="h-4 w-4 text-blue-400" />
             <span className="text-sm text-slate-300 font-medium">
-              solution.{fileExtension}
+              solution.{language === 'javascript' ? 'js' : language === 'typescript' ? 'ts' : language === 'json' ? 'json' : 'txt'}
             </span>
           </div>
         </div>
@@ -160,16 +125,16 @@ export function CodeEditor({
         <div className="flex items-center gap-2 px-4 py-2 bg-[#1e1e1e] border-r border-slate-700">
           <FileCode className="h-3.5 w-3.5 text-blue-400" />
           <span className="text-xs text-slate-300">
-            solution.{fileExtension}
+            solution.{language === 'javascript' ? 'js' : language === 'typescript' ? 'ts' : 'txt'}
           </span>
           <div className="w-1 h-1 bg-slate-500 rounded-full ml-1"></div>
         </div>
       </div>
 
       {/* Editor Content Area */}
-      <div className="flex bg-[#1e1e1e] overflow-hidden" style={{ height: isFullscreen ? 'calc(100vh - 80px)' : '500px' }}>
+      <div className="flex bg-[#1e1e1e]" style={{ height: isFullscreen ? 'calc(100vh - 80px)' : '500px' }}>
         {/* Line Numbers */}
-        <div className="flex-shrink-0 bg-[#1e1e1e] border-r border-slate-800 py-4 px-2 select-none overflow-hidden" style={{ height: isFullscreen ? 'calc(100vh - 80px)' : '500px' }}>
+        <div className="flex-shrink-0 bg-[#1e1e1e] border-r border-slate-800 py-4 px-2 select-none">
           <div className="space-y-0 font-mono text-right" style={{ fontSize: '13px', lineHeight: '21px' }}>
             {Array.from({ length: Math.max(lineCount, 20) }, (_, i) => (
               <div
@@ -221,19 +186,19 @@ export function CodeEditor({
       </div>
 
       {/* VS Code Status Bar */}
-      <div className="flex items-center justify-between bg-[#007acc] px-4 py-1.5 text-xs text-white flex-shrink-0">
+      <div className="flex items-center justify-between bg-[#007acc] px-4 py-1 text-xs text-white">
         {/* Left Status */}
         <div className="flex items-center gap-4">
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1">
             <Code2 className="h-3 w-3" />
-            <span className="font-semibold">{displayLanguage}</span>
+            <span className="font-medium">{language.toUpperCase()}</span>
           </div>
-          <span className="opacity-90">UTF-8</span>
-          <span className="opacity-90">Ln {(value || '').split('\n').length}, Col 1</span>
+          <span>UTF-8</span>
+          <span>Ln {(value || '').split('\n').length}, Col 1</span>
         </div>
 
         {/* Right Status */}
-        <div className="flex items-center gap-4 opacity-90">
+        <div className="flex items-center gap-4">
           <span>{lineCount} lines</span>
           <span>{(value || '').length} chars</span>
         </div>

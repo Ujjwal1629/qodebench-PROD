@@ -1,0 +1,61 @@
+-- =============================================
+-- Migration: Fix Office PR Description with Proper Hybrid Validation
+-- Description: Update test_cases to include proper hybrid validation structure
+-- Version: 027 (Alternative)
+-- =============================================
+
+-- This alternative keeps validation_type='hybrid' but adds proper structure validation
+
+UPDATE challenges
+SET test_cases = '[
+  {
+    "type": "hybrid_validation",
+    "structure_validation": {
+      "weight": 50,
+      "required_sections": [
+        "## Summary",
+        "## Changes Made",
+        "## Testing",
+        "## Breaking Changes",
+        "## Related Issues"
+      ],
+      "min_length": 300,
+      "format_checks": [
+        "has_headings",
+        "has_bullet_points",
+        "proper_markdown"
+      ]
+    },
+    "ai_quality_check": {
+      "weight": 50,
+      "criteria": {
+        "completeness": {
+          "weight": 30,
+          "description": "Includes all required sections (Summary, Changes, Testing, Breaking Changes, Related Issues)"
+        },
+        "clarity": {
+          "weight": 30,
+          "description": "Clear, concise writing that explains what and why"
+        },
+        "professionalism": {
+          "weight": 25,
+          "description": "Professional tone, proper formatting, no typos"
+        },
+        "technical_detail": {
+          "weight": 15,
+          "description": "Provides sufficient technical context for reviewers"
+        }
+      }
+    }
+  }
+]'::jsonb
+WHERE slug = 'office-pr-description';
+
+-- Verify the fix
+SELECT
+  slug,
+  title,
+  validation_type,
+  jsonb_pretty(test_cases) as test_structure
+FROM challenges
+WHERE slug = 'office-pr-description';

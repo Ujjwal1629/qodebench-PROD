@@ -5,6 +5,7 @@ import { Sidebar } from '@/components/dashboard/sidebar';
 import { TopBar } from '@/components/dashboard/topbar';
 import { MobileNav } from '@/components/dashboard/mobile-nav';
 import { MainContentWrapper } from '@/components/dashboard/main-content-wrapper';
+import { ScrollToTop } from '@/components/scroll-to-top';
 
 // Cache user profile data for better performance
 const getUserProfile = cache(async (userId: string) => {
@@ -48,6 +49,9 @@ export default async function DashboardLayout({
 
   return (
     <div className="min-h-screen bg-slate-50">
+      {/* Scroll to top on route change */}
+      <ScrollToTop />
+
       {/* Sidebar for desktop */}
       <Sidebar user={userData} />
 

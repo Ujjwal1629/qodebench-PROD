@@ -2,6 +2,13 @@
 
 import { CheckCircle, XCircle, Trophy, TrendingUp } from 'lucide-react';
 
+interface ImprovedFeedback {
+  issue: string;
+  yourCode: string | null;
+  betterApproach: string;
+  explanation: string;
+}
+
 interface ValidationResultProps {
   result: {
     passed: boolean;
@@ -11,7 +18,7 @@ interface ValidationResultProps {
     scoreChange?: number;
     scoreJustification?: string;
     strengths?: string[];
-    improvements?: string[];
+    improvements?: (string | ImprovedFeedback)[];  // Support both old and new format
     codeQuality?: string;
     suggestions?: string[];
     pointsEarned?: number;
@@ -176,20 +183,55 @@ export function ValidationResult({ result }: ValidationResultProps) {
       {/* Improvements */}
       {improvements && improvements.length > 0 && (
         <div>
-          <h4 className="mb-2 font-semibold text-orange-700">
+          <h4 className="mb-3 font-semibold text-orange-700">
             → Areas to Improve
           </h4>
-          <ul className="space-y-1.5">
-            {improvements.map((improvement, index) => (
-              <li
-                key={index}
-                className="flex gap-2 text-sm text-slate-700"
-              >
-                <span className="text-orange-600">•</span>
-                {improvement}
-              </li>
-            ))}
-          </ul>
+          <div className="space-y-4">
+            {improvements.map((improvement, index) => {
+              // Handle both old format (string) and new format (object)
+              if (typeof improvement === 'string') {
+                return (
+                  <div key={index} className="flex gap-2 text-sm text-slate-700">
+                    <span className="text-orange-600">•</span>
+                    <span>{improvement}</span>
+                  </div>
+                );
+              }
+
+              // New format with code examples
+              return (
+                <div key={index} className="rounded-lg border border-orange-200 bg-orange-50/50 p-4">
+                  <div className="mb-2 flex gap-2">
+                    <span className="text-orange-600 font-semibold">•</span>
+                    <span className="font-medium text-orange-900">{improvement.issue}</span>
+                  </div>
+
+                  <div className="ml-5 space-y-3">
+                    {improvement.yourCode && (
+                      <div>
+                        <p className="mb-1 text-xs font-medium text-slate-600">Your code:</p>
+                        <pre className="rounded bg-slate-800 p-3 text-xs text-slate-100 overflow-x-auto">
+                          <code>{improvement.yourCode}</code>
+                        </pre>
+                      </div>
+                    )}
+
+                    <div>
+                      <p className="mb-1 text-xs font-medium text-green-700">Better approach:</p>
+                      <pre className="rounded bg-green-900 p-3 text-xs text-green-100 overflow-x-auto">
+                        <code>{improvement.betterApproach}</code>
+                      </pre>
+                    </div>
+
+                    <div className="rounded bg-blue-50 border border-blue-200 p-3">
+                      <p className="text-xs font-medium text-blue-900 mb-1">Why this is better:</p>
+                      <p className="text-sm text-blue-800 leading-relaxed">{improvement.explanation}</p>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
 
