@@ -16,19 +16,47 @@ function generateBasicEvaluation(
   strengths: string[];
   improvements: string[];
 } {
+  const trimmedResponse = response.trim().toLowerCase();
   const wordCount = response.trim().split(/\s+/).filter(Boolean).length;
-  let score = 5; // Base score
+  let score = 0; // Start with 0, earn points based on quality
   const strengths: string[] = [];
   const improvements: string[] = [];
 
+  // Check for non-answers or poor quality responses
+  const poorAnswers = [
+    "don't know",
+    "dont know",
+    "i don't know",
+    "i dont know",
+    "not sure",
+    "i'm not sure",
+    "im not sure",
+    "no idea",
+    "idk",
+    "dunno"
+  ];
+
+  const hasPoorAnswer = poorAnswers.some(phrase => trimmedResponse.includes(phrase));
+
+  if (hasPoorAnswer || wordCount < 20) {
+    score = 0;
+    improvements.push('Answer shows lack of knowledge or preparation');
+    improvements.push('Research system design principles and provide a substantive response');
+    return { score: 0, strengths: [], improvements };
+  }
+
   // Check word count (aim for 200-400 words for system design)
   if (wordCount >= 200 && wordCount <= 500) {
-    score += 2;
+    score += 3;
     strengths.push('Comprehensive answer with good detail');
-  } else if (wordCount < 200) {
+  } else if (wordCount >= 100 && wordCount < 200) {
+    score += 1.5;
     improvements.push('Answer could be more detailed (aim for 200-400 words)');
+  } else if (wordCount < 100) {
+    score += 0.5;
+    improvements.push('Answer is too brief for system design, add more architectural details');
   } else {
-    score += 1;
+    score += 2;
     improvements.push('Answer is quite lengthy, focus on key points');
   }
 
@@ -126,7 +154,7 @@ async function evaluateResponse(
       ? Object.keys(question.evaluation_criteria).map(k => `${k.replace(/_/g, ' ')}: ${question.evaluation_criteria[k]}`)
       : Array.isArray(question.evaluation_criteria) ? question.evaluation_criteria : [];
 
-    const prompt = `You are an expert system design interviewer evaluating a candidate's response to a system design question.
+    const prompt = `You are a strict system design interviewer evaluating a candidate's response to a system design question. Be realistic and rigorous in your scoring.
 
 Question: ${question.question_text}
 Question Type: ${question.question_type}
@@ -147,7 +175,14 @@ Evaluate the answer based on:
 5. Practical thinking - Real-world constraints and considerations
 6. Clarity of communication - Is the design clearly explained?
 
-Provide a score from 0-10 (can use decimals) and identify specific strengths and actionable improvements.
+SCORING GUIDELINES:
+- 0-2: Incorrect, irrelevant, or shows lack of knowledge (e.g., "don't know", very brief/vague answers, < 50 words)
+- 3-4: Partially correct but missing major components or has significant gaps
+- 5-6: Adequate answer covering basic concepts but lacking depth or trade-off discussion
+- 7-8: Good answer with most components and some scalability considerations
+- 9-10: Excellent answer with comprehensive design, trade-offs, and deep technical understanding
+
+BE STRICT: Award low scores (0-2) for answers that show lack of knowledge, are too brief (< 50 words), or contain phrases like "I don't know", "not sure", etc.
 
 Respond in JSON format:
 {
@@ -165,8 +200,11 @@ Respond in JSON format:
 
     const result = JSON.parse(completion.choices[0].message.content || '{}');
 
+    // Don't default to 5 if score is 0! Use nullish coalescing
+    const finalScore = result.score ?? 0;
+
     return {
-      score: Math.min(Math.max(result.score || 5, 0), 10),
+      score: Math.min(Math.max(finalScore, 0), 10),
       strengths: result.strengths || ['Answer evaluated'],
       improvements: result.improvements || ['Continue practicing system design'],
     };

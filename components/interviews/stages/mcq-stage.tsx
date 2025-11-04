@@ -326,6 +326,19 @@ export default function MCQStage({ sessionId, experienceLevel, onComplete }: MCQ
           </Button>
         </div>
       </Card>
+
+      {/* Full-page Loading Overlay */}
+      {isSubmitting && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50" style={{ marginTop: "auto" }}>
+          <div className="bg-white rounded-lg p-8 flex flex-col items-center gap-4">
+            <Loader2 className="h-16 w-16 animate-spin text-blue-600" />
+            <div className="text-center">
+              <p className="text-xl font-semibold mb-2">Submitting Your Answers...</p>
+              <p className="text-sm text-muted-foreground">Please wait while we evaluate your responses</p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

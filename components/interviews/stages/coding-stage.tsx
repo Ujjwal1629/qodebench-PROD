@@ -184,7 +184,7 @@ export default function CodingStage({ sessionId, experienceLevel, onComplete }: 
 
       const data = await response.json();
       console.log('Submit success:', data);
-      toast.success(`Stage 3 completed! Score: ${data.finalScore}/10`);
+      toast.success('Stage 3 completed successfully!');
 
       // Reset submitting state before calling onComplete
       setIsSubmitting(false);
@@ -376,7 +376,21 @@ export default function CodingStage({ sessionId, experienceLevel, onComplete }: 
                 </Button>
               </div>
             </div>
-            <div className="border rounded-lg overflow-hidden">
+            <div
+              className="border rounded-lg overflow-hidden"
+              onCopy={(e) => {
+                e.preventDefault();
+                toast.error('Copying is disabled during the interview');
+              }}
+              onCut={(e) => {
+                e.preventDefault();
+                toast.error('Cutting is disabled during the interview');
+              }}
+              onPaste={(e) => {
+                e.preventDefault();
+                toast.error('Pasting is disabled during the interview');
+              }}
+            >
               <CodeMirror
                 value={code}
                 height="400px"
@@ -440,6 +454,19 @@ export default function CodingStage({ sessionId, experienceLevel, onComplete }: 
           )}
         </div>
       </div>
+
+      {/* Full-page Loading Overlay */}
+      {isSubmitting && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50" style={{ marginTop: "auto" }}>
+          <div className="bg-white rounded-lg p-8 flex flex-col items-center gap-4">
+            <Loader2 className="h-16 w-16 animate-spin text-green-600" />
+            <div className="text-center">
+              <p className="text-xl font-semibold mb-2">Submitting Your Code...</p>
+              <p className="text-sm text-muted-foreground">Please wait while we run all test cases</p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

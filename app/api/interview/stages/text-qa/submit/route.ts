@@ -16,18 +16,47 @@ function generateBasicEvaluation(
   strengths: string[];
   improvements: string[];
 } {
+  const trimmedResponse = response.trim().toLowerCase();
   const wordCount = response.trim().split(/\s+/).filter(Boolean).length;
-  let score = 5; // Base score
+  let score = 0; // Start with 0, earn points based on quality
   const strengths: string[] = [];
   const improvements: string[] = [];
 
+  // Check for non-answers or poor quality responses
+  const poorAnswers = [
+    "don't know",
+    "dont know",
+    "i don't know",
+    "i dont know",
+    "not sure",
+    "i'm not sure",
+    "im not sure",
+    "no idea",
+    "idk",
+    "dunno"
+  ];
+
+  const hasPoorAnswer = poorAnswers.some(phrase => trimmedResponse.includes(phrase));
+
+  if (hasPoorAnswer || wordCount < 10) {
+    score = 0;
+    improvements.push('Answer shows lack of knowledge or preparation');
+    improvements.push('Research the topic and provide a substantive response');
+    return { score: 0, strengths: [], improvements };
+  }
+
   // Check word count (aim for 100-200 words)
   if (wordCount >= 100 && wordCount <= 250) {
-    score += 1.5;
+    score += 2.5;
     strengths.push('Good answer length with sufficient detail');
-  } else if (wordCount < 100) {
+  } else if (wordCount >= 50 && wordCount < 100) {
+    score += 1;
     improvements.push('Answer could be more detailed (aim for 100-200 words)');
+  } else if (wordCount < 50) {
+    score += 0.5;
+    improvements.push('Answer is too brief, add more detail and explanation');
   } else {
+    score += 1.5;
     improvements.push('Answer is quite lengthy, try to be more concise');
   }
 
@@ -105,7 +134,7 @@ async function evaluateResponse(
   try {
     const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-    const prompt = `You are an expert technical interviewer evaluating a candidate's answer to a technical concept question.
+    const prompt = `You are a strict technical interviewer evaluating a candidate's answer to a technical concept question. Be realistic and rigorous in your scoring.
 
 Question: ${question.question_text}
 Question Type: ${question.question_type}
@@ -122,7 +151,14 @@ Evaluate the answer based on:
 4. Real-world examples or use cases
 5. Depth of understanding
 
-Provide a score from 0-10 (can use decimals) and identify specific strengths and areas for improvement.
+SCORING GUIDELINES:
+- 0-2: Incorrect, irrelevant, or shows lack of knowledge (e.g., "don't know", very brief/vague answers)
+- 3-4: Partially correct but missing key concepts or has significant gaps
+- 5-6: Adequate answer covering basic concepts but lacking depth or examples
+- 7-8: Good answer with most key concepts and some depth
+- 9-10: Excellent answer with comprehensive coverage, examples, and deep understanding
+
+BE STRICT: Award low scores (0-2) for answers that show lack of knowledge, are too brief (< 30 words), or contain phrases like "I don't know", "not sure", etc.
 
 Respond in JSON format:
 {
@@ -140,8 +176,11 @@ Respond in JSON format:
 
     const result = JSON.parse(completion.choices[0].message.content || '{}');
 
+    // Don't default to 5 if score is 0! Use nullish coalescing
+    const finalScore = result.score ?? 0;
+
     return {
-      score: Math.min(Math.max(result.score || 5, 0), 10),
+      score: Math.min(Math.max(finalScore, 0), 10),
       strengths: result.strengths || ['Answer evaluated'],
       improvements: result.improvements || ['Keep practicing'],
     };

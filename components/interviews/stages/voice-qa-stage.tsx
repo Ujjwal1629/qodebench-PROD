@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Progress } from '@/components/ui/progress';
 import { Mic, MicOff, Loader2, CheckCircle2, ArrowRight, Volume2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useSpeechRecognition } from '@/hooks/use-speech-recognition';
 
 interface VoiceQAQuestion {
   id: string;
@@ -28,9 +29,15 @@ export default function VoiceQAStage({ sessionId, experienceLevel, onComplete }:
   const [responses, setResponses] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isRecording, setIsRecording] = useState(false);
   const [currentResponse, setCurrentResponse] = useState('');
-  const [useVoice, setUseVoice] = useState(false);
+
+  const { isListening, startListening, stopListening } = useSpeechRecognition({
+    onResult: (transcript) => {
+      setCurrentResponse(transcript);
+    },
+    continuous: true,
+    interimResults: true,
+  });
 
   // Fetch Voice Q&A questions
   useEffect(() => {
@@ -58,28 +65,12 @@ export default function VoiceQAStage({ sessionId, experienceLevel, onComplete }:
 
   const currentQuestion = questions[currentIndex];
 
-  const handleStartRecording = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      // In production, you would use Web Speech API or a transcription service
-      setIsRecording(true);
-      toast.success('Recording started');
-
-      // Simulate recording for demo
-      // In production: use MediaRecorder API or Speech Recognition API
-    } catch (error) {
-      console.error('Error accessing microphone:', error);
-      toast.error('Could not access microphone. Please use text input.');
+  const handleToggleVoice = () => {
+    if (isListening) {
+      stopListening();
+    } else {
+      startListening();
     }
-  };
-
-  const handleStopRecording = () => {
-    setIsRecording(false);
-    toast.success('Recording stopped');
-
-    // In production: stop MediaRecorder, send audio to transcription service
-    // For now, prompt user to type their answer
-    toast.info('Please type your answer in the text box');
   };
 
   const handleSpeakQuestion = () => {
@@ -136,7 +127,7 @@ export default function VoiceQAStage({ sessionId, experienceLevel, onComplete }:
       if (!response.ok) throw new Error('Failed to submit responses');
 
       const data = await response.json();
-      toast.success(`Stage 2 completed! Score: ${data.averageScore}/10`);
+      toast.success('Stage 2 completed successfully!');
 
       // Reset submitting state before calling onComplete
       setIsSubmitting(false);
@@ -224,116 +215,108 @@ export default function VoiceQAStage({ sessionId, experienceLevel, onComplete }:
             </div>
           )}
 
-          {/* Input Method Toggle */}
-          <div className="flex gap-2">
-            <Button
-              variant={useVoice ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setUseVoice(true)}
-              className="flex-1"
-            >
-              <Mic className="h-4 w-4 mr-2" />
-              Voice Input
-            </Button>
-            <Button
-              variant={!useVoice ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setUseVoice(false)}
-              className="flex-1"
-            >
-              Text Input
-            </Button>
-          </div>
-
-          {/* Voice Recording */}
-          {useVoice && (
-            <div className="space-y-4">
-              <div className="text-center py-8 bg-slate-50 rounded-lg">
-                {isRecording ? (
-                  <div>
-                    <div className="w-20 h-20 bg-red-500 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
-                      <Mic className="h-10 w-10 text-white" />
-                    </div>
-                    <p className="font-medium text-lg mb-2">Recording...</p>
-                    <p className="text-sm text-muted-foreground mb-4">
-                      Speak clearly and take your time
-                    </p>
-                    <Button onClick={handleStopRecording} variant="destructive">
-                      <MicOff className="h-4 w-4 mr-2" />
-                      Stop Recording
-                    </Button>
-                  </div>
+          {/* Answer Input with Voice */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between mb-2">
+              <label className="font-medium">Your Answer</label>
+              <Button
+                variant={isListening ? 'destructive' : 'outline'}
+                size="sm"
+                onClick={handleToggleVoice}
+              >
+                {isListening ? (
+                  <>
+                    <MicOff className="h-4 w-4 mr-2" />
+                    Stop Recording
+                  </>
                 ) : (
-                  <div>
-                    <div className="w-20 h-20 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <Mic className="h-10 w-10 text-white" />
-                    </div>
-                    <p className="font-medium text-lg mb-2">Ready to record</p>
-                    <p className="text-sm text-muted-foreground mb-4">
-                      Click the button below to start recording your answer
-                    </p>
-                    <Button onClick={handleStartRecording} size="lg">
-                      <Mic className="h-4 w-4 mr-2" />
-                      Start Recording
-                    </Button>
-                  </div>
+                  <>
+                    <Mic className="h-4 w-4 mr-2" />
+                    Start Voice Input
+                  </>
                 )}
-              </div>
-
-              <div className="text-center text-sm text-muted-foreground">
-                <p>After recording, your answer will be transcribed below</p>
-              </div>
+              </Button>
             </div>
-          )}
 
-          {/* Text Input */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium">
-              Your Answer {useVoice && '(transcribed)'}
-            </label>
+            {isListening && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
+                  <p className="text-sm font-medium text-red-900">
+                    Listening... Speak clearly into your microphone
+                  </p>
+                </div>
+              </div>
+            )}
+
             <Textarea
               value={currentResponse}
               onChange={(e) => setCurrentResponse(e.target.value)}
-              placeholder="Type your answer here... Use the STAR method: Situation, Task, Action, Result"
-              rows={8}
-              className="resize-none"
+              placeholder="Type your answer here... or use voice input"
+              className="min-h-[200px]"
+              disabled={isSubmitting}
+              onCopy={(e) => {
+                e.preventDefault();
+                toast.error('Copying is disabled during the interview');
+              }}
+              onCut={(e) => {
+                e.preventDefault();
+                toast.error('Cutting is disabled during the interview');
+              }}
+              onPaste={(e) => {
+                e.preventDefault();
+                toast.error('Pasting is disabled during the interview');
+              }}
             />
-            <p className="text-xs text-muted-foreground">
-              Aim for detailed, specific answers with examples from your experience
-            </p>
-          </div>
 
-          {/* Navigation */}
-          <div className="flex justify-between pt-4">
-            <div className="text-sm text-muted-foreground">
-              {currentResponse.trim() ? (
-                <span className="text-green-600 flex items-center gap-1">
-                  <CheckCircle2 className="h-4 w-4" />
-                  Answer provided
-                </span>
-              ) : (
-                <span>Please provide your answer</span>
-              )}
+            {/* Character count */}
+            <div className="text-sm text-muted-foreground text-right">
+              {currentResponse.length} characters
             </div>
-            <Button
-              onClick={handleNext}
-              disabled={!currentResponse.trim() || isSubmitting}
-              size="lg"
-            >
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Submitting...
-                </>
-              ) : currentIndex < questions.length - 1 ? (
-                <>
-                  Next Question
-                  <ArrowRight className="h-4 w-4 ml-2" />
-                </>
-              ) : (
-                'Complete Stage 2'
-              )}
-            </Button>
+
+            {/* STAR Method Guide */}
+            <div className="bg-amber-50 p-4 rounded-lg">
+              <p className="font-medium text-sm text-amber-900 mb-2">💡 STAR Method Tip:</p>
+              <ul className="text-sm text-amber-800 space-y-1">
+                <li><strong>S</strong>ituation: Describe the context</li>
+                <li><strong>T</strong>ask: Explain your responsibility</li>
+                <li><strong>A</strong>ction: Detail what you did</li>
+                <li><strong>R</strong>esult: Share the outcome</li>
+              </ul>
+            </div>
+
+            {/* Navigation */}
+            <div className="flex justify-between pt-4">
+              <div className="text-sm text-muted-foreground">
+                {currentResponse.trim() ? (
+                  <span className="text-green-600 flex items-center gap-1">
+                    <CheckCircle2 className="h-4 w-4" />
+                    Answer provided
+                  </span>
+                ) : (
+                  <span>Please provide your answer</span>
+                )}
+              </div>
+              <Button
+                onClick={handleNext}
+                disabled={!currentResponse.trim() || isSubmitting}
+                size="lg"
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Submitting...
+                  </>
+                ) : currentIndex < questions.length - 1 ? (
+                  <>
+                    Next Question
+                    <ArrowRight className="h-4 w-4 ml-2" />
+                  </>
+                ) : (
+                  'Complete Stage 2'
+                )}
+              </Button>
+            </div>
           </div>
         </div>
       </Card>
@@ -348,6 +331,19 @@ export default function VoiceQAStage({ sessionId, experienceLevel, onComplete }:
           <li>• Take your time - quality over speed</li>
         </ul>
       </Card>
+
+      {/* Full-page Loading Overlay */}
+      {isSubmitting && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50" style={{ marginTop: "auto" }}>
+          <div className="bg-white rounded-lg p-8 flex flex-col items-center gap-4">
+            <Loader2 className="h-16 w-16 animate-spin text-purple-600" />
+            <div className="text-center">
+              <p className="text-xl font-semibold mb-2">Submitting Your Answers...</p>
+              <p className="text-sm text-muted-foreground">Please wait while we evaluate your responses</p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

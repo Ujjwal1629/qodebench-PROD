@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -15,8 +15,11 @@ import {
   ChevronLeft,
   ChevronRight,
   AlertCircle,
+  Mic,
+  MicOff,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useSpeechRecognition } from '@/hooks/use-speech-recognition';
 
 interface TextQAQuestion {
   id: string;
@@ -43,6 +46,44 @@ export default function TextQAStage({ sessionId, experienceLevel, onComplete }: 
   const [hasStarted, setHasStarted] = useState(false);
 
   const totalTime = experienceLevel === 'senior' ? 1200 : 1500; // 20 min senior, 25 min others
+
+  // Use refs to track current question for speech recognition
+  const questionsRef = useRef(questions);
+  const currentQuestionIndexRef = useRef(currentQuestionIndex);
+
+  // Update refs when values change
+  useEffect(() => {
+    questionsRef.current = questions;
+  }, [questions]);
+
+  useEffect(() => {
+    currentQuestionIndexRef.current = currentQuestionIndex;
+  }, [currentQuestionIndex]);
+
+  const { isListening, startListening, stopListening } = useSpeechRecognition({
+    onResult: (transcript) => {
+      const question = questionsRef.current[currentQuestionIndexRef.current];
+      if (question) {
+        setResponses((prev) => ({
+          ...prev,
+          [question.id]: transcript,
+        }));
+      }
+    },
+    continuous: true,
+    interimResults: true,
+  });
+
+  const currentQuestion = questions[currentQuestionIndex];
+
+  // Stop listening and scroll to top when question changes
+  useEffect(() => {
+    if (isListening) {
+      stopListening();
+    }
+    // Scroll to top of the page
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [currentQuestionIndex]);
 
   // Fetch questions
   useEffect(() => {
@@ -99,6 +140,14 @@ export default function TextQAStage({ sessionId, experienceLevel, onComplete }: 
     }));
   };
 
+  const handleToggleVoice = () => {
+    if (isListening) {
+      stopListening();
+    } else {
+      startListening();
+    }
+  };
+
   const handleSubmit = async () => {
     if (isSubmitting) return;
 
@@ -133,7 +182,7 @@ export default function TextQAStage({ sessionId, experienceLevel, onComplete }: 
       if (!response.ok) throw new Error('Failed to submit responses');
 
       const data = await response.json();
-      toast.success(`Stage 4 completed! Score: ${data.averageScore}/10`);
+      toast.success('Stage 4 completed successfully!');
 
       // Reset submitting state before calling onComplete
       setIsSubmitting(false);
@@ -209,7 +258,6 @@ export default function TextQAStage({ sessionId, experienceLevel, onComplete }: 
     );
   }
 
-  const currentQuestion = questions[currentQuestionIndex];
   const answeredCount = Object.values(responses).filter((r) => r && r.trim() !== '').length;
   const progress = (answeredCount / questions.length) * 100;
 
@@ -273,16 +321,64 @@ export default function TextQAStage({ sessionId, experienceLevel, onComplete }: 
             </div>
           </div>
 
-          <Textarea
-            value={responses[currentQuestion.id] || ''}
-            onChange={(e) => handleResponseChange(currentQuestion.id, e.target.value)}
-            placeholder="Type your answer here... Be thorough and include examples where applicable."
-            className="min-h-[300px] text-base"
-            disabled={isSubmitting}
-          />
+          {/* Voice Input Section */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <label className="font-medium text-sm">Your Answer</label>
+              <Button
+                variant={isListening ? 'destructive' : 'outline'}
+                size="sm"
+                onClick={handleToggleVoice}
+                disabled={isSubmitting}
+              >
+                {isListening ? (
+                  <>
+                    <MicOff className="h-4 w-4 mr-2" />
+                    Stop Recording
+                  </>
+                ) : (
+                  <>
+                    <Mic className="h-4 w-4 mr-2" />
+                    Start Voice Input
+                  </>
+                )}
+              </Button>
+            </div>
 
-          <div className="mt-2 text-sm text-muted-foreground">
-            Word count: {(responses[currentQuestion.id] || '').split(/\s+/).filter(Boolean).length}
+            {isListening && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
+                  <p className="text-sm font-medium text-red-900">
+                    Listening... Speak clearly into your microphone
+                  </p>
+                </div>
+              </div>
+            )}
+
+            <Textarea
+              value={responses[currentQuestion.id] || ''}
+              onChange={(e) => handleResponseChange(currentQuestion.id, e.target.value)}
+              placeholder="Type your answer here... or use voice input"
+              className="min-h-[300px] text-base"
+              disabled={isSubmitting}
+              onCopy={(e) => {
+                e.preventDefault();
+                toast.error('Copying is disabled during the interview');
+              }}
+              onCut={(e) => {
+                e.preventDefault();
+                toast.error('Cutting is disabled during the interview');
+              }}
+              onPaste={(e) => {
+                e.preventDefault();
+                toast.error('Pasting is disabled during the interview');
+              }}
+            />
+
+            <div className="text-sm text-muted-foreground">
+              Word count: {(responses[currentQuestion.id] || '').split(/\s+/).filter(Boolean).length}
+            </div>
           </div>
         </div>
 
@@ -362,6 +458,19 @@ export default function TextQAStage({ sessionId, experienceLevel, onComplete }: 
           </div>
         </div>
       </Card>
+
+      {/* Full-page Loading Overlay */}
+      {isSubmitting && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50" style={{ marginTop: "auto" }}>
+          <div className="bg-white rounded-lg p-8 flex flex-col items-center gap-4">
+            <Loader2 className="h-16 w-16 animate-spin text-blue-600" />
+            <div className="text-center">
+              <p className="text-xl font-semibold mb-2">Submitting Your Answers...</p>
+              <p className="text-sm text-muted-foreground">Please wait while we evaluate your responses</p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

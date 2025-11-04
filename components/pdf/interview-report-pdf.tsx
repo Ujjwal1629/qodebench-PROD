@@ -6,145 +6,146 @@ const styles = StyleSheet.create({
   page: {
     padding: 40,
     fontFamily: 'Helvetica',
-    fontSize: 11,
-    lineHeight: 1.6,
+    fontSize: 10,
+    lineHeight: 1.5,
   },
   header: {
     marginBottom: 20,
-    borderBottom: '2px solid #3b82f6',
+    borderBottom: '3px solid #3b82f6',
     paddingBottom: 10,
   },
   title: {
-    fontSize: 24,
+    fontSize: 18,
     fontWeight: 'bold',
     color: '#1e40af',
-    marginBottom: 5,
+    marginBottom: 6,
   },
   subtitle: {
-    fontSize: 12,
+    fontSize: 9,
     color: '#64748b',
-    marginBottom: 3,
+    marginBottom: 2,
+    lineHeight: 1.3,
   },
   section: {
-    marginTop: 15,
-    marginBottom: 15,
+    marginTop: 12,
+    marginBottom: 12,
   },
   sectionTitle: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: 'bold',
     color: '#1e293b',
-    marginBottom: 8,
+    marginBottom: 6,
     borderBottom: '1px solid #e2e8f0',
-    paddingBottom: 4,
+    paddingBottom: 3,
   },
   overallScore: {
-    fontSize: 48,
+    fontSize: 28,
     fontWeight: 'bold',
     color: '#3b82f6',
     textAlign: 'center',
-    marginVertical: 10,
+    marginTop: 8,
+    marginBottom: 5,
   },
   performanceBadge: {
-    fontSize: 14,
+    fontSize: 11,
     fontWeight: 'bold',
     color: '#16a34a',
     textAlign: 'center',
-    marginBottom: 15,
+    marginBottom: 12,
     textTransform: 'uppercase',
+    paddingTop: 5,
   },
   stageRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 8,
-    padding: 8,
+    marginBottom: 5,
+    padding: 6,
     backgroundColor: '#f8fafc',
-    borderRadius: 4,
+    borderRadius: 3,
   },
   stageName: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: 'bold',
     color: '#334155',
   },
   stageScore: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: 'bold',
     color: '#3b82f6',
   },
   strengthItem: {
     flexDirection: 'row',
-    marginBottom: 6,
-    paddingLeft: 10,
+    marginBottom: 4,
+    paddingLeft: 8,
   },
   strengthBullet: {
-    width: 15,
-    fontSize: 11,
+    width: 12,
+    fontSize: 10,
     color: '#16a34a',
   },
   strengthText: {
     flex: 1,
-    fontSize: 10,
+    fontSize: 9,
     color: '#166534',
-    lineHeight: 1.5,
+    lineHeight: 1.4,
   },
   improvementItem: {
     flexDirection: 'row',
-    marginBottom: 6,
-    paddingLeft: 10,
+    marginBottom: 4,
+    paddingLeft: 8,
   },
   improvementBullet: {
-    width: 15,
-    fontSize: 11,
+    width: 12,
+    fontSize: 10,
     color: '#f59e0b',
   },
   improvementText: {
     flex: 1,
-    fontSize: 10,
+    fontSize: 9,
     color: '#92400e',
-    lineHeight: 1.5,
+    lineHeight: 1.4,
   },
   feedbackBox: {
-    marginBottom: 12,
-    padding: 10,
+    marginBottom: 8,
+    padding: 8,
     backgroundColor: '#f1f5f9',
-    borderRadius: 4,
-    borderLeft: '3px solid #3b82f6',
+    borderRadius: 3,
+    borderLeft: '2px solid #3b82f6',
   },
   feedbackQuestion: {
-    fontSize: 10,
+    fontSize: 9,
     fontWeight: 'bold',
     color: '#1e293b',
-    marginBottom: 4,
+    marginBottom: 3,
   },
   feedbackScore: {
-    fontSize: 9,
+    fontSize: 8,
     color: '#3b82f6',
-    marginBottom: 6,
+    marginBottom: 4,
   },
   feedbackSubsection: {
-    marginTop: 6,
+    marginTop: 4,
   },
   feedbackLabel: {
-    fontSize: 9,
+    fontSize: 8,
     fontWeight: 'bold',
     color: '#64748b',
-    marginBottom: 3,
+    marginBottom: 2,
   },
   feedbackText: {
     fontSize: 8,
     color: '#64748b',
-    marginLeft: 10,
+    marginLeft: 8,
     marginBottom: 2,
   },
   footer: {
-    position: 'absolute',
-    bottom: 30,
-    left: 40,
-    right: 40,
+    marginTop: 'auto',
     textAlign: 'center',
-    fontSize: 8,
+    fontSize: 7,
     color: '#94a3b8',
     borderTop: '1px solid #e2e8f0',
-    paddingTop: 10,
+    paddingTop: 8,
+    paddingBottom: 0,
   },
 });
 
@@ -194,7 +195,7 @@ export const InterviewReportPDF = ({ report, session, userEmail }: InterviewRepo
       {/* Key Strengths */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Key Strengths</Text>
-        {report.strengths.map((strength: string, idx: number) => (
+        {report.strengths.slice(0, 5).map((strength: string, idx: number) => (
           <View key={idx} style={styles.strengthItem}>
             <Text style={styles.strengthBullet}>✓</Text>
             <Text style={styles.strengthText}>{strength}</Text>
@@ -205,7 +206,7 @@ export const InterviewReportPDF = ({ report, session, userEmail }: InterviewRepo
       {/* Areas for Improvement */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Areas for Improvement</Text>
-        {report.improvements.map((improvement: string, idx: number) => (
+        {report.improvements.slice(0, 5).map((improvement: string, idx: number) => (
           <View key={idx} style={styles.improvementItem}>
             <Text style={styles.improvementBullet}>•</Text>
             <Text style={styles.improvementText}>{improvement}</Text>
@@ -226,13 +227,15 @@ export const InterviewReportPDF = ({ report, session, userEmail }: InterviewRepo
         <Text style={styles.title}>Detailed Feedback by Stage</Text>
       </View>
 
-      {report.detailed_feedback.map((stageFeedback: any, idx: number) => (
+      {report.detailed_feedback.slice(0, 3).map((stageFeedback: any, idx: number) => (
         <View key={idx} style={styles.section}>
           <Text style={styles.sectionTitle}>{stageFeedback.stage}</Text>
-          {stageFeedback.responses.slice(0, 3).map((response: any, rIdx: number) => (
+          {stageFeedback.responses.slice(0, 2).map((response: any, rIdx: number) => (
             <View key={rIdx} style={styles.feedbackBox}>
               <Text style={styles.feedbackQuestion}>
-                {response.question_text}
+                {response.question_text.length > 100
+                  ? response.question_text.substring(0, 97) + '...'
+                  : response.question_text}
               </Text>
               <Text style={styles.feedbackScore}>
                 Score: {response.score.toFixed(1)}/10
@@ -240,18 +243,18 @@ export const InterviewReportPDF = ({ report, session, userEmail }: InterviewRepo
 
               <View style={styles.feedbackSubsection}>
                 <Text style={styles.feedbackLabel}>Strengths:</Text>
-                {response.feedback.strengths.map((s: string, sIdx: number) => (
+                {response.feedback.strengths.slice(0, 2).map((s: string, sIdx: number) => (
                   <Text key={sIdx} style={styles.feedbackText}>
-                    • {s}
+                    • {s.length > 120 ? s.substring(0, 117) + '...' : s}
                   </Text>
                 ))}
               </View>
 
               <View style={styles.feedbackSubsection}>
                 <Text style={styles.feedbackLabel}>Improvements:</Text>
-                {response.feedback.improvements.map((i: string, iIdx: number) => (
+                {response.feedback.improvements.slice(0, 2).map((i: string, iIdx: number) => (
                   <Text key={iIdx} style={styles.feedbackText}>
-                    • {i}
+                    • {i.length > 120 ? i.substring(0, 117) + '...' : i}
                   </Text>
                 ))}
               </View>

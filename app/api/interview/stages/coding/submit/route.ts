@@ -186,8 +186,12 @@ Respond in JSON format:
     });
 
     const result = JSON.parse(completion.choices[0].message.content || '{}');
+
+    // Don't default to 5 if score is 0! Use nullish coalescing
+    const finalScore = result.score ?? 0;
+
     return {
-      score: Math.min(Math.max(result.score || 5, 0), 10),
+      score: Math.min(Math.max(finalScore, 0), 10),
       feedback: result.feedback || 'Code submitted successfully',
     };
   } catch (error) {
