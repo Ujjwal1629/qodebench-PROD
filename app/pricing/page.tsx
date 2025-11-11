@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Check, Zap, Crown, Rocket } from 'lucide-react';
@@ -13,7 +13,10 @@ declare global {
   }
 }
 
-export default function PricingPage() {
+// Force dynamic rendering for this page
+export const dynamic = 'force-dynamic';
+
+function PricingContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [loading, setLoading] = useState<SubscriptionTier | null>(null);
@@ -162,21 +165,10 @@ export default function PricingPage() {
             return (
               <div
                 key={plan.tier}
-                className={`relative bg-white rounded-2xl p-6 border-2 ${plan.borderColor} ${
-                  plan.popular ? 'ring-4 ring-blue-100 scale-105' : ''
-                } hover:shadow-xl transition-all duration-300`}
+                className={`relative bg-white rounded-2xl p-6 border-2 ${plan.borderColor} hover:shadow-xl transition-all duration-300`}
               >
-                {/* Popular Badge */}
-                {plan.popular && (
-                  <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-                    <span className="bg-gradient-to-r from-blue-500 to-purple-500 text-white px-4 py-1 rounded-full text-sm font-semibold shadow-lg">
-                      Most Popular
-                    </span>
-                  </div>
-                )}
-
                 {/* Limited Time Badge */}
-                {plan.badge && !plan.popular && (
+                {plan.badge && (
                   <div className="absolute -top-4 left-1/2 -translate-x-1/2">
                     <span className={`bg-gradient-to-r ${plan.color} text-white px-4 py-1 rounded-full text-sm font-semibold shadow-lg`}>
                       {plan.badge}
@@ -220,11 +212,7 @@ export default function PricingPage() {
                 <Button
                   onClick={() => handleSubscribe(plan.tier)}
                   disabled={loading !== null}
-                  className={`w-full ${
-                    plan.popular
-                      ? 'bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600'
-                      : ''
-                  }`}
+                  className="w-full bg-gradient-to-r from-brand-500 to-purple-500 hover:from-brand-600 hover:to-purple-600"
                 >
                   {loading === plan.tier ? 'Processing...' : 'Subscribe Now'}
                 </Button>
@@ -310,5 +298,13 @@ export default function PricingPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function PricingPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-gradient-to-b from-slate-50 to-white flex items-center justify-center"><div className="text-center"><div className="text-xl text-slate-600">Loading...</div></div></div>}>
+      <PricingContent />
+    </Suspense>
   );
 }
