@@ -14,8 +14,10 @@ import {
   Award,
   FileText,
   BarChart3,
+  ExternalLink,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import Link from 'next/link';
 import {
   BarChart,
   Bar,
@@ -190,8 +192,14 @@ export default function ResultsStage({ sessionId }: ResultsStageProps) {
               </div>
             </div>
           </div>
-          <div className="text-right">
-            <Button onClick={handleDownloadPDF} size="lg" disabled={isGeneratingPDF}>
+          <div className="flex flex-col gap-3 text-right">
+            <Link href={`/dashboard/interviews/${sessionId}/report`}>
+              <Button size="lg" className="w-full">
+                <ExternalLink className="h-5 w-5 mr-2" />
+                View Detailed Report
+              </Button>
+            </Link>
+            <Button onClick={handleDownloadPDF} size="lg" variant="outline" disabled={isGeneratingPDF}>
               {isGeneratingPDF ? (
                 <>
                   <Loader2 className="h-5 w-5 mr-2 animate-spin" />
@@ -200,7 +208,7 @@ export default function ResultsStage({ sessionId }: ResultsStageProps) {
               ) : (
                 <>
                   <Download className="h-5 w-5 mr-2" />
-                  Download PDF Report
+                  Download PDF
                 </>
               )}
             </Button>

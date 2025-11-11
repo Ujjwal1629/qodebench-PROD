@@ -249,39 +249,51 @@ export async function POST(request: NextRequest) {
     }
 
     // Run ALL test cases (visible + hidden)
+    // OPTIMIZED: Execute test cases in parallel for faster results
     const testCases = challenge.test_cases as TestCase[];
-    const results: TestResult[] = [];
-    let passedCount = 0;
 
-    for (const testCase of testCases) {
+    // Create promises for all test cases to run simultaneously
+    const testPromises = testCases.map(async (testCase) => {
       try {
         const actual = await Promise.race([
-          executeCode(code, testCase.input),
+          executeCode(code, testCase.input, 2000), // Reduced timeout from 5000ms to 2000ms
           new Promise((_, reject) =>
-            setTimeout(() => reject(new Error('Test execution timeout')), 10000)
+            setTimeout(() => reject(new Error('Test execution timeout')), 3000) // Max 3s per test
           )
         ]);
         const passed = deepEqual(actual, testCase.expected_output);
 
-        if (passed) passedCount++;
-
-        results.push({
+        return {
           passed,
           input: testCase.input,
           expected: testCase.expected_output,
           actual,
-        });
+        };
       } catch (error: any) {
         console.error('Test case execution error:', error);
-        results.push({
+        return {
           passed: false,
           input: testCase.input,
           expected: testCase.expected_output,
           actual: null,
           error: error.message || 'Execution error',
-        });
+        };
       }
-    }
+    });
+
+    // Wait for all tests to complete in parallel (using allSettled to capture all results)
+    const settledResults = await Promise.allSettled(testPromises);
+    const results: TestResult[] = settledResults.map(result =>
+      result.status === 'fulfilled' ? result.value : {
+        passed: false,
+        input: null,
+        expected: null,
+        actual: null,
+        error: 'Test execution failed'
+      }
+    );
+
+    const passedCount = results.filter(r => r.passed).length;
 
     // Calculate test cases score (70% weight)
     const testCaseScore = (passedCount / testCases.length) * 7;

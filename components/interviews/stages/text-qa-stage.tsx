@@ -19,7 +19,7 @@ import {
   MicOff,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { useSpeechRecognition } from '@/hooks/use-speech-recognition';
+import { useWhisperRecording } from '@/hooks/use-whisper-recording';
 
 interface TextQAQuestion {
   id: string;
@@ -60,8 +60,8 @@ export default function TextQAStage({ sessionId, experienceLevel, onComplete }: 
     currentQuestionIndexRef.current = currentQuestionIndex;
   }, [currentQuestionIndex]);
 
-  const { isListening, startListening, stopListening } = useSpeechRecognition({
-    onResult: (transcript) => {
+  const { isRecording, isTranscribing, startRecording, stopRecording } = useWhisperRecording({
+    onTranscript: (transcript) => {
       const question = questionsRef.current[currentQuestionIndexRef.current];
       if (question) {
         setResponses((prev) => ({
@@ -70,16 +70,15 @@ export default function TextQAStage({ sessionId, experienceLevel, onComplete }: 
         }));
       }
     },
-    continuous: true,
-    interimResults: true,
+    continuous: false,
   });
 
   const currentQuestion = questions[currentQuestionIndex];
 
-  // Stop listening and scroll to top when question changes
+  // Stop recording and scroll to top when question changes
   useEffect(() => {
-    if (isListening) {
-      stopListening();
+    if (isRecording) {
+      stopRecording();
     }
     // Scroll to top of the page
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -141,10 +140,10 @@ export default function TextQAStage({ sessionId, experienceLevel, onComplete }: 
   };
 
   const handleToggleVoice = () => {
-    if (isListening) {
-      stopListening();
+    if (isRecording) {
+      stopRecording();
     } else {
-      startListening();
+      startRecording();
     }
   };
 
@@ -326,12 +325,12 @@ export default function TextQAStage({ sessionId, experienceLevel, onComplete }: 
             <div className="flex items-center justify-between">
               <label className="font-medium text-sm">Your Answer</label>
               <Button
-                variant={isListening ? 'destructive' : 'outline'}
+                variant={isRecording ? 'destructive' : 'outline'}
                 size="sm"
                 onClick={handleToggleVoice}
-                disabled={isSubmitting}
+                disabled={isSubmitting || isTranscribing}
               >
-                {isListening ? (
+                {isRecording ? (
                   <>
                     <MicOff className="h-4 w-4 mr-2" />
                     Stop Recording
@@ -345,12 +344,23 @@ export default function TextQAStage({ sessionId, experienceLevel, onComplete }: 
               </Button>
             </div>
 
-            {isListening && (
+            {isRecording && (
               <div className="bg-red-50 border border-red-200 rounded-lg p-4">
                 <div className="flex items-center gap-3">
                   <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
                   <p className="text-sm font-medium text-red-900">
-                    Listening... Speak clearly into your microphone
+                    Recording... Speak clearly
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {isTranscribing && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div className="flex items-center gap-3">
+                  <Loader2 className="h-4 w-4 text-blue-600 animate-spin" />
+                  <p className="text-sm font-medium text-blue-900">
+                    Processing your response...
                   </p>
                 </div>
               </div>

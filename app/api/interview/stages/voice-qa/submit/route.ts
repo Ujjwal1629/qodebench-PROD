@@ -21,18 +21,18 @@ export async function POST(request: NextRequest) {
       .in('id', questionIds);
 
     // Evaluate each response with AI (or fallback to basic scoring)
-    const evaluations = [];
-    let totalScore = 0;
+    // OPTIMIZED: Parallelize AI evaluations for faster processing
     const hasOpenAI = !!process.env.OPENAI_API_KEY;
+    const openai = hasOpenAI ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY }) : null;
 
-    for (const question of questions || []) {
+    // Create evaluation promises for all questions simultaneously
+    const evaluationPromises = (questions || []).map(async (question) => {
       const userResponse = responses[question.id];
       let evaluation: any;
 
-      if (hasOpenAI) {
+      if (openai) {
         try {
           // AI Evaluation with OpenAI
-          const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
           const completion = await openai.chat.completions.create({
             model: 'gpt-4',
             messages: [
@@ -69,9 +69,7 @@ Evaluate this response.`,
         evaluation = generateBasicEvaluation(userResponse);
       }
 
-      totalScore += evaluation.score || 0;
-
-      evaluations.push({
+      return {
         session_id: sessionId,
         stage: 'stage_2_voice_qa',
         question_id: question.id,
@@ -80,8 +78,14 @@ Evaluate this response.`,
         ai_score: evaluation.score || 0,
         ai_evaluation: evaluation,
         time_taken_seconds: 0,
-      });
-    }
+      };
+    });
+
+    // Wait for all evaluations to complete in parallel
+    const evaluations = await Promise.all(evaluationPromises);
+
+    // Calculate total score
+    const totalScore = evaluations.reduce((sum, ev) => sum + (ev.ai_score || 0), 0);
 
     // Insert stage responses
     await supabase.from('interview_stage_responses').insert(evaluations);

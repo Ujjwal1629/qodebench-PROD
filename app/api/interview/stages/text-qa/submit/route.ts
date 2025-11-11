@@ -243,20 +243,12 @@ export async function POST(request: NextRequest) {
     }
 
     // Evaluate each response
-    const evaluations = [];
-    let totalScore = 0;
-
-    for (const responseData of responses) {
+    // OPTIMIZED: Parallelize evaluations and database inserts
+    const evaluationPromises = responses.map(async (responseData) => {
       const question = questions.find((q) => q.id === responseData.question_id);
-      if (!question) continue;
+      if (!question) return null;
 
       const evaluation = await evaluateResponse(responseData.response, question);
-      totalScore += evaluation.score;
-
-      evaluations.push({
-        question_id: question.id,
-        evaluation,
-      });
 
       // Save to interview_stage_responses
       await supabase.from('interview_stage_responses').insert({
@@ -270,8 +262,19 @@ export async function POST(request: NextRequest) {
           improvements: evaluation.improvements,
         },
       });
-    }
 
+      return {
+        question_id: question.id,
+        evaluation,
+      };
+    });
+
+    // Wait for all evaluations to complete in parallel
+    const evaluationResults = await Promise.all(evaluationPromises);
+    const evaluations = evaluationResults.filter((ev) => ev !== null);
+
+    // Calculate average score
+    const totalScore = evaluations.reduce((sum, ev) => sum + ev.evaluation.score, 0);
     const averageScore = totalScore / responses.length;
 
     // Update session - move to stage 5

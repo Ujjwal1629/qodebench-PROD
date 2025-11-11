@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Loader2, CheckCircle2 } from 'lucide-react';
+import { Loader2, CheckCircle2, AlertTriangle } from 'lucide-react';
 import MCQStage from './stages/mcq-stage';
 import VoiceQAStage from './stages/voice-qa-stage';
 import CodingStage from './stages/coding-stage';
@@ -13,6 +13,16 @@ import TextQAStage from './stages/text-qa-stage';
 import DiscussionStage from './stages/discussion-stage';
 import ResultsStage from './stages/results-stage';
 import { toast } from 'sonner';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 interface InterviewSession {
   id: string;
@@ -47,7 +57,6 @@ export default function InterviewOrchestrator({ sessionId }: InterviewOrchestrat
     const fetchSession = async () => {
       try {
         const response = await fetch(`/api/interview/session/${sessionId}`);
-
         if (!response.ok) throw new Error('Failed to fetch session');
 
         const data = await response.json();
@@ -63,6 +72,20 @@ export default function InterviewOrchestrator({ sessionId }: InterviewOrchestrat
     fetchSession();
   }, [sessionId, router]);
 
+  // Warn user before leaving the page (browser navigation)
+  useEffect(() => {
+    if (!session || session.status === 'completed') return;
+
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = 'Your interview progress will be lost if you leave this page. Are you sure you want to exit?';
+      return e.returnValue;
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [session]);
+
   const handleStageComplete = async (score?: number) => {
     // Refresh session data to get updated current_stage
     try {
@@ -71,6 +94,9 @@ export default function InterviewOrchestrator({ sessionId }: InterviewOrchestrat
 
       const data = await response.json();
       setSession(data.session);
+
+      // Scroll to top when stage changes
+      window.scrollTo({ top: 0, behavior: 'smooth' });
 
       // Show success message
       if (score !== undefined) {
@@ -100,6 +126,22 @@ export default function InterviewOrchestrator({ sessionId }: InterviewOrchestrat
 
   return (
     <div className="container mx-auto py-8 px-4">
+      {/* Warning Banner */}
+      {session.status !== 'completed' && (
+        <Card className="mb-6 border-amber-200 bg-amber-50 dark:bg-amber-950/20">
+          <div className="flex items-start gap-3 p-4">
+            <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-500 mt-0.5 flex-shrink-0" />
+            <div className="flex-1">
+              <h3 className="font-semibold text-amber-900 dark:text-amber-100">Important: Do Not Navigate Away</h3>
+              <p className="text-sm text-amber-800 dark:text-amber-200 mt-1">
+                Your interview progress will be lost if you navigate away from this page or close your browser.
+                Please complete the entire interview in one session. Estimated time: 45-60 minutes.
+              </p>
+            </div>
+          </div>
+        </Card>
+      )}
+
       {/* Header with Progress */}
       <Card className="p-6 mb-8">
         <div className="space-y-4">

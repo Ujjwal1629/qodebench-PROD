@@ -40,6 +40,9 @@ export default function MCQStage({ sessionId, experienceLevel, onComplete }: MCQ
 
   // Fetch MCQ questions
   useEffect(() => {
+    // Scroll to top when stage loads
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
     const fetchQuestions = async () => {
       try {
         const response = await fetch('/api/interview/stages/mcq/questions', {
@@ -66,6 +69,10 @@ export default function MCQStage({ sessionId, experienceLevel, onComplete }: MCQ
   // Start timer when user clicks start
   const startQuiz = () => {
     setHasStarted(true);
+    // Scroll to top when quiz starts
+    setTimeout(() => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, 100);
   };
 
   // Timer countdown
@@ -306,12 +313,14 @@ export default function MCQStage({ sessionId, experienceLevel, onComplete }: MCQ
               )}
             </p>
             <p className="text-sm text-muted-foreground">
-              You can submit even if not all questions are answered
+              {answeredCount === questions.length
+                ? 'You can now submit your answers'
+                : 'Please answer all questions to submit'}
             </p>
           </div>
           <Button
             onClick={handleSubmit}
-            disabled={isSubmitting || answeredCount === 0}
+            disabled={isSubmitting || answeredCount < questions.length}
             size="lg"
             className="min-w-[200px]"
           >
