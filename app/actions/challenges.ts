@@ -110,6 +110,7 @@ export const getChallengesList = cache(
 
 /**
  * Get a single challenge by ID or slug
+ * SECURITY: Checks subscription access before returning challenge data
  */
 export const getChallengeById = cache(
   async (idOrSlug: string): Promise<ChallengeWithProgress | null> => {
@@ -134,6 +135,9 @@ export const getChallengeById = cache(
       const { data: challenge } = await query.single();
 
       if (!challenge) return null;
+
+      // NOTE: Tier access checks are handled in the page component
+      // to show proper paywall UI instead of 404
 
       // Get user progress if authenticated
       const {
@@ -608,6 +612,11 @@ import {
   type Challenge as UnlockChallenge,
   type UserProgress,
 } from '@/lib/utils/challenge-unlock';
+import {
+  canAccessChallengeTier,
+  canMakeAttempt,
+  incrementDailyUsage,
+} from '@/lib/utils/subscription-check';
 
 export type TierProgressStats = {
   tier: ChallengeTier;
@@ -889,6 +898,14 @@ export const checkChallengeUnlocked = cache(
         return { isUnlocked: false, reason: 'Challenge not found' };
       }
 
+      // SECURITY CHECK: Verify user has access to this challenge tier
+      if (challenge.tier && challenge.tier !== 'beginner') {
+        const access = await canAccessChallengeTier(challenge.tier as ChallengeTier);
+        if (!access.canAccess) {
+          return { isUnlocked: false, reason: access.reason };
+        }
+      }
+
       // Get all challenges
       const { data: allChallenges } = await supabase
         .from('challenges')
@@ -917,3 +934,50 @@ export const checkChallengeUnlocked = cache(
     }
   }
 );
+
+/**
+ * Check if user can submit a challenge attempt
+ * Enforces daily limits for free users
+ */
+export async function canSubmitChallenge(
+  challengeId: string
+): Promise<{ allowed: boolean; reason?: string; attemptsRemaining?: number }> {
+  try {
+    // Check if challenge is unlocked
+    const unlockStatus = await checkChallengeUnlocked(challengeId);
+    if (!unlockStatus.isUnlocked) {
+      return { allowed: false, reason: unlockStatus.reason };
+    }
+
+    // Check daily attempt limit
+    const attemptCheck = await canMakeAttempt();
+    if (!attemptCheck.allowed) {
+      return {
+        allowed: false,
+        reason: attemptCheck.reason,
+        attemptsRemaining: 0,
+      };
+    }
+
+    return {
+      allowed: true,
+      attemptsRemaining: attemptCheck.attemptsRemaining,
+    };
+  } catch (error) {
+    console.error('Error in canSubmitChallenge:', error);
+    return { allowed: false, reason: 'Error checking submission eligibility' };
+  }
+}
+
+/**
+ * Record a challenge submission attempt
+ * Increments daily usage counter for free users
+ */
+export async function recordChallengeAttempt(): Promise<boolean> {
+  try {
+    return await incrementDailyUsage('attempts');
+  } catch (error) {
+    console.error('Error recording challenge attempt:', error);
+    return false;
+  }
+}

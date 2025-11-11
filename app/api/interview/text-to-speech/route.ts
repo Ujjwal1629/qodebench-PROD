@@ -1,11 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
+import { verifyInterviewAPIAccess } from '@/lib/utils/api-access-checks';
 
 // Cache for common phrases to reduce API calls
 const ttsCache = new Map<string, Buffer>();
 
 export async function POST(request: NextRequest) {
   try {
+    // SECURITY CHECK: Verify user has access to interview prep
+    const { user, error: accessError } = await verifyInterviewAPIAccess();
+    if (accessError) return accessError;
+
     // Initialize OpenAI client only when needed
     const openai = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY || '',

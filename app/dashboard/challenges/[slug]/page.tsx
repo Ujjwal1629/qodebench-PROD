@@ -6,6 +6,9 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Lock, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
+import { canAccessChallengeTier } from '@/lib/utils/subscription-check';
+import { UpgradeRequired } from '@/components/paywall/upgrade-required';
+import type { ChallengeTier } from '@/lib/constants/dashboard';
 
 interface ChallengePageProps {
   params: Promise<{
@@ -39,7 +42,33 @@ export default async function ChallengePage({ params }: ChallengePageProps) {
     notFound();
   }
 
-  // Check if challenge is unlocked
+  // SUBSCRIPTION CHECK: Verify user can access this tier
+  if (challenge.tier && challenge.tier !== 'beginner') {
+    const tierAccess = await canAccessChallengeTier(challenge.tier as ChallengeTier);
+
+    if (!tierAccess.canAccess) {
+      return (
+        <div className="max-w-2xl mx-auto py-12 px-4">
+          <div className="mb-6">
+            <Button asChild variant="ghost" size="sm">
+              <Link href="/dashboard/challenges">
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to Challenges
+              </Link>
+            </Button>
+          </div>
+          <UpgradeRequired
+            title={`${challenge.tier.charAt(0).toUpperCase() + challenge.tier.slice(1)} Challenge`}
+            description="This challenge requires a premium subscription"
+            feature={challenge.title}
+            reason={tierAccess.reason}
+          />
+        </div>
+      );
+    }
+  }
+
+  // Check if challenge is unlocked (progression-based)
   const unlockStatus = await checkChallengeUnlocked(challenge.id);
 
   // If locked, show unlock requirement

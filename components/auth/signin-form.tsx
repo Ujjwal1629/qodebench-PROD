@@ -7,13 +7,12 @@ import * as z from 'zod';
 import { useAuth } from '@/hooks/use-auth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { PasswordInput } from '@/components/ui/password-input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { useToast } from '@/hooks/use-toast';
 import { OAuthButtons } from '@/components/auth/oauth-buttons';
-import { AlertCircle, Mail, RefreshCw } from 'lucide-react';
+import { AlertCircle, CheckCircle } from 'lucide-react';
 import Link from 'next/link';
-import { createClient } from '@/lib/supabase/client';
 
 const signInSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
@@ -23,12 +22,9 @@ const signInSchema = z.object({
 type SignInFormValues = z.infer<typeof signInSchema>;
 
 export function SignInForm() {
-  const [emailNotConfirmed, setEmailNotConfirmed] = useState(false);
-  const [unconfirmedEmail, setUnconfirmedEmail] = useState('');
-  const [isResending, setIsResending] = useState(false);
   const { signIn } = useAuth();
-  const { toast } = useToast();
-  const supabase = createClient();
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const form = useForm<SignInFormValues>({
     resolver: zodResolver(signInSchema),
@@ -38,108 +34,58 @@ export function SignInForm() {
     },
   });
 
-  const handleResendConfirmation = async () => {
-    setIsResending(true);
-    try {
-      const { error } = await supabase.auth.resend({
-        type: 'signup',
-        email: unconfirmedEmail,
-      });
-
-      if (error) throw error;
-
-      toast({
-        title: 'Email Sent',
-        description: 'A new confirmation email has been sent. Please check your inbox.',
-      });
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: error instanceof Error ? error.message : 'Failed to resend confirmation email',
-        variant: 'destructive',
-      });
-    } finally {
-      setIsResending(false);
-    }
-  };
-
   const onSubmit = async (values: SignInFormValues) => {
-    try {
-      setEmailNotConfirmed(false);
-      await signIn(values.email, values.password);
-      toast({
-        title: 'Success',
-        description: 'Signed in successfully!',
-      });
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to sign in';
+    // Clear any previous messages
+    setErrorMessage(null);
+    setSuccessMessage(null);
 
-      // Check if the error is due to unconfirmed email
-      if (errorMessage.toLowerCase().includes('email not confirmed')) {
-        setEmailNotConfirmed(true);
-        setUnconfirmedEmail(values.email);
-      } else {
-        toast({
-          title: 'Error',
-          description: errorMessage,
-          variant: 'destructive',
-        });
-      }
+    try {
+      await signIn(values.email, values.password);
+      setSuccessMessage('Signed in successfully!');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to sign in';
+      setErrorMessage(message);
     }
   };
 
   return (
-    <Card className="w-full max-w-md">
-      <CardHeader className="space-y-1">
-        <CardTitle className="text-2xl font-bold">Sign In</CardTitle>
-        <CardDescription>
-          Enter your email and password to access your account
-        </CardDescription>
-      </CardHeader>
+    <div className="w-full max-w-md">
+      {/* Error Message Banner */}
+      {errorMessage && (
+        <div className="mb-4 rounded-lg bg-red-50 border border-red-200 p-4">
+          <div className="flex items-center justify-center gap-3">
+            <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0" />
+            <div className="text-center">
+              <h4 className="text-sm font-semibold text-red-900 mb-1">Error</h4>
+              <p className="text-sm text-red-800">{errorMessage}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Success Message Banner */}
+      {successMessage && (
+        <div className="mb-4 rounded-lg bg-green-50 border border-green-200 p-4">
+          <div className="flex items-center justify-center gap-3">
+            <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0" />
+            <div className="text-center">
+              <h4 className="text-sm font-semibold text-green-900 mb-1">Success</h4>
+              <p className="text-sm text-green-800">{successMessage}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <Card className="w-full max-w-md">
+        <CardHeader className="space-y-1">
+          <CardTitle className="text-2xl font-bold">Sign In</CardTitle>
+          <CardDescription>
+            Enter your email and password to access your account
+          </CardDescription>
+        </CardHeader>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <CardContent className="space-y-4">
-            {emailNotConfirmed && (
-              <div className="rounded-lg bg-amber-50 border border-amber-200 p-4">
-                <div className="flex items-start gap-3">
-                  <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5 flex-shrink-0" />
-                  <div className="flex-1">
-                    <h4 className="text-sm font-semibold text-amber-900 mb-1">
-                      Email Not Confirmed
-                    </h4>
-                    <p className="text-sm text-amber-800 mb-3">
-                      Please check your email inbox and click the confirmation link we sent to{' '}
-                      <span className="font-medium">{unconfirmedEmail}</span> to activate your account.
-                    </p>
-                    <div className="flex flex-col sm:flex-row gap-2">
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="outline"
-                        onClick={handleResendConfirmation}
-                        disabled={isResending}
-                        className="bg-white hover:bg-amber-50 border-amber-300 text-amber-900"
-                      >
-                        {isResending ? (
-                          <>
-                            <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                            Sending...
-                          </>
-                        ) : (
-                          <>
-                            <Mail className="h-4 w-4 mr-2" />
-                            Resend Confirmation Email
-                          </>
-                        )}
-                      </Button>
-                    </div>
-                    <p className="text-xs text-amber-700 mt-2">
-                      Don&apos;t see the email? Check your spam folder.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
             <FormField
               control={form.control}
               name="email"
@@ -152,6 +98,13 @@ export function SignInForm() {
                       placeholder="you@example.com"
                       disabled={form.formState.isSubmitting}
                       {...field}
+                      onChange={(e) => {
+                        field.onChange(e);
+                        if (errorMessage || successMessage) {
+                          setErrorMessage(null);
+                          setSuccessMessage(null);
+                        }
+                      }}
                     />
                   </FormControl>
                   <FormMessage />
@@ -173,11 +126,17 @@ export function SignInForm() {
                     </Link>
                   </div>
                   <FormControl>
-                    <Input
-                      type="password"
+                    <PasswordInput
                       placeholder="••••••••"
                       disabled={form.formState.isSubmitting}
                       {...field}
+                      onChange={(e) => {
+                        field.onChange(e);
+                        if (errorMessage || successMessage) {
+                          setErrorMessage(null);
+                          setSuccessMessage(null);
+                        }
+                      }}
                     />
                   </FormControl>
                   <FormMessage />
@@ -203,6 +162,7 @@ export function SignInForm() {
           </CardFooter>
         </form>
       </Form>
-    </Card>
+      </Card>
+    </div>
   );
 }

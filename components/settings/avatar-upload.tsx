@@ -7,6 +7,7 @@ import { Upload, X, Loader2 } from 'lucide-react';
 import { uploadAvatar, removeAvatar } from '@/app/actions/settings';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { getUserInitials } from '@/lib/utils/format';
 
 interface AvatarUploadProps {
   currentAvatarUrl: string | null;
@@ -141,7 +142,7 @@ export function AvatarUpload({
         <Avatar className="h-24 w-24 border-2 border-slate-200">
           <AvatarImage src={avatarUrl || undefined} alt={username} />
           <AvatarFallback className="bg-brand-100 text-brand-700 text-2xl font-semibold">
-            {username.slice(0, 2).toUpperCase()}
+            {getUserInitials(username)}
           </AvatarFallback>
         </Avatar>
         {isUploading && (

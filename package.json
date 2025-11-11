@@ -40,6 +40,7 @@
     "next": "^15.0.3",
     "nextjs-toploader": "^3.9.17",
     "openai": "^6.6.0",
+    "razorpay": "^2.9.6",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-hook-form": "^7.65.0",

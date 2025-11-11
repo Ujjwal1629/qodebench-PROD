@@ -1,8 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { abandonInterview } from '@/app/actions/interviews';
+import { verifyInterviewAPIAccess } from '@/lib/utils/api-access-checks';
 
 export async function POST(request: NextRequest) {
   try {
+    // SECURITY CHECK: Verify user has access to interview prep
+    const { user, error: accessError } = await verifyInterviewAPIAccess();
+    if (accessError) return accessError;
+
     const { sessionId } = await request.json();
 
     if (!sessionId) {

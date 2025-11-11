@@ -1,8 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { verifyInterviewAPIAccess } from '@/lib/utils/api-access-checks';
 
 export async function POST(request: NextRequest) {
   try {
+    // SECURITY CHECK: Verify user has access to interview prep
+    const { user, error: accessError } = await verifyInterviewAPIAccess();
+    if (accessError) return accessError;
+
     const { sessionId, experienceLevel } = await request.json();
 
     if (!sessionId || !experienceLevel) {
@@ -13,15 +18,6 @@ export async function POST(request: NextRequest) {
     }
 
     const supabase = await createClient();
-
-    // Verify session belongs to authenticated user
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
 
     const { data: session } = await supabase
       .from('interview_sessions')

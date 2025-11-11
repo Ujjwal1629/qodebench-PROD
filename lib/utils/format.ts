@@ -182,3 +182,49 @@ export function getProgressPercentage(
   if (current >= max) return 100;
   return Math.round(((current - min) / (max - min)) * 100);
 }
+
+/**
+ * Generate user initials from username or full name, filtering out special characters
+ * @example getUserInitials('John Doe') => 'JD'
+ * @example getUserInitials('john_smith') => 'JS'
+ * @example getUserInitials('!!!') => 'U'
+ * @example getUserInitials('a@#$b') => 'AB'
+ */
+export function getUserInitials(
+  username?: string | null,
+  fullName?: string | null
+): string {
+  // Try full name first
+  if (fullName) {
+    const nameParts = fullName.trim().split(' ').filter(Boolean);
+    if (nameParts.length >= 2) {
+      // First and last name
+      const firstInitial = nameParts[0][0];
+      const lastInitial = nameParts[nameParts.length - 1][0];
+      if (/[a-zA-Z]/.test(firstInitial) && /[a-zA-Z]/.test(lastInitial)) {
+        return (firstInitial + lastInitial).toUpperCase();
+      }
+    } else if (nameParts.length === 1) {
+      // Single name, try to get first 2 letters
+      const letters = nameParts[0].replace(/[^a-zA-Z]/g, '');
+      if (letters.length >= 2) {
+        return letters.slice(0, 2).toUpperCase();
+      } else if (letters.length === 1) {
+        return letters.toUpperCase();
+      }
+    }
+  }
+
+  // Try username
+  if (username) {
+    const letters = username.replace(/[^a-zA-Z]/g, '');
+    if (letters.length >= 2) {
+      return letters.slice(0, 2).toUpperCase();
+    } else if (letters.length === 1) {
+      return letters.toUpperCase();
+    }
+  }
+
+  // Default fallback
+  return 'U';
+}

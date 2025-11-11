@@ -18,36 +18,45 @@ export function Hero() {
           {/* Beta Badge */}
           <div className="inline-flex items-center gap-2 bg-gradient-to-r from-brand-500/10 via-purple-500/10 to-brand-500/10 border border-brand-300/50 px-5 py-2.5 rounded-full backdrop-blur-sm">
             <span className="text-sm font-semibold bg-gradient-to-r from-brand-600 to-purple-600 bg-clip-text text-transparent">
-              🎉 Beta Launch - Free for 1 month
+              🚀 AI-Powered Developer Simulator
             </span>
           </div>
 
           {/* Main Headline */}
           <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold leading-tight tracking-tight">
-            <span className="text-slate-900">Master Real-World </span>
             <span className="bg-gradient-to-r from-brand-500 via-brand-600 to-purple-600 bg-clip-text text-transparent">
-              Coding Skills
+              Train like you&apos;re
             </span>
+            <br />
+            <span className="text-slate-900">already hired.</span>
           </h1>
 
           {/* Subheadline */}
           <p className="text-lg md:text-xl text-slate-600 leading-relaxed max-w-3xl mx-auto">
-            Go beyond algorithms. Learn PRs, documentation, code reviews, and technical challenges that matter in actual developer jobs.
+            Qodebench helps full-stack developers gain real-world experience through AI-powered coding simulations, production-like challenges, and mock interviews.
           </p>
 
-          {/* Single CTA */}
-          <div className="pt-2">
+          {/* Dual CTAs */}
+          <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-4">
             <Button
               asChild
               size="lg"
-              className="bg-gradient-to-r from-brand-500 via-brand-600 to-purple-600 hover:from-brand-600 hover:via-brand-700 hover:to-purple-700 text-white text-lg px-12 h-16 rounded-2xl font-semibold transition-all shadow-2xl shadow-brand-500/30 hover:shadow-3xl hover:shadow-brand-500/40 hover:scale-105"
+              className="bg-gradient-to-r from-brand-500 via-brand-600 to-purple-600 hover:from-brand-600 hover:via-brand-700 hover:to-purple-700 text-white text-lg px-10 h-14 rounded-2xl font-semibold transition-all shadow-2xl shadow-brand-500/30 hover:shadow-3xl hover:shadow-brand-500/40 hover:scale-105"
             >
-              <Link href="/signup">Start learning for free →</Link>
+              <Link href="/dashboard/learning">Start Learning</Link>
             </Button>
-            <p className="text-sm text-slate-500 mt-4">
-              No credit card required • 1 month free beta access
-            </p>
+            <Button
+              asChild
+              size="lg"
+              variant="outline"
+              className="border-2 border-brand-500 text-brand-600 hover:bg-brand-50 text-lg px-10 h-14 rounded-2xl font-semibold transition-all hover:scale-105"
+            >
+              <Link href="/dashboard/challenges">Try a Challenge</Link>
+            </Button>
           </div>
+          <p className="text-sm text-slate-500 mt-4">
+            Start free • Beta trial at ₹199 for 21 days
+          </p>
 
           {/* Quick Stats */}
           <div className="pt-8">

@@ -148,7 +148,7 @@ export default function CareersPage() {
                 talented individuals to join our team.
               </p>
               <Button asChild variant="outline">
-                <a href="mailto:support@qodebench.com">Send Us Your Resume</a>
+                <a href="mailto:team@qodebench.com">Send Us Your Resume</a>
               </Button>
             </CardContent>
           </Card>
@@ -165,7 +165,7 @@ export default function CareersPage() {
             Send your resume and portfolio to our careers team.
           </p>
           <Button asChild size="lg" className="bg-brand-600 hover:bg-brand-700">
-            <a href="mailto:support@qodebench.com">Email support@qodebench.com</a>
+            <a href="mailto:team@qodebench.com">Email team@qodebench.com</a>
           </Button>
         </div>
       </section>

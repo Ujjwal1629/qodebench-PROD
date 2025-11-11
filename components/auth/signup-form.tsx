@@ -7,14 +7,15 @@ import * as z from 'zod';
 import { useAuth } from '@/hooks/use-auth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { PasswordInput } from '@/components/ui/password-input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
-import { useToast } from '@/hooks/use-toast';
 import { OAuthButtons } from '@/components/auth/oauth-buttons';
 import { PasswordStrengthIndicator } from '@/components/auth/password-strength-indicator';
 import { checkUsernameAvailability, validateUsername } from '@/lib/auth';
 import Link from 'next/link';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, CheckCircle } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 const signUpSchema = z.object({
   username: z
@@ -36,15 +37,10 @@ type SignUpFormValues = z.infer<typeof signUpSchema>;
 
 export function SignUpForm() {
   const [isCheckingUsername, setIsCheckingUsername] = useState(false);
-  const [emailError, setEmailError] = useState<{
-    message: string;
-    providers?: string[];
-    hasPassword?: boolean;
-  } | null>(null);
-  const [isSuccess, setIsSuccess] = useState(false);
-  const [registeredEmail, setRegisteredEmail] = useState('');
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const { signUp } = useAuth();
-  const { toast } = useToast();
+  const router = useRouter();
 
   const form = useForm<SignUpFormValues>({
     resolver: zodResolver(signUpSchema),
@@ -81,8 +77,8 @@ export function SignUpForm() {
   const handleEmailBlur = async () => {
     const email = form.getValues('email');
 
-    // Clear previous email error
-    setEmailError(null);
+    // Clear previous error
+    setErrorMessage(null);
 
     // Just validate email format - we'll check existence during signup
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -92,116 +88,64 @@ export function SignUpForm() {
   };
 
   const onSubmit = async (values: SignUpFormValues) => {
+    // Clear any previous messages
+    setErrorMessage(null);
+    setSuccessMessage(null);
+
     try {
       await signUp(
         values.email,
         values.password,
         values.username
       );
-      setRegisteredEmail(values.email);
-      setIsSuccess(true);
-      toast({
-        title: 'Success',
-        description: 'Account created successfully!',
-      });
+      setSuccessMessage('Welcome to QodeBench! Your account has been created successfully.');
+      // Redirect to dashboard after successful registration
+      // Middleware will redirect to onboarding quiz if needed
+      setTimeout(() => router.push('/dashboard'), 1500);
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to sign up';
-
-      // Check if error is about existing user
-      if (errorMessage.toLowerCase().includes('already registered') ||
-          errorMessage.toLowerCase().includes('user already exists') ||
-          errorMessage.toLowerCase().includes('already been registered')) {
-        setEmailError({
-          message: 'This email is already registered. Please sign in instead.',
-        });
-        // Don't show toast for email already registered - inline message is clearer
-        return;
-      }
-
-      toast({
-        title: 'Error',
-        description: errorMessage,
-        variant: 'destructive',
-      });
+      const message = error instanceof Error ? error.message : 'Failed to sign up';
+      setErrorMessage(message);
     }
   };
 
-  if (isSuccess) {
-    return (
+  return (
+    <div className="w-full max-w-md">
+      {/* Error Message Banner */}
+      {errorMessage && (
+        <div className="mb-4 rounded-lg bg-red-50 border border-red-200 p-4">
+          <div className="flex items-center justify-center gap-3">
+            <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0" />
+            <div className="text-center">
+              <h4 className="text-sm font-semibold text-red-900 mb-1">Error</h4>
+              <p className="text-sm text-red-800">{errorMessage}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Success Message Banner */}
+      {successMessage && (
+        <div className="mb-4 rounded-lg bg-green-50 border border-green-200 p-4">
+          <div className="flex items-center justify-center gap-3">
+            <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0" />
+            <div className="text-center">
+              <h4 className="text-sm font-semibold text-green-900 mb-1">Success</h4>
+              <p className="text-sm text-green-800">{successMessage}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold">Registration Successful!</CardTitle>
+          <CardTitle className="text-2xl font-bold">Create Account</CardTitle>
           <CardDescription>
-            Please verify your email to continue
+            Enter your information to get started with QodeBench
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="rounded-lg bg-green-50 border border-green-200 p-4 text-sm text-green-800">
-            <p className="font-semibold mb-2">Check your email</p>
-            <p className="mb-2">
-              We&apos;ve sent a confirmation email to <span className="font-medium">{registeredEmail}</span>
-            </p>
-            <p className="text-green-700">
-              Please check your inbox and click the confirmation link to activate your account.
-              Don&apos;t forget to check your spam folder if you don&apos;t see it within a few minutes.
-            </p>
-          </div>
-        </CardContent>
-        <CardFooter>
-          <p className="text-sm text-center text-slate-600 w-full">
-            Already confirmed?{' '}
-            <Link href="/signin" className="text-brand-500 hover:text-brand-600 font-medium">
-              Sign in
-            </Link>
-          </p>
-        </CardFooter>
-      </Card>
-    );
-  }
-
-  return (
-    <Card className="w-full max-w-md">
-      <CardHeader className="space-y-1">
-        <CardTitle className="text-2xl font-bold">Create Account</CardTitle>
-        <CardDescription>
-          Enter your information to get started with QodeBench
-        </CardDescription>
-      </CardHeader>
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)}>
-          <CardContent className="space-y-4">
-            {emailError && (
-              <div className="rounded-lg bg-red-50 border border-red-200 p-4">
-                <div className="flex items-start gap-3">
-                  <AlertCircle className="h-5 w-5 text-red-600 mt-0.5 flex-shrink-0" />
-                  <div className="flex-1">
-                    <h4 className="text-sm font-semibold text-red-900 mb-1">
-                      Email Already Registered
-                    </h4>
-                    <p className="text-sm text-red-800 mb-2">
-                      An account with this email already exists.
-                    </p>
-                    <div className="text-sm text-red-800 space-y-1">
-                      <p>Please try:</p>
-                      <ul className="list-disc list-inside space-y-1 ml-2">
-                        <li>
-                          <Link href="/signin" className="font-medium underline hover:text-red-900">
-                            Sign in with your password
-                          </Link>
-                        </li>
-                        <li>Sign in using Google or GitHub buttons below</li>
-                        <li>
-                          <Link href="/reset-password" className="font-medium underline hover:text-red-900">
-                            Reset your password
-                          </Link>
-                          {' '}if you forgot it
-                        </li>
-                      </ul>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)}>
+            <CardContent className="space-y-4">
             <FormField
               control={form.control}
               name="username"
@@ -244,9 +188,10 @@ export function SignUpForm() {
                       }}
                       onChange={(e) => {
                         field.onChange(e);
-                        // Clear email error when user starts typing
-                        if (emailError) {
-                          setEmailError(null);
+                        // Clear messages when user starts typing
+                        if (errorMessage || successMessage) {
+                          setErrorMessage(null);
+                          setSuccessMessage(null);
                         }
                       }}
                     />
@@ -262,8 +207,7 @@ export function SignUpForm() {
                 <FormItem>
                   <FormLabel>Password</FormLabel>
                   <FormControl>
-                    <Input
-                      type="password"
+                    <PasswordInput
                       placeholder="••••••••"
                       disabled={form.formState.isSubmitting}
                       {...field}
@@ -281,8 +225,7 @@ export function SignUpForm() {
                 <FormItem>
                   <FormLabel>Confirm Password</FormLabel>
                   <FormControl>
-                    <Input
-                      type="password"
+                    <PasswordInput
                       placeholder="••••••••"
                       disabled={form.formState.isSubmitting}
                       {...field}
@@ -311,6 +254,7 @@ export function SignUpForm() {
           </CardFooter>
         </form>
       </Form>
-    </Card>
+      </Card>
+    </div>
   );
 }

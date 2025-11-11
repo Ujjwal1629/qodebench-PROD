@@ -70,13 +70,13 @@ export default function PrivacyPage() {
 
             <h2 className="text-2xl font-bold text-slate-900 mt-8">Data Sharing and Disclosure</h2>
             <p className="text-slate-600">
-              We do not sell your personal information. We may share your information in the following circumstances:
+              <strong>We do not sell or share your personal information with third parties for marketing purposes.</strong> Your data is used solely for providing and improving our services. We may share your information only in the following limited circumstances:
             </p>
             <ul className="text-slate-600">
-              <li><strong>Service Providers:</strong> With third-party vendors who perform services on our behalf</li>
-              <li><strong>Legal Requirements:</strong> When required by law or to protect our rights</li>
+              <li><strong>Service Providers:</strong> With trusted third-party vendors who perform services on our behalf (e.g., authentication, hosting, analytics) under strict confidentiality agreements</li>
+              <li><strong>Legal Requirements:</strong> When required by law or to protect our rights and safety</li>
               <li><strong>Business Transfers:</strong> In connection with a merger, acquisition, or sale of assets</li>
-              <li><strong>With Your Consent:</strong> When you authorize us to share your information</li>
+              <li><strong>With Your Consent:</strong> When you explicitly authorize us to share your information</li>
             </ul>
 
             <h2 className="text-2xl font-bold text-slate-900 mt-8">Data Security</h2>
@@ -122,7 +122,7 @@ export default function PrivacyPage() {
               If you have questions about this Privacy Policy, please contact us at:
             </p>
             <p className="text-slate-600">
-              Email: <a href="mailto:support@qodebench.com" className="text-brand-600 hover:text-brand-700">support@qodebench.com</a>
+              Email: <a href="mailto:team@qodebench.com" className="text-brand-600 hover:text-brand-700">team@qodebench.com</a>
             </p>
           </CardContent>
         </Card>

@@ -77,11 +77,23 @@ export default function InterviewHubNew({ userId }: InterviewHubProps) {
         body: JSON.stringify({ experienceLevel: selectedLevel }),
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        throw new Error('Failed to start interview');
+        // Check if it's an access denial
+        if (response.status === 403 && data.requiresUpgrade) {
+          toast.error(data.message || 'Premium subscription required', {
+            description: 'Upgrade to access interview prep mode',
+            action: {
+              label: 'Upgrade',
+              onClick: () => router.push('/pricing'),
+            },
+          });
+          return;
+        }
+        throw new Error(data.error || 'Failed to start interview');
       }
 
-      const data = await response.json();
       toast.success('Interview started! Good luck!');
 
       // Navigate to the interview orchestrator

@@ -1,26 +1,83 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { Menu, X } from "lucide-react";
+import { Menu, X, User, Crown, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { createClient } from "@/lib/supabase/client";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Badge } from "@/components/ui/badge";
+import type { User as SupabaseUser } from "@supabase/supabase-js";
 
 const navLinks = [
-  { name: "Features", href: "#features" },
-  { name: "Challenges", href: "#how-it-works" },
-  { name: "Pricing", href: "#pricing" },
-  { name: "About", href: "#about" },
+  { name: "Features", href: "#features", isAnchor: true },
+  { name: "Challenges", href: "/dashboard/challenges", isAnchor: false },
+  { name: "Pricing", href: "#pricing", isAnchor: true },
+  { name: "About", href: "/about", isAnchor: false },
 ];
 
 export function Navbar() {
   const pathname = usePathname();
+  const router = useRouter();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [user, setUser] = useState<SupabaseUser | null>(null);
+  const [userProfile, setUserProfile] = useState<{ username: string; full_name: string | null } | null>(null);
+  const [subscriptionTier, setSubscriptionTier] = useState<string>('free');
+  const [loading, setLoading] = useState(true);
 
   // Hide navbar on dashboard and auth pages
   const shouldHideNavbar = pathname?.startsWith('/dashboard') || pathname?.startsWith('/signin') || pathname?.startsWith('/signup');
+
+  // Check auth status
+  useEffect(() => {
+    const checkAuth = async () => {
+      const supabase = createClient();
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+
+      if (currentUser) {
+        setUser(currentUser);
+
+        // Fetch subscription tier and profile info
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('username, full_name, subscription_tier, subscription_status')
+          .eq('id', currentUser.id)
+          .single();
+
+        if (profile) {
+          setUserProfile({ username: profile.username, full_name: profile.full_name });
+          setSubscriptionTier(profile.subscription_tier || 'free');
+        }
+      }
+      setLoading(false);
+    };
+
+    checkAuth();
+
+    // Listen for auth changes
+    const supabase = createClient();
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+      if (!session?.user) {
+        setUserProfile(null);
+        setSubscriptionTier('free');
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -80,33 +137,100 @@ export function Navbar() {
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-10">
             {navLinks.map((link) => (
-              <a
-                key={link.name}
-                href={link.href}
-                onClick={(e) => scrollToSection(e, link.href)}
-                className="text-sm font-medium transition-all duration-300 relative group text-slate-600 hover:text-slate-900"
-              >
-                {link.name}
-                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-slate-900 transition-all duration-300 group-hover:w-full" />
-              </a>
+              link.isAnchor ? (
+                <a
+                  key={link.name}
+                  href={link.href}
+                  onClick={(e) => scrollToSection(e, link.href)}
+                  className="text-sm font-medium transition-all duration-300 relative group text-slate-600 hover:text-slate-900"
+                >
+                  {link.name}
+                  <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-slate-900 transition-all duration-300 group-hover:w-full" />
+                </a>
+              ) : (
+                <Link
+                  key={link.name}
+                  href={link.href}
+                  className="text-sm font-medium transition-all duration-300 relative group text-slate-600 hover:text-slate-900"
+                >
+                  {link.name}
+                  <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-slate-900 transition-all duration-300 group-hover:w-full" />
+                </Link>
+              )
             ))}
           </div>
 
           {/* Desktop CTA */}
           <div className="hidden md:flex items-center gap-3">
-            <Button
-              asChild
-              variant="ghost"
-              className="text-slate-600 hover:text-slate-900 hover:bg-slate-100"
-            >
-              <Link href="/signin">Login</Link>
-            </Button>
-            <Button
-              asChild
-              className="bg-gradient-to-r from-brand-500 to-purple-500 hover:from-brand-600 hover:to-purple-600 text-white transition-all duration-300 font-medium px-6 shadow-lg shadow-brand-500/25 hover:shadow-xl hover:shadow-brand-500/30"
-            >
-              <Link href="/signup">Get Started</Link>
-            </Button>
+            {loading ? (
+              <div className="h-10 w-32 bg-slate-200 animate-pulse rounded-md" />
+            ) : user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="gap-2">
+                    <User className="h-4 w-4" />
+                    <span className="max-w-[150px] truncate">
+                      {userProfile?.full_name || userProfile?.username || user.email?.split('@')[0]}
+                    </span>
+                    {subscriptionTier !== 'free' && (
+                      <Badge variant="secondary" className="bg-primary/10 text-primary">
+                        <Crown className="h-3 w-3 mr-1" />
+                        {subscriptionTier === 'beta' ? 'Beta' : 'Pro'}
+                      </Badge>
+                    )}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuLabel>
+                    <div className="flex flex-col">
+                      <span className="text-sm font-medium">{userProfile?.full_name || userProfile?.username || user.email}</span>
+                      <span className="text-xs text-muted-foreground capitalize">
+                        {subscriptionTier === 'free' ? 'Free Tier' : `${subscriptionTier} Plan`}
+                      </span>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => router.push('/dashboard')}>
+                    <User className="mr-2 h-4 w-4" />
+                    Dashboard
+                  </DropdownMenuItem>
+                  {subscriptionTier === 'free' && (
+                    <DropdownMenuItem onClick={() => router.push('/pricing')}>
+                      <Crown className="mr-2 h-4 w-4" />
+                      Upgrade to Pro
+                    </DropdownMenuItem>
+                  )}
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onClick={async () => {
+                      const supabase = createClient();
+                      await supabase.auth.signOut();
+                      router.push('/');
+                      router.refresh();
+                    }}
+                  >
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Logout
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <>
+                <Button
+                  asChild
+                  variant="ghost"
+                  className="text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                >
+                  <Link href="/signin">Login</Link>
+                </Button>
+                <Button
+                  asChild
+                  className="bg-gradient-to-r from-brand-500 to-purple-500 hover:from-brand-600 hover:to-purple-600 text-white transition-all duration-300 font-medium px-6 shadow-lg shadow-brand-500/25 hover:shadow-xl hover:shadow-brand-500/30"
+                >
+                  <Link href="/signup">Get Started</Link>
+                </Button>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -130,28 +254,99 @@ export function Navbar() {
           }`}>
             <div className="flex flex-col gap-6">
               {navLinks.map((link) => (
-                <a
-                  key={link.name}
-                  href={link.href}
-                  onClick={(e) => scrollToSection(e, link.href)}
-                  className="text-base font-medium text-slate-600 hover:text-slate-900 transition-colors"
-                >
-                  {link.name}
-                </a>
+                link.isAnchor ? (
+                  <a
+                    key={link.name}
+                    href={link.href}
+                    onClick={(e) => scrollToSection(e, link.href)}
+                    className="text-base font-medium text-slate-600 hover:text-slate-900 transition-colors"
+                  >
+                    {link.name}
+                  </a>
+                ) : (
+                  <Link
+                    key={link.name}
+                    href={link.href}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="text-base font-medium text-slate-600 hover:text-slate-900 transition-colors"
+                  >
+                    {link.name}
+                  </Link>
+                )
               ))}
-              <Button
-                asChild
-                variant="outline"
-                className="w-full mt-2"
-              >
-                <Link href="/signin">Login</Link>
-              </Button>
-              <Button
-                asChild
-                className="w-full bg-gradient-to-r from-brand-500 to-purple-500 hover:from-brand-600 hover:to-purple-600 text-white"
-              >
-                <Link href="/signup">Get Started</Link>
-              </Button>
+              {loading ? (
+                <div className="h-10 w-full bg-slate-200 animate-pulse rounded-md mt-2" />
+              ) : user ? (
+                <>
+                  <div className="mt-2 p-4 rounded-lg bg-slate-50 border border-slate-200">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium">{userProfile?.full_name || userProfile?.username || user.email}</span>
+                      {subscriptionTier !== 'free' && (
+                        <Badge variant="secondary" className="bg-primary/10 text-primary">
+                          <Crown className="h-3 w-3 mr-1" />
+                          {subscriptionTier === 'beta' ? 'Beta' : 'Pro'}
+                        </Badge>
+                      )}
+                    </div>
+                    <span className="text-xs text-muted-foreground capitalize">
+                      {subscriptionTier === 'free' ? 'Free Tier' : `${subscriptionTier} Plan`}
+                    </span>
+                  </div>
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => {
+                      router.push('/dashboard');
+                      setIsMobileMenuOpen(false);
+                    }}
+                  >
+                    <User className="mr-2 h-4 w-4" />
+                    Dashboard
+                  </Button>
+                  {subscriptionTier === 'free' && (
+                    <Button
+                      className="w-full bg-gradient-to-r from-brand-500 to-purple-500 hover:from-brand-600 hover:to-purple-600 text-white"
+                      onClick={() => {
+                        router.push('/pricing');
+                        setIsMobileMenuOpen(false);
+                      }}
+                    >
+                      <Crown className="mr-2 h-4 w-4" />
+                      Upgrade to Pro
+                    </Button>
+                  )}
+                  <Button
+                    variant="ghost"
+                    className="w-full"
+                    onClick={async () => {
+                      const supabase = createClient();
+                      await supabase.auth.signOut();
+                      router.push('/');
+                      router.refresh();
+                      setIsMobileMenuOpen(false);
+                    }}
+                  >
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Logout
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button
+                    asChild
+                    variant="outline"
+                    className="w-full mt-2"
+                  >
+                    <Link href="/signin">Login</Link>
+                  </Button>
+                  <Button
+                    asChild
+                    className="w-full bg-gradient-to-r from-brand-500 to-purple-500 hover:from-brand-600 hover:to-purple-600 text-white"
+                  >
+                    <Link href="/signup">Get Started</Link>
+                  </Button>
+                </>
+              )}
             </div>
           </div>
         )}

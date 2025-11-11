@@ -13,6 +13,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Trophy, Target, Flame, Calendar } from 'lucide-react';
+import { getUserInitials } from '@/lib/utils/format';
 
 interface UserProfileModalProps {
   userId: string;
@@ -72,7 +73,7 @@ function ProfileContent({ data, badges }: { data: any; badges: BadgeType[] }) {
           <Avatar className="h-20 w-20">
             <AvatarImage src={profile.avatar_url || undefined} alt={profile.username} />
             <AvatarFallback className="bg-blue-600 text-white text-2xl font-semibold">
-              {profile.username.slice(0, 2).toUpperCase()}
+              {getUserInitials(profile.username, profile.full_name)}
             </AvatarFallback>
           </Avatar>
           <div className="flex-1">

@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
-import { Mail, MapPin, Phone } from 'lucide-react';
+import { Mail, MapPin, Phone, MessageCircle } from 'lucide-react';
 
 export const metadata: Metadata = {
   title: 'Contact Us | QodeBench',
@@ -35,11 +35,11 @@ export default function ContactPage() {
 
       {/* Contact Options */}
       <section className="container mx-auto px-6 lg:px-8 py-16">
-        <div className="max-w-4xl mx-auto grid md:grid-cols-2 gap-6">
+        <div className="max-w-4xl mx-auto grid md:grid-cols-2 gap-6 text-center md:text-left">
           {/* Email */}
           <Card>
             <CardContent className="p-8">
-              <div className="flex items-center gap-3 mb-4">
+              <div className="flex flex-col md:flex-row items-center gap-3 mb-4">
                 <div className="h-12 w-12 rounded-lg bg-brand-100 flex items-center justify-center">
                   <Mail className="h-6 w-6 text-brand-600" />
                 </div>
@@ -49,20 +49,43 @@ export default function ContactPage() {
                 For all inquiries including support, feedback, partnerships, and careers
               </p>
               <a
-                href="mailto:support@qodebench.com"
-                className="text-brand-600 hover:text-brand-700 font-semibold text-lg"
+                href="mailto:team@qodebench.com"
+                className="text-brand-600 hover:text-brand-700 font-semibold text-lg break-all"
               >
-                support@qodebench.com
+                team@qodebench.com
+              </a>
+            </CardContent>
+          </Card>
+
+          {/* WhatsApp */}
+          <Card>
+            <CardContent className="p-8">
+              <div className="flex flex-col md:flex-row items-center gap-3 mb-4">
+                <div className="h-12 w-12 rounded-lg bg-green-100 flex items-center justify-center">
+                  <MessageCircle className="h-6 w-6 text-green-600" />
+                </div>
+                <h2 className="text-xl font-bold text-slate-900">WhatsApp Support</h2>
+              </div>
+              <p className="text-slate-600 mb-4">
+                Quick support via WhatsApp
+              </p>
+              <a
+                href="https://wa.me/919871462694"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-green-600 hover:text-green-700 font-semibold text-lg"
+              >
+                +91-9871462694
               </a>
             </CardContent>
           </Card>
 
           {/* Phone */}
-          <Card>
+          {/* <Card>
             <CardContent className="p-8">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="h-12 w-12 rounded-lg bg-green-100 flex items-center justify-center">
-                  <Phone className="h-6 w-6 text-green-600" />
+              <div className="flex flex-col md:flex-row items-center gap-3 mb-4">
+                <div className="h-12 w-12 rounded-lg bg-blue-100 flex items-center justify-center">
+                  <Phone className="h-6 w-6 text-blue-600" />
                 </div>
                 <h2 className="text-xl font-bold text-slate-900">Phone</h2>
               </div>
@@ -76,19 +99,24 @@ export default function ContactPage() {
                 +91-9871462694
               </a>
             </CardContent>
-          </Card>
+          </Card> */}
 
           {/* Office Address */}
-          <Card className="md:col-span-2">
+          <Card>
             <CardContent className="p-8">
-              <div className="flex items-center gap-3 mb-4">
+              <div className="flex flex-col md:flex-row items-center gap-3 mb-4">
                 <div className="h-12 w-12 rounded-lg bg-purple-100 flex items-center justify-center">
                   <MapPin className="h-6 w-6 text-purple-600" />
                 </div>
                 <h2 className="text-xl font-bold text-slate-900">Registered Office</h2>
               </div>
-              <p className="text-slate-700 text-lg">
-                442 Faridabad, Haryana 121002, India
+              <p className="text-slate-700 mb-2 font-semibold">
+                Qodebench Technologies Pvt. Ltd.
+              </p>
+              <p className="text-slate-600 text-base leading-relaxed">
+                442 Faridabad,<br />
+                Haryana 121002,<br />
+                India
               </p>
             </CardContent>
           </Card>

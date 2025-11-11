@@ -12,7 +12,7 @@ const getUserProfile = cache(async (userId: string) => {
   const supabase = await createClient();
   const { data: profile } = await supabase
     .from('profiles')
-    .select('username, avatar_url, full_name, total_points')
+    .select('username, avatar_url, full_name, total_points, subscription_tier, subscription_status')
     .eq('id', userId)
     .single();
 
@@ -44,6 +44,8 @@ export default async function DashboardLayout({
         avatar_url: profile.avatar_url,
         full_name: profile.full_name,
         total_points: profile.total_points,
+        subscription_tier: profile.subscription_tier,
+        subscription_status: profile.subscription_status,
       }
     : null;
 

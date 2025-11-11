@@ -44,10 +44,10 @@ async function SettingsContent() {
     redirect('/signin');
   }
 
-  // Fetch user profile
+  // Fetch user profile with subscription info
   const { data: profile, error } = await supabase
     .from('profiles')
-    .select('username, full_name, bio, avatar_url')
+    .select('username, full_name, bio, avatar_url, subscription_tier, subscription_status, subscription_end_date, trial_ends_at')
     .eq('id', user.id)
     .single();
 

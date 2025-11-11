@@ -6,8 +6,6 @@ import {
   Mic,
   Trophy,
   Gift,
-  Sparkles,
-  Settings,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -64,26 +62,14 @@ export const NAV_ITEMS: NavItem[] = [
   //   icon: Gift,
   //   description: 'Redeem exclusive merch',
   // },
-  {
-    title: 'AI Tools Guide',
-    href: '/dashboard/ai-tools',
-    icon: Sparkles,
-    description: 'Master AI-assisted coding',
-  },
-  {
-    title: 'Settings',
-    href: '/dashboard/settings',
-    icon: Settings,
-    description: 'Manage your account',
-  },
 ];
 
 // Mobile navigation items (reduced set)
 export const MOBILE_NAV_ITEMS: NavItem[] = [
   NAV_ITEMS[0], // Dashboard
-  NAV_ITEMS[2], // Challenges (index shifted after adding Learning)
+  NAV_ITEMS[2], // Challenges
   NAV_ITEMS[3], // Interviews
-  NAV_ITEMS[6], // Settings (More) - adjusted for hidden rewards
+  NAV_ITEMS[4], // Leaderboard
 ];
 
 // Experience levels and point thresholds

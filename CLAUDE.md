@@ -57,7 +57,7 @@ QodeBench uses Next.js 15 (with React 19) and App Router. Key architectural patt
 The app uses a comprehensive Supabase schema defined in `supabase/migrations/`:
 
 **Core Tables**:
-- `profiles`: User profiles with experience level, points, streaks, onboarding status
+- `profiles`: User profiles with experience level, points, streaks, onboarding status, subscription tier/status
 - `challenges`: Coding challenges with test cases, difficulty levels, and validation types
   - `challenge_type`: 'code' | 'document' | 'mixed' (for smart editor selection)
   - `response_format`: 'javascript' | 'typescript' | 'markdown' | 'text' | 'json'
@@ -68,6 +68,8 @@ The app uses a comprehensive Supabase schema defined in `supabase/migrations/`:
 - `learning_modules`, `learning_lessons`, `learning_quizzes`: Structured learning content
 - `chat_sessions`, `chat_messages`: Learning chat history
 - `digital_badges`, `user_badges`: Badge system for achievements
+- `subscriptions`: User subscription records (tier, status, dates, Razorpay IDs)
+- `payment_transactions`: Payment history with Razorpay integration
 
 **Key Features**:
 - Automatic profile creation via database trigger `handle_new_user()`
@@ -84,6 +86,10 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY     # Supabase anon key
 SUPABASE_SERVICE_ROLE_KEY         # Service role (optional)
 OPENAI_API_KEY                     # For AI features (optional)
 NEXT_PUBLIC_APP_URL                # App URL for metadata
+RAZORPAY_KEY_ID                    # Razorpay API key for server-side (optional)
+RAZORPAY_KEY_SECRET                # Razorpay secret key (optional)
+NEXT_PUBLIC_RAZORPAY_KEY_ID        # Razorpay key for client-side (optional)
+RAZORPAY_WEBHOOK_SECRET            # Razorpay webhook secret (optional)
 ```
 
 Placeholder values used in lib/supabase files allow builds without crashing (see client.ts:4-5).
@@ -113,9 +119,20 @@ Never import the wrong client type - it will cause hydration errors.
 
 The space between `createServerClient` and `supabase.auth.getUser()` must remain empty (middleware.ts:35-37). This prevents random logout issues.
 
-### Form Validation
+### Form Validation & Error Handling
 
-Uses React Hook Form + Zod for type-safe validation. See `components/auth/signin-form.tsx` and `signup-form.tsx` for patterns.
+Uses React Hook Form + Zod for type-safe validation.
+
+**Authentication Forms Pattern**:
+All auth forms (signin, signup, reset-password, update-password) use consistent inline error/success banners:
+- Banners appear **above the Card component** (before heading), not as toast notifications
+- Error messages: Red banner with AlertCircle icon
+- Success messages: Green banner with CheckCircle icon
+- Messages auto-clear when user starts typing
+- State managed via `errorMessage` and `successMessage` useState hooks
+
+**Password Input**:
+Use `PasswordInput` component (`components/ui/password-input.tsx`) for all password fields - includes built-in visibility toggle (eye icon).
 
 ### API Routes
 
@@ -130,6 +147,7 @@ All API routes follow Next.js 15 Route Handler pattern in `app/api/`:
 - `api/challenges/`: Challenge submission and validation
 - `api/interview/`: Mock interview system with evaluation (text-to-speech, voice-to-text, evaluate, report generation)
 - `api/learning/`: Learning module endpoints with chat sessions (quiz submission, chat history, messages)
+- `api/payments/`: Razorpay payment integration (create-order, verify-payment, webhook, subscription-status, cancel-subscription)
 - `api/debug/`: Debug utilities
 
 **AI Integration**:
@@ -154,12 +172,16 @@ The project uses React 19, which includes:
 
 **Component Structure**:
 - `components/ui/`: shadcn/ui base components (Button, Card, Dialog, etc.)
-- `components/auth/`: Authentication forms (signin, signup)
+- `components/auth/`: Authentication forms (signin, signup, reset-password, update-password)
 - `components/challenges/`: Challenge-related components
   - Editor components: `code-editor.tsx`, `markdown-editor.tsx`, `text-editor.tsx`, `flexible-editor.tsx`
   - Challenge UI: `challenge-workspace.tsx`, `challenge-card.tsx`, `validation-result.tsx`
   - Learning: `ai-learning-companion.tsx`, `hint-section.tsx`
-- `components/dashboard/`: Dashboard-specific components
+- `components/dashboard/`: Dashboard-specific components (sidebar, topbar)
+- `components/interviews/`: Mock interview components
+- `components/leaderboard/`: Leaderboard table and user profile modal
+- `components/paywall/`: Subscription paywall components
+- `components/settings/`: User settings (avatar-upload, settings-client, subscription-manager)
 - `components/providers/`: Context providers (QueryProvider, theme provider)
 
 **Component Patterns**:
@@ -167,6 +189,12 @@ The project uses React 19, which includes:
 - Server components by default for data fetching
 - Separate business logic into custom hooks in `hooks/`
 - Keep component files focused on presentation; extract logic to hooks
+
+**Navigation Active State**:
+Sidebar and mobile nav use smart active state matching (`components/dashboard/sidebar.tsx`, `mobile-nav.tsx`):
+- Dashboard tab: Exact match only (`pathname === '/dashboard'`)
+- All other tabs: Prefix match (`pathname.startsWith(item.href)`) to keep parent highlighted when on nested routes
+- Example: `/dashboard/learning/html-css` keeps "Learning" tab highlighted
 
 ## Styling
 
@@ -235,6 +263,62 @@ See `HYBRID_VALIDATION_IMPLEMENTATION.md` for detailed implementation guide.
 - Merchandise rewards for top performers
 - Points and streaks for engagement tracking
 
+### Payment & Subscription System
+
+**Payment Provider**: Razorpay integration for Indian market
+
+**Subscription Tiers** (defined in `types/subscription.ts`):
+- `free`: Beginner challenges only, 5 AI feedback uses per day, all learning modules free
+- `beta`: 21-day trial at ₹199 (originally ₹999) - All tiers unlocked
+- `quarterly`: ₹1999 for 3 months - Introductory offer
+- `yearly`: ₹4999 for 6 months (duration: 180 days) - Best value
+
+**Access Control Pattern**:
+```typescript
+// Server-side checks in API routes
+import { verifyInterviewAPIAccess } from '@/lib/utils/api-access-checks';
+
+// Check auth + subscription access
+const { user, error } = await verifyInterviewAPIAccess();
+if (error) return error;
+```
+
+**Subscription Utilities** (`lib/utils/subscription-check.ts`):
+- `hasActiveSubscription()`: Check if user has paid tier
+- `canAccessChallengeTier()`: Tier-based challenge access
+- `canAccessInterviews()`: Interview prep access check
+- `canMakeAttempt()`: Daily limit enforcement for free tier
+- `canUseAIFeedback()`: AI feedback limit check
+- `incrementDailyUsage()`: Track usage for free tier
+- `getDailyLimits()`: Get remaining attempts/feedback
+
+**Payment Utilities** (`lib/razorpay.ts`):
+- `createRazorpayOrder()`: Create payment order
+- `verifyRazorpaySignature()`: Server-side payment verification (critical for security)
+- `verifyRazorpayWebhook()`: Validate webhook signatures
+- `calculateSubscriptionEndDate()`: Compute end dates by tier
+- `generateReceiptId()`: Create unique receipt IDs
+
+**Paywall Components** (`components/paywall/`):
+- `upgrade-required.tsx`: Feature locked message
+- `locked-content-banner.tsx`: In-page upgrade prompts
+- `daily-limit-reached.tsx`: Free tier limit notifications
+
+**Important Security Patterns**:
+1. Always verify payments server-side using `verifyRazorpaySignature()`
+2. Never trust client-side payment completion
+3. Use timing-safe comparison for signature verification
+4. Validate all webhook requests with `verifyRazorpayWebhook()`
+5. Check subscription status server-side before granting access
+6. RLS policies protect payment data in database
+
+**Database Functions**:
+- `increment_daily_usage()`: Atomic counter for free tier tracking
+- `reset_daily_limits()`: Scheduled job (cron) to reset at midnight
+- `update_subscription_status()`: Auto-expire trials/subscriptions
+
+**Setup**: See `PAYMENT_SETUP_GUIDE.md` for complete integration guide
+
 ## Key Gotchas
 
 1. **Server vs Client Supabase**: Always use correct client for environment
@@ -243,8 +327,17 @@ See `HYBRID_VALIDATION_IMPLEMENTATION.md` for detailed implementation guide.
 4. **Protected routes**: Non-auth, non-home routes require authentication by default
 5. **Cookies API**: Server components use `await cookies()` (Next.js 15 pattern)
 6. **Onboarding**: Users are redirected to `/onboarding/quiz` until profile completion
+   - Quiz can only be taken once - middleware redirects away if `onboarding_completed` AND `quiz_score` is not null
+   - Users who skipped quiz can retake it later (onboarding_completed but quiz_score is null)
 7. **Profile creation**: Automatic via database trigger - don't create manually in auth flow
 8. **Cache control**: Middleware sets no-cache headers on protected routes to prevent back-button access after logout (middleware.ts:115-119)
 9. **React 19**: When adding new dependencies, verify React 19 compatibility
 10. **Challenge editors**: Use `FlexibleEditor` component, not hardcoded `CodeEditor`, to support different response formats
 11. **Validation scores**: Always enforce 0-100 range; hybrid validation uses 50/50 split for structure/quality
+12. **Payment verification**: ALWAYS verify Razorpay signatures server-side; never trust client-side payment success
+13. **Subscription checks**: Use `hasActiveSubscription()` or specific access check functions for feature gating
+14. **Free tier limits**: Remember to call `incrementDailyUsage()` after free tier actions (attempts, AI feedback)
+15. **Cancelled subscriptions**: Users with cancelled subscriptions retain access until end_date expires
+16. **Auth error messages**: Never use toast notifications - use inline banners above form headings
+17. **Password fields**: Always use PasswordInput component with visibility toggle, not raw Input with type="password"
+18. **Pricing tiers**: Only 3 paid tiers (beta, quarterly, yearly) - no monthly tier. Beta shows originalPrice crossed out.

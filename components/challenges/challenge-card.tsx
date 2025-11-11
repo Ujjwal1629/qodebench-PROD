@@ -8,7 +8,7 @@ import {
   CATEGORY_LABELS,
   CATEGORY_COLORS,
 } from '@/lib/constants/dashboard';
-import { Clock, Sparkles, CheckCircle2, PlayCircle } from 'lucide-react';
+import { Clock, Sparkles, CheckCircle2, PlayCircle, Lock, Crown } from 'lucide-react';
 import { ChallengeWithProgress } from '@/app/actions/challenges';
 
 interface ChallengeCardProps {
@@ -20,6 +20,9 @@ export function ChallengeCard({ challenge }: ChallengeCardProps) {
   const isCompleted = userProgress?.status === 'completed';
   const isInProgress = userProgress?.status === 'in_progress';
   const isNotStarted = !userProgress;
+
+  // Check if this is a premium tier challenge
+  const isPremiumTier = challenge.tier && !['beginner', 'free'].includes(challenge.tier);
 
   // Determine button text and variant
   const getButtonConfig = () => {
@@ -47,7 +50,7 @@ export function ChallengeCard({ challenge }: ChallengeCardProps) {
   const buttonConfig = getButtonConfig();
 
   return (
-    <Card className="h-full transition-all duration-200 hover:shadow-lg hover:-translate-y-1">
+    <Card className={`h-full transition-all duration-200 hover:shadow-lg hover:-translate-y-1 ${isPremiumTier ? 'border-primary/30 bg-gradient-to-br from-background to-primary/5' : ''}`}>
       <CardContent className="p-6 h-full flex flex-col">
         <div className="space-y-4 flex-1 flex flex-col">
           {/* Badges Row */}
@@ -77,6 +80,12 @@ export function ChallengeCard({ challenge }: ChallengeCardProps) {
               {challenge.difficulty.charAt(0).toUpperCase() +
                 challenge.difficulty.slice(1)}
             </Badge>
+            {isPremiumTier && (
+              <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20">
+                <Crown className="h-3 w-3 mr-1" />
+                Premium
+              </Badge>
+            )}
           </div>
 
           {/* Title */}

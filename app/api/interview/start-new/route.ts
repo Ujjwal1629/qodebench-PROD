@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { canAccessInterviews } from '@/lib/utils/subscription-check';
 
 export async function POST(request: NextRequest) {
   try {
@@ -21,6 +22,19 @@ export async function POST(request: NextRequest) {
 
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // SECURITY CHECK: Verify user has access to interview prep
+    const accessCheck = await canAccessInterviews(user.id);
+    if (!accessCheck.canAccess) {
+      return NextResponse.json(
+        {
+          error: 'Access denied',
+          message: accessCheck.reason,
+          requiresUpgrade: true,
+        },
+        { status: 403 }
+      );
     }
 
     // Create new interview session

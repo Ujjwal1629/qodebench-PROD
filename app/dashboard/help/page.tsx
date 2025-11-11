@@ -37,17 +37,17 @@ export default function HelpPage() {
         <CardContent className="space-y-4">
           <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
             <p className="text-sm text-slate-600 mb-2">
-              Email us at:
+              Visit our contact page for all support options
             </p>
-            <a
-              href="mailto:support@qodebench.com"
-              className="text-lg font-semibold text-brand-600 hover:text-brand-700 transition-colors"
+            <Link
+              href="/contact"
+              className="inline-flex items-center gap-2 text-lg font-semibold text-brand-600 hover:text-brand-700 transition-colors"
             >
-              support@qodebench.com
-            </a>
+              Go to Contact Page →
+            </Link>
           </div>
           <p className="text-sm text-slate-600">
-            We typically respond within 24 hours during business days.
+            Email, WhatsApp, and phone support available. We typically respond within 24 hours.
           </p>
         </CardContent>
       </Card>
@@ -184,7 +184,7 @@ export default function HelpPage() {
             We'd love to hear your suggestions, feature requests, or bug reports. Your feedback helps us make QodeBench better for everyone.
           </p>
           <a
-            href="mailto:support@qodebench.com?subject=Feedback"
+            href="mailto:team@qodebench.com?subject=Feedback"
             className="inline-flex items-center gap-2 rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-700"
           >
             <Mail className="h-4 w-4" />

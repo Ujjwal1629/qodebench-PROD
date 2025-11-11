@@ -6,6 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Trophy, Medal, Award, Flame } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { getUserInitials } from '@/lib/utils/format';
 
 interface LeaderboardTableProps {
   users: LeaderboardUser[];
@@ -70,7 +71,7 @@ export function LeaderboardTable({ users, isLoading, onUserClick }: LeaderboardT
               <Avatar className="h-12 w-12">
                 <AvatarImage src={user.avatar_url || undefined} alt={user.username} />
                 <AvatarFallback className="bg-blue-600 text-white font-semibold">
-                  {user.username.slice(0, 2).toUpperCase()}
+                  {getUserInitials(user.username, user.full_name)}
                 </AvatarFallback>
               </Avatar>
 

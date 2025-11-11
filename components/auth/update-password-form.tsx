@@ -8,10 +8,11 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { PasswordInput } from '@/components/ui/password-input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { useToast } from '@/hooks/use-toast';
 import { PasswordStrengthIndicator } from '@/components/auth/password-strength-indicator';
+import { AlertCircle, CheckCircle } from 'lucide-react';
 
 const updatePasswordSchema = z.object({
   password: z
@@ -27,8 +28,9 @@ type UpdatePasswordFormValues = z.infer<typeof updatePasswordSchema>;
 
 export function UpdatePasswordForm() {
   const router = useRouter();
-  const { toast } = useToast();
   const supabase = createClient();
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const form = useForm<UpdatePasswordFormValues>({
     resolver: zodResolver(updatePasswordSchema),
@@ -41,6 +43,10 @@ export function UpdatePasswordForm() {
   const password = form.watch('password');
 
   const onSubmit = async (values: UpdatePasswordFormValues) => {
+    // Clear any previous messages
+    setErrorMessage(null);
+    setSuccessMessage(null);
+
     try {
       const { error } = await supabase.auth.updateUser({
         password: values.password,
@@ -50,33 +56,54 @@ export function UpdatePasswordForm() {
         throw error;
       }
 
-      toast({
-        title: 'Success',
-        description: 'Your password has been updated successfully',
-      });
+      setSuccessMessage('Your password has been updated successfully. Redirecting to dashboard...');
 
       // Redirect to dashboard after successful password update
-      router.push('/dashboard');
+      setTimeout(() => router.push('/dashboard'), 1500);
     } catch (error) {
-      toast({
-        title: 'Error',
-        description: error instanceof Error ? error.message : 'Failed to update password',
-        variant: 'destructive',
-      });
+      const message = error instanceof Error ? error.message : 'Failed to update password';
+      setErrorMessage(message);
     }
   };
 
   return (
-    <Card className="w-full max-w-md">
-      <CardHeader className="space-y-1">
-        <CardTitle className="text-2xl font-bold">Update Password</CardTitle>
-        <CardDescription>
-          Enter your new password below
-        </CardDescription>
-      </CardHeader>
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)}>
-          <CardContent className="space-y-4">
+    <div className="w-full max-w-md">
+      {/* Error Message Banner */}
+      {errorMessage && (
+        <div className="mb-4 rounded-lg bg-red-50 border border-red-200 p-4">
+          <div className="flex items-center justify-center gap-3">
+            <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0" />
+            <div className="text-center">
+              <h4 className="text-sm font-semibold text-red-900 mb-1">Error</h4>
+              <p className="text-sm text-red-800">{errorMessage}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Success Message Banner */}
+      {successMessage && (
+        <div className="mb-4 rounded-lg bg-green-50 border border-green-200 p-4">
+          <div className="flex items-center justify-center gap-3">
+            <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0" />
+            <div className="text-center">
+              <h4 className="text-sm font-semibold text-green-900 mb-1">Success</h4>
+              <p className="text-sm text-green-800">{successMessage}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <Card className="w-full max-w-md">
+        <CardHeader className="space-y-1">
+          <CardTitle className="text-2xl font-bold">Update Password</CardTitle>
+          <CardDescription>
+            Enter your new password below
+          </CardDescription>
+        </CardHeader>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)}>
+            <CardContent className="space-y-4">
             <FormField
               control={form.control}
               name="password"
@@ -84,11 +111,17 @@ export function UpdatePasswordForm() {
                 <FormItem>
                   <FormLabel>New Password</FormLabel>
                   <FormControl>
-                    <Input
-                      type="password"
+                    <PasswordInput
                       placeholder="••••••••"
                       disabled={form.formState.isSubmitting}
                       {...field}
+                      onChange={(e) => {
+                        field.onChange(e);
+                        if (errorMessage || successMessage) {
+                          setErrorMessage(null);
+                          setSuccessMessage(null);
+                        }
+                      }}
                     />
                   </FormControl>
                   <FormMessage />
@@ -103,11 +136,17 @@ export function UpdatePasswordForm() {
                 <FormItem>
                   <FormLabel>Confirm New Password</FormLabel>
                   <FormControl>
-                    <Input
-                      type="password"
+                    <PasswordInput
                       placeholder="••••••••"
                       disabled={form.formState.isSubmitting}
                       {...field}
+                      onChange={(e) => {
+                        field.onChange(e);
+                        if (errorMessage || successMessage) {
+                          setErrorMessage(null);
+                          setSuccessMessage(null);
+                        }
+                      }}
                     />
                   </FormControl>
                   <FormMessage />
@@ -126,6 +165,7 @@ export function UpdatePasswordForm() {
           </CardFooter>
         </form>
       </Form>
-    </Card>
+      </Card>
+    </div>
   );
 }

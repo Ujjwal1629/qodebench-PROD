@@ -53,12 +53,14 @@ export async function updateSession(request: NextRequest) {
     '/mission',
     '/privacy',
     '/terms',
+    '/refund-policy',
     '/cookies',
     '/documentation',
     '/blog',
     '/ai-tools-guide',
     '/tutorials',
     '/auth/callback',
+    '/pricing', // Pricing page is public so expired users can upgrade
   ];
 
   const isPublicRoute = publicRoutes.some(route =>
@@ -79,7 +81,7 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // Check onboarding status for authenticated users
+  // Check onboarding status and subscription for authenticated users
   if (user) {
     const isOnboardingRoute = request.nextUrl.pathname.startsWith('/onboarding');
     const isDashboardOrProtectedRoute =
@@ -90,11 +92,11 @@ export async function updateSession(request: NextRequest) {
       request.nextUrl.pathname.startsWith('/interviews') ||
       request.nextUrl.pathname.startsWith('/rewards');
 
-    // Only check onboarding for protected routes
+    // Only check onboarding and subscription for protected routes
     if (isDashboardOrProtectedRoute || isOnboardingRoute) {
       const { data: profile } = await supabase
         .from('profiles')
-        .select('onboarding_completed')
+        .select('onboarding_completed, quiz_score, subscription_tier, subscription_status, subscription_end_date, trial_ends_at')
         .eq('id', user.id)
         .single();
 
@@ -103,6 +105,64 @@ export async function updateSession(request: NextRequest) {
         const url = request.nextUrl.clone();
         url.pathname = '/onboarding/quiz';
         return NextResponse.redirect(url);
+      }
+
+      // Redirect away from quiz if user already completed it (but allow retaking if they skipped)
+      if (profile && profile.onboarding_completed && profile.quiz_score !== null && request.nextUrl.pathname.startsWith('/onboarding/quiz')) {
+        const url = request.nextUrl.clone();
+        url.pathname = '/dashboard';
+        return NextResponse.redirect(url);
+      }
+
+      // Check subscription status for expired subscriptions
+      if (profile) {
+        const now = new Date();
+
+        // A subscription is expired if:
+        // 1. Status is 'expired', OR
+        // 2. End date has passed (applies to active, trial, AND cancelled subscriptions), OR
+        // 3. Trial has ended for beta tier
+        const isExpired =
+          profile.subscription_status === 'expired' ||
+          (profile.subscription_end_date && new Date(profile.subscription_end_date) < now) ||
+          (profile.trial_ends_at && new Date(profile.trial_ends_at) < now && profile.subscription_tier === 'beta');
+
+        // If subscription expired by date (not just cancelled), update status in database (fire and forget)
+        // Note: Cancelled subscriptions retain access until end_date, so don't mark them expired prematurely
+        if (isExpired && profile.subscription_status !== 'expired') {
+          supabase
+            .from('profiles')
+            .update({
+              subscription_status: 'expired',
+              updated_at: new Date().toISOString(),
+            })
+            .eq('id', user.id)
+            .then(() => console.log('Updated expired subscription status'));
+        }
+
+        // Don't redirect on pricing, dashboard root, settings (all settings pages), or learning routes
+        const isPricingRoute = request.nextUrl.pathname === '/pricing';
+        const isDashboardRoot = request.nextUrl.pathname === '/dashboard';
+        const isSettingsRoute = request.nextUrl.pathname.startsWith('/dashboard/settings');
+        const isLearningRoute = request.nextUrl.pathname.startsWith('/dashboard/learning');
+        const isChallengesListRoute = request.nextUrl.pathname === '/dashboard/challenges';
+
+        // Allow access to pricing, dashboard root, all settings pages, learning, and challenge list even if expired
+        // This lets users see what they're missing, manage their profile, and upgrade
+        const allowedRoutesWhenExpired =
+          isPricingRoute ||
+          isDashboardRoot ||
+          isSettingsRoute ||
+          isLearningRoute ||
+          isChallengesListRoute;
+
+        // Redirect expired users away from paid content (but not from allowed routes)
+        if (isExpired && !allowedRoutesWhenExpired) {
+          const url = request.nextUrl.clone();
+          url.pathname = '/pricing';
+          url.searchParams.set('expired', 'true');
+          return NextResponse.redirect(url);
+        }
       }
 
       // Allow users to retake quiz if they skipped (onboarding completed but no quiz score)
