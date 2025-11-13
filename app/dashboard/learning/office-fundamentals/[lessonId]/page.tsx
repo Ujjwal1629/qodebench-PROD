@@ -3,15 +3,14 @@ import { createClient } from '@/lib/supabase/server';
 import { ProgressService } from '@/lib/learning/progress-service';
 import { QuizService } from '@/lib/quiz/quiz-service';
 import { SplitScreenLayout } from '@/components/learning/split-screen-layout';
+import { AITutorDock } from '@/components/learning/ai-tutor-dock';
 import { QuizComponent } from '@/components/learning/quiz/quiz-component';
+import { ReadingProgress } from '@/components/learning/reading-progress';
+import { EnhancedMarkdownRenderer } from '@/components/learning/enhanced-markdown-renderer';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
-import ReactMarkdown from 'react-markdown';
-import { ArrowLeft, CheckCircle2 } from 'lucide-react';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { ArrowLeft, CheckCircle2, BookOpen } from 'lucide-react';
 
 export default async function LessonPage({ params }: { params: Promise<{ lessonId: string }> }) {
   const { lessonId } = await params;
@@ -90,120 +89,95 @@ export default async function LessonPage({ params }: { params: Promise<{ lessonI
 
   // Theory Panel Component
   const TheoryPanel = () => (
-    <div className="space-y-8 max-w-4xl mx-auto px-4 py-2">
-      <Link
-        href="/dashboard/learning/office-fundamentals"
-        className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-sky-600 transition-colors"
-      >
-        <ArrowLeft className="h-3.5 w-3.5" />
-        Back to All Lessons
-      </Link>
+    <div className="relative">
+      {/* Reading Progress Bar */}
+      <ReadingProgress />
 
-      <div className="space-y-3">
-        <Badge variant="secondary" className="text-xs">
-          Lesson {lesson.order_index}
-        </Badge>
-        <h1 className="text-3xl font-bold text-slate-900">{lesson.title}</h1>
-        <p className="text-lg text-slate-600">{lesson.description}</p>
-
-        <div className="flex flex-wrap gap-2 pt-2">
-          {lesson.learning_objectives.map((obj: string, idx: number) => (
-            <Badge key={idx} variant="outline" className="text-xs">
-              <CheckCircle2 className="h-3 w-3 mr-1" />
-              {obj}
-            </Badge>
-          ))}
-        </div>
-      </div>
-
-      <div className="prose prose-lg prose-slate max-w-none
-        prose-headings:font-bold prose-headings:tracking-tight
-        prose-h1:text-4xl prose-h1:mb-6 prose-h1:mt-8 prose-h1:text-slate-900
-        prose-h2:text-3xl prose-h2:mb-5 prose-h2:mt-8 prose-h2:text-slate-800
-        prose-h3:text-2xl prose-h3:mb-4 prose-h3:mt-6 prose-h3:text-slate-800
-        prose-h4:text-xl prose-h4:mb-3 prose-h4:mt-5
-        prose-p:mb-6 prose-p:leading-relaxed prose-p:text-slate-700
-        prose-ul:my-6 prose-ul:space-y-2 prose-li:my-2 prose-li:leading-relaxed
-        prose-ol:my-6 prose-ol:space-y-2
-        prose-code:bg-slate-100 prose-code:text-slate-800 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded
-        prose-pre:bg-slate-900 prose-pre:my-6 prose-pre:rounded-lg prose-pre:shadow-lg
-        prose-blockquote:border-l-4 prose-blockquote:border-sky-500 prose-blockquote:bg-sky-50 prose-blockquote:py-2 prose-blockquote:px-4 prose-blockquote:my-6
-        prose-strong:text-slate-900 prose-strong:font-semibold
-        prose-table:my-6
-        prose-img:rounded-lg prose-img:shadow-md">
-        <ReactMarkdown
-          components={{
-            code({ node, inline, className, children, ...props }: any) {
-              const match = /language-(\w+)/.exec(className || '');
-              return !inline && match ? (
-                <div className="rounded-lg overflow-hidden my-5 border border-slate-700 shadow-lg">
-                  <SyntaxHighlighter
-                    style={vscDarkPlus}
-                    language={match[1]}
-                    PreTag="div"
-                    customStyle={{
-                      margin: 0,
-                      padding: '1.25rem',
-                      fontSize: '0.875rem',
-                      lineHeight: '1.6',
-                      borderRadius: 0
-                    }}
-                    {...props}
-                  >
-                    {String(children).replace(/\n$/, '')}
-                  </SyntaxHighlighter>
-                </div>
-              ) : (
-                <code className="text-sm" {...props}>
-                  {children}
-                </code>
-              );
-            },
-          }}
+      <div className="space-y-8">
+        <Link
+          href="/dashboard/learning/office-fundamentals"
+          className="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-sky-600 transition-colors font-medium"
         >
-          {lesson.content}
-        </ReactMarkdown>
-      </div>
+          <ArrowLeft className="h-4 w-4" />
+          Back to Office Fundamentals
+        </Link>
 
-      {lesson.resources && lesson.resources.external_links && (
-        <Card className="bg-blue-50 border-blue-200">
-          <CardContent className="p-4">
-            <h3 className="font-semibold text-sm mb-2">📚 Additional Resources</h3>
-            <ul className="space-y-1">
-              {lesson.resources.external_links.map((link: string, idx: number) => (
-                <li key={idx}>
-                  <a
-                    href={link}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-sm text-blue-600 hover:text-blue-800 hover:underline"
-                  >
-                    {link}
-                  </a>
-                </li>
+        {/* Lesson Header */}
+        <div className="space-y-4">
+          <div className="flex items-center gap-3 flex-wrap">
+            <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-sky-700 bg-sky-100 px-3 py-1.5 rounded-full border border-sky-200">
+              <BookOpen className="h-3.5 w-3.5" />
+              Lesson {lesson.order_index}
+            </span>
+            <span className="text-sm text-slate-500">
+              {lesson.duration_minutes} min read • {quizQuestions.length} quiz questions
+            </span>
+          </div>
+          <h1 className="text-4xl font-bold leading-tight text-slate-900 tracking-tight">
+            {lesson.title}
+          </h1>
+          <p className="text-lg text-slate-600 leading-relaxed">
+            {lesson.description}
+          </p>
+
+          {lesson.learning_objectives && (
+            <div className="flex flex-wrap gap-2 pt-2">
+              {lesson.learning_objectives.map((obj: string, idx: number) => (
+                <span
+                  key={idx}
+                  className="inline-flex items-center gap-1.5 text-xs font-medium text-green-700 bg-green-50 border border-green-200 px-2.5 py-1 rounded-full"
+                >
+                  <CheckCircle2 className="h-3 w-3" />
+                  {obj}
+                </span>
               ))}
-            </ul>
-          </CardContent>
-        </Card>
-      )}
-    </div>
-  );
+            </div>
+          )}
+        </div>
 
-  // Quiz Panel Component
-  const QuizPanel = () => (
-    <div className="h-full flex flex-col">
-      <QuizComponent
-        lessonId={lessonId}
-        questions={quizQuestions}
-        nextLessonUrl={nextLessonUrl}
-      />
+        {/* Divider */}
+        <hr className="border-slate-200" />
+
+        {/* Enhanced Markdown Content */}
+        <EnhancedMarkdownRenderer content={lesson.content} className="prose-enhanced" />
+
+        {/* Additional Resources */}
+        {lesson.resources && lesson.resources.external_links && (
+          <Card className="bg-sky-50 border-2 border-sky-200 shadow-md">
+            <CardContent className="p-6">
+              <h3 className="font-bold text-lg mb-4 text-sky-900 flex items-center gap-2">
+                <span className="text-2xl">📚</span>
+                Additional Resources
+              </h3>
+              <ul className="space-y-2">
+                {lesson.resources.external_links.map((link: string, idx: number) => (
+                  <li key={idx}>
+                    <a
+                      href={link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-base text-sky-600 hover:text-sky-800 hover:underline font-medium transition-colors"
+                    >
+                      {link}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </CardContent>
+          </Card>
+        )}
+      </div>
     </div>
   );
 
   return (
-    <SplitScreenLayout
-      leftPanel={<TheoryPanel />}
-      rightPanel={<QuizPanel />}
-    />
+    <>
+      <SplitScreenLayout leftPanel={<TheoryPanel />} />
+      <AITutorDock
+        lessonId={lessonId}
+        lessonTitle={lesson.title}
+        lessonContent={lesson.content}
+      />
+    </>
   );
 }

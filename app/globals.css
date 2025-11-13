@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -29,6 +31,23 @@
     --chart-3: 197 37% 24%;
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
+
+    /* Callout colors */
+    --callout-tip-bg: 239 100% 97%; /* #EFF6FF */
+    --callout-tip-border: 213 94% 68%; /* #2563EB */
+    --callout-tip-text: 213 94% 68%;
+
+    --callout-warning-bg: 48 100% 96%; /* #FFFBEB */
+    --callout-warning-border: 32 95% 44%; /* #D97706 */
+    --callout-warning-text: 32 95% 44%;
+
+    --callout-info-bg: 270 100% 98%; /* #FAF5FF */
+    --callout-info-border: 271 91% 65%; /* #9333EA */
+    --callout-info-text: 271 91% 65%;
+
+    --callout-success-bg: 138 76% 97%; /* #F0FDF4 */
+    --callout-success-border: 142 71% 45%; /* #16A34A */
+    --callout-success-text: 142 71% 45%;
   }
 
   .dark {
@@ -68,37 +87,123 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
   }
 
-  /* Ensure prose content wraps properly */
+  /* Enhanced prose styles for learning modules */
   .prose {
-    max-width: 100% !important;
+    max-width: 700px !important;
     width: 100%;
+    font-family: 'Inter', sans-serif;
   }
 
   .prose p,
   .prose li,
-  .prose h1,
-  .prose h2,
-  .prose h3,
+  .prose td,
+  .prose th {
+    overflow-wrap: break-word !important;
+    word-wrap: break-word !important;
+    word-break: break-word !important;
+    max-width: 100%;
+    line-height: 1.7;
+  }
+
+  .prose p {
+    margin-bottom: 1.5rem;
+    font-size: 1rem;
+    color: rgb(51, 65, 85); /* slate-700 */
+  }
+
+  .prose h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-top: 3rem;
+    margin-bottom: 1.5rem;
+    color: rgb(15, 23, 42); /* slate-900 */
+    line-height: 1.2;
+    overflow-wrap: break-word !important;
+    word-wrap: break-word !important;
+  }
+
+  .prose h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-top: 3rem;
+    margin-bottom: 1.5rem;
+    color: rgb(3, 105, 161); /* sky-700 */
+    line-height: 1.3;
+    overflow-wrap: break-word !important;
+    word-wrap: break-word !important;
+  }
+
+  .prose h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+    color: rgb(2, 132, 199); /* sky-600 */
+    line-height: 1.4;
+    overflow-wrap: break-word !important;
+    word-wrap: break-word !important;
+  }
+
   .prose h4,
   .prose h5,
-  .prose h6,
-  .prose td,
-  .prose th,
+  .prose h6 {
+    overflow-wrap: break-word !important;
+    word-wrap: break-word !important;
+  }
+
   .prose strong,
   .prose em,
   .prose span {
     overflow-wrap: break-word !important;
     word-wrap: break-word !important;
-    word-break: break-word !important;
-    max-width: 100%;
+  }
+
+  .prose ul,
+  .prose ol {
+    margin-top: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .prose li {
+    margin-bottom: 0.75rem;
+  }
+
+  .prose blockquote {
+    border-left: 4px solid rgb(14, 165, 233); /* sky-500 */
+    background-color: rgb(240, 249, 255); /* sky-50 */
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+    font-style: italic;
+    color: rgb(12, 74, 110); /* sky-900 */
+  }
+
+  .prose a {
+    color: rgb(2, 132, 199); /* sky-600 */
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  .prose a:hover {
+    color: rgb(3, 105, 161); /* sky-700 */
   }
 
   /* Ensure code elements wrap */
   .prose code {
     white-space: pre-wrap !important;
     word-break: break-word !important;
+  }
+
+  /* Inline code styling */
+  .prose :not(pre) > code {
+    background-color: rgb(250, 245, 255); /* purple-50 */
+    color: rgb(147, 51, 234); /* purple-600 */
+    padding: 0.125rem 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.875rem;
+    font-weight: 500;
   }
 
   /* Ensure all text content can wrap */

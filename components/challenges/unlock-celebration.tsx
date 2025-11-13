@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Sparkles, Trophy, Zap } from 'lucide-react';
 import { ChallengeTier, TIERS } from '@/lib/constants/dashboard';
-import confetti from 'canvas-confetti';
+// import confetti from 'canvas-confetti'; // Disabled for minimal design
 
 interface UnlockCelebrationProps {
   tierUnlocked: ChallengeTier;
@@ -25,40 +25,13 @@ export function UnlockCelebration({
     if (isOpen) {
       setShowFireworks(true);
 
-      // Trigger confetti
+      // Confetti disabled for minimal design
       const duration = 3000;
-      const animationEnd = Date.now() + duration;
-      const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 100 };
+      const timeout = setTimeout(() => {
+        setShowFireworks(false);
+      }, duration);
 
-      function randomInRange(min: number, max: number) {
-        return Math.random() * (max - min) + min;
-      }
-
-      const interval: NodeJS.Timeout = setInterval(function () {
-        const timeLeft = animationEnd - Date.now();
-
-        if (timeLeft <= 0) {
-          clearInterval(interval);
-          setShowFireworks(false);
-          return;
-        }
-
-        const particleCount = 50 * (timeLeft / duration);
-
-        // Confetti from two sides
-        confetti({
-          ...defaults,
-          particleCount,
-          origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 },
-        });
-        confetti({
-          ...defaults,
-          particleCount,
-          origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 },
-        });
-      }, 250);
-
-      return () => clearInterval(interval);
+      return () => clearTimeout(timeout);
     }
   }, [isOpen]);
 

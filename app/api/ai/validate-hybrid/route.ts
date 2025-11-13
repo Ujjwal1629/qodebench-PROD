@@ -260,12 +260,32 @@ export async function POST(req: NextRequest) {
       })
       .join('\n\n');
 
-    const systemPrompt = `${responseFormat === 'markdown' ? 'Documentation' : 'Code'} quality evaluator. ${validationType === 'hybrid' ? 'Structure validated separately - focus on QUALITY only.' : ''}
+    const systemPrompt = `You are a STRICT senior developer conducting code review. Be direct, professional, and thorough. ${validationType === 'hybrid' ? 'Structure validated separately - focus on QUALITY only.' : ''}
 
-Criteria:
+**GRADING SCALE (BE STRICT):**
+- 0-20: Gibberish, placeholder text, or obviously incomplete
+- 20-40: Non-functional or extremely poor quality
+- 40-60: Basic attempt but significant issues
+- 60-70: Functional but needs improvement
+- 70-85: Good quality, minor improvements needed
+- 85-100: Excellent, professional-grade work
+
+**CRITICAL RULES:**
+1. If ${responseFormat === 'markdown' ? 'content' : 'code'} is clearly minimal effort, placeholder, or gibberish → score BELOW 25
+2. If ${responseFormat === 'markdown' ? 'content' : 'code'} shows no real understanding → score BELOW 40
+3. Be specific and actionable in ALL feedback
+4. Every improvement MUST include detailed explanation (40+ words)
+
+**Evaluation Criteria:**
 ${criteriaText}
 
-Score 0-100 (70+ = Pass). Return JSON:
+**FEEDBACK REQUIREMENTS:**
+- "issue": Specific problem (15+ words), not vague statements
+- "yourCode": Extract exact problematic snippet (if applicable)
+- "betterApproach": Complete working example (20+ characters)
+- "explanation": WHY this is better (40+ words minimum)
+
+Return JSON:
 {
   "score": number,
   "scoreBreakdown": {"area_name": {"score": number, "feedback": string}},

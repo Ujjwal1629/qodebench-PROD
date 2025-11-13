@@ -9,6 +9,9 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ['Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+      },
       colors: {
         brand: {
           50: '#f0f9ff',
@@ -34,6 +37,28 @@ const config: Config = {
           700: '#7e22ce',
           800: '#6b21a8',
           900: '#581c87',
+        },
+        callout: {
+          tip: {
+            bg: 'hsl(var(--callout-tip-bg))',
+            border: 'hsl(var(--callout-tip-border))',
+            text: 'hsl(var(--callout-tip-text))',
+          },
+          warning: {
+            bg: 'hsl(var(--callout-warning-bg))',
+            border: 'hsl(var(--callout-warning-border))',
+            text: 'hsl(var(--callout-warning-text))',
+          },
+          info: {
+            bg: 'hsl(var(--callout-info-bg))',
+            border: 'hsl(var(--callout-info-border))',
+            text: 'hsl(var(--callout-info-text))',
+          },
+          success: {
+            bg: 'hsl(var(--callout-success-bg))',
+            border: 'hsl(var(--callout-success-border))',
+            text: 'hsl(var(--callout-success-text))',
+          },
         },
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
@@ -76,10 +101,28 @@ const config: Config = {
           "5": "hsl(var(--chart-5))",
         },
       },
+      spacing: {
+        '18': '4.5rem',
+        '88': '22rem',
+        '92': '23rem',
+        '100': '25rem',
+        '104': '26rem',
+        '108': '27rem',
+        '112': '28rem',
+      },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+      },
+      keyframes: {
+        shimmer: {
+          '0%': { transform: 'translateX(-100%)' },
+          '100%': { transform: 'translateX(100%)' },
+        },
+      },
+      animation: {
+        shimmer: 'shimmer 3s infinite',
       },
     },
   },

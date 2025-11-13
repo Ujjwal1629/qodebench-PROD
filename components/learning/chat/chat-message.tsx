@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, memo } from 'react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Bot, User, GraduationCap, ArrowDown } from 'lucide-react';
+import { Bot, User, ArrowDown } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
@@ -14,7 +14,8 @@ interface ChatMessageProps {
   isStreaming?: boolean;
 }
 
-export function ChatMessage({ message, role, timestamp, isStreaming = false }: ChatMessageProps) {
+// Memoized component to prevent unnecessary re-renders during streaming
+export const ChatMessage = memo(function ChatMessage({ message, role, timestamp, isStreaming = false }: ChatMessageProps) {
   const isAssistant = role === 'assistant';
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [showScrollIndicator, setShowScrollIndicator] = useState(false);
@@ -55,32 +56,42 @@ export function ChatMessage({ message, role, timestamp, isStreaming = false }: C
 
   return (
     <div className={`flex gap-3 w-full ${isAssistant ? 'items-start' : 'items-start flex-row-reverse'}`}>
-      <Avatar className="flex-shrink-0 shadow-sm">
-        <AvatarFallback className={`${isAssistant ? 'bg-purple-700' : 'bg-sky-600'} text-white`}>
-          {isAssistant ? <GraduationCap className="h-5 w-5" /> : <User className="h-5 w-5" />}
-        </AvatarFallback>
-      </Avatar>
+      {/* Avatar with animated Bot icon for assistant */}
+      {isAssistant ? (
+        <div className="flex-shrink-0 relative">
+          <div className="bg-gradient-to-br from-sky-500 to-purple-600 p-2 rounded-xl relative shadow-md">
+            <Bot className="h-5 w-5 text-white" />
+            <div className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 bg-green-500 rounded-full border border-white"></div>
+          </div>
+        </div>
+      ) : (
+        <Avatar className="flex-shrink-0 shadow-sm">
+          <AvatarFallback className="bg-gradient-to-br from-sky-500 to-blue-600 text-white">
+            <User className="h-5 w-5" />
+          </AvatarFallback>
+        </Avatar>
+      )}
 
       <div className={`flex-1 space-y-2 ${isAssistant ? '' : 'flex flex-col items-end'} min-w-0 overflow-hidden`}>
         <div
-          className={`rounded-lg overflow-hidden relative ${
+          className={`rounded-2xl overflow-hidden relative ${
             isAssistant
-              ? 'bg-purple-50/80 border-l-4 border-l-purple-700 w-full'
-              : 'bg-sky-600 text-white shadow-sm ml-auto max-w-[85%]'
+              ? 'bg-white border border-gray-200 w-full shadow-sm'
+              : 'bg-gradient-to-br from-sky-500 to-blue-600 text-white shadow-md ml-auto max-w-[85%]'
           }`}
         >
           <div
             ref={scrollContainerRef}
-            className={`max-h-[600px] overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-purple-300 scrollbar-track-purple-50 hover:scrollbar-thumb-purple-400 w-full ${isAssistant ? 'px-5 py-4' : 'px-4 py-3'}`}
+            className={`max-h-[600px] overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-sky-300 scrollbar-track-sky-50 hover:scrollbar-thumb-sky-400 w-full ${isAssistant ? 'px-5 py-4' : 'px-4 py-3'}`}
           >
             {isStreaming && !message ? (
               <div className="flex items-center gap-2">
                 <div className="flex gap-1">
-                  <div className="w-2 h-2 bg-purple-600 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                  <div className="w-2 h-2 bg-purple-600 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                  <div className="w-2 h-2 bg-purple-600 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                  <div className="w-2 h-2 bg-sky-600 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                  <div className="w-2 h-2 bg-sky-600 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                  <div className="w-2 h-2 bg-sky-600 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
                 </div>
-                <p className="text-sm text-slate-600 font-medium">Thinking...</p>
+                <p className="text-sm text-gray-700 font-medium">Tutor is typing...</p>
               </div>
             ) : isAssistant ? (
               <div className="w-full max-w-full prose prose-sm prose-pre:my-3 prose-pre:bg-slate-950 prose-pre:text-slate-50 prose-pre:max-h-[400px] prose-pre:overflow-auto break-words"
@@ -117,7 +128,7 @@ export function ChatMessage({ message, role, timestamp, isStreaming = false }: C
                   {message}
                 </ReactMarkdown>
                 {isStreaming && message && (
-                  <span className="inline-block w-2 h-4 bg-purple-600 ml-1 animate-cursor"></span>
+                  <span className="inline-block w-2 h-4 bg-sky-600 ml-1 animate-cursor"></span>
                 )}
               </div>
             ) : (
@@ -131,16 +142,16 @@ export function ChatMessage({ message, role, timestamp, isStreaming = false }: C
           {showScrollIndicator && isAssistant && (
             <>
               {/* Gradient fade to indicate more content */}
-              <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-purple-50 to-transparent pointer-events-none"></div>
+              <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-white to-transparent pointer-events-none"></div>
 
               {/* Scroll down button */}
               <div className="absolute bottom-2 right-2 flex flex-col items-center z-10">
-                <div className="bg-white text-purple-600 text-xs font-medium px-2 py-1 rounded-md shadow-sm mb-1 whitespace-nowrap">
+                <div className="bg-sky-600 text-white text-xs font-medium px-2 py-1 rounded-md shadow-sm mb-1 whitespace-nowrap">
                   More below ↓
                 </div>
                 <button
                   onClick={scrollToBottom}
-                  className="bg-purple-600 hover:bg-purple-700 text-white rounded-full p-2.5 shadow-lg transition-all hover:scale-110 animate-bounce"
+                  className="bg-gradient-to-br from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white rounded-full p-2.5 shadow-lg transition-all hover:scale-110 animate-bounce"
                   aria-label="Scroll to see more"
                 >
                   <ArrowDown className="h-4 w-4" />
@@ -160,4 +171,13 @@ export function ChatMessage({ message, role, timestamp, isStreaming = false }: C
       </div>
     </div>
   );
-}
+}, (prevProps, nextProps) => {
+  // Custom comparison function for memo
+  // Only re-render if these props actually changed
+  return (
+    prevProps.message === nextProps.message &&
+    prevProps.role === nextProps.role &&
+    prevProps.timestamp === nextProps.timestamp &&
+    prevProps.isStreaming === nextProps.isStreaming
+  );
+});

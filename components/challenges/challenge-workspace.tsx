@@ -3,24 +3,14 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { FlexibleEditor } from './flexible-editor';
-import { AILearningCompanion } from './ai-learning-companion';
-import { ValidationResult } from './validation-result';
-import ReactMarkdown from 'react-markdown';
-import {
-  CheckCircle,
-  Loader2,
-  Trophy,
-  Clock,
-  Target,
-  ArrowLeft,
-  Send,
-  AlertCircle,
-  X,
-  XCircle,
-} from 'lucide-react';
-import Link from 'next/link';
+import { ChallengeHeader } from './challenge-header';
+import { ChallengeSidebar } from './challenge-sidebar';
+import { ValidationResultsModal } from './validation-results-modal';
+import { BugResolvedCelebration } from './bug-resolved-celebration';
+import { AIMentorDock } from './ai-mentor-dock';
+import { Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface ChallengeWorkspaceProps {
   challenge: any;
@@ -84,40 +74,72 @@ export function ChallengeWorkspace({ challenge }: ChallengeWorkspaceProps) {
   };
 
   const starterCode = getStarterCode();
-  const [code, setCode] = useState(starterCode);
+
+  // Load saved code from localStorage or use starter code
+  const [code, setCode] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const savedCode = localStorage.getItem(`challenge_code_${challenge.id}`);
+      if (savedCode && savedCode !== starterCode) {
+        return savedCode;
+      }
+    }
+    return starterCode;
+  });
+
   const [validationResult, setValidationResult] = useState<any>(null);
   const [isValidating, setIsValidating] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const [submissionResult, setSubmissionResult] = useState<any>(null);
-  const [infoBanner, setInfoBanner] = useState<{ show: boolean; message: string; title: string } | null>(null);
+  const [showAI, setShowAI] = useState(false);
+  const [isModified, setIsModified] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [showValidationModal, setShowValidationModal] = useState(false);
+  const [showCelebration, setShowCelebration] = useState(false);
 
-  const difficultyColors = {
-    easy: 'bg-green-100 text-green-700',
-    medium: 'bg-yellow-100 text-yellow-700',
-    hard: 'bg-red-100 text-red-700',
+  // Extract requirements from description if needed
+  const extractRequirements = (): string[] => {
+    const lines = challenge.description.split('\n');
+    const requirements: string[] = [];
+
+    lines.forEach((line: string) => {
+      if (line.trim().startsWith('- ') || line.trim().startsWith('* ')) {
+        requirements.push(line.trim().substring(2));
+      }
+    });
+
+    return requirements;
   };
 
-  // Auto-dismiss info banner after 5 seconds
+  const requirements = extractRequirements();
+
+  // Track code changes and auto-save to localStorage
   useEffect(() => {
-    if (infoBanner?.show) {
-      const timer = setTimeout(() => {
-        setInfoBanner(null);
-      }, 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [infoBanner]);
+    setIsModified(code !== starterCode);
+    setIsSaving(true);
+
+    // Auto-save to localStorage with debounce
+    const saveTimer = setTimeout(() => {
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(`challenge_code_${challenge.id}`, code);
+      }
+      setIsSaving(false);
+    }, 500); // Save 500ms after user stops typing
+
+    return () => clearTimeout(saveTimer);
+  }, [code, starterCode, challenge.id]);
 
   const handleValidate = async () => {
     // Check if code is empty
     if (!code.trim()) {
-      setInfoBanner({
-        show: true,
-        title: challengeType === 'document' ? 'Please write your response first!' : 'Please write some code first!',
-        message: challengeType === 'document'
-          ? 'The editor is empty. Write your response before validating.'
-          : 'The code editor is empty. Write your solution before validating.'
-      });
+      toast.error(
+        challengeType === 'document' ? 'Please write your response first!' : 'Please write some code first!',
+        {
+          description: challengeType === 'document'
+            ? 'The editor is empty. Write your response before validating.'
+            : 'The code editor is empty. Write your solution before validating.'
+        }
+      );
       return;
     }
 
@@ -126,28 +148,90 @@ export function ChallengeWorkspace({ challenge }: ChallengeWorkspaceProps) {
     const normalizedStarter = starterCode.trim().replace(/\s+/g, ' ');
 
     if (normalizedCode === normalizedStarter) {
-      setInfoBanner({
-        show: true,
-        title: 'Please modify the content before validating!',
-        message: 'The current content is the same as the starter template. Make your changes and try again.'
+      toast.error('Please modify the content before validating!', {
+        description: 'The current content is the same as the starter template. Make your changes and try again.'
       });
       return;
     }
 
-    // Check minimum length
-    const minLength = responseFormat === 'markdown' || responseFormat === 'text' ? 50 : 20;
+    // STRICT validation based on response format
+    const isCodeFormat = responseFormat === 'javascript' || responseFormat === 'typescript' || responseFormat === 'json';
+    const isDocFormat = responseFormat === 'markdown' || responseFormat === 'text';
+
+    // Get non-empty lines (excluding pure whitespace and comment-only lines)
+    const lines = code.split('\n');
+    const meaningfulLines = lines.filter((line: string) => {
+      const trimmed = line.trim();
+      // Skip empty lines
+      if (!trimmed) return false;
+      // Skip comment-only lines for code
+      if (isCodeFormat && (trimmed.startsWith('//') || trimmed.startsWith('/*') || trimmed.startsWith('*'))) {
+        return false;
+      }
+      return true;
+    });
+
+    // Check minimum length (STRICT)
+    const minLength = isDocFormat ? 200 : 50;
     if (code.trim().length < minLength) {
-      setInfoBanner({
-        show: true,
-        title: 'Your response seems too short!',
-        message: `Please write at least ${minLength} characters before validating.`
+      toast.error('Your response is too short!', {
+        description: isDocFormat
+          ? `Please write at least ${minLength} characters. Your ${challengeType === 'document' ? 'response' : 'solution'} needs more detail.`
+          : `Please write at least ${minLength} characters of meaningful code.`
+      });
+      return;
+    }
+
+    // Check minimum line count (STRICT)
+    const minLines = isDocFormat ? 3 : 5;
+    if (meaningfulLines.length < minLines) {
+      toast.error(`Not enough content!`, {
+        description: isCodeFormat
+          ? `Your code has only ${meaningfulLines.length} meaningful line${meaningfulLines.length !== 1 ? 's' : ''}. Please write at least ${minLines} lines of actual code (excluding comments).`
+          : `Your response needs at least ${minLines} non-empty lines. Currently: ${meaningfulLines.length} line${meaningfulLines.length !== 1 ? 's' : ''}.`
+      });
+      return;
+    }
+
+    // Check for single-line code submissions (common for lazy attempts)
+    if (isCodeFormat && meaningfulLines.length === 1) {
+      toast.error('Single-line solution detected!', {
+        description: 'Real solutions require multiple lines. Please write a complete implementation.'
+      });
+      return;
+    }
+
+    // Check for placeholder text or gibberish
+    const lowerCode = code.toLowerCase();
+    const placeholderPatterns = [
+      'lorem ipsum',
+      'placeholder',
+      'your code here',
+      'todo:',
+      'fixme:',
+      'write your',
+      'asdfasdf',
+      'test test',
+      'hello world' // Only if it's the entire content
+    ];
+
+    const hasPlaceholder = placeholderPatterns.some(pattern => {
+      if (pattern === 'hello world') {
+        // Only flag if it's basically the entire content
+        return lowerCode.includes(pattern) && code.trim().length < 50;
+      }
+      return lowerCode.includes(pattern);
+    });
+
+    if (hasPlaceholder) {
+      toast.error('Placeholder content detected!', {
+        description: 'Please replace placeholder text with your actual solution before validating.'
       });
       return;
     }
 
     setIsValidating(true);
     setValidationResult(null);
-    setInfoBanner(null); // Clear any previous info banner
 
     try {
       // Determine which validation endpoint to use
@@ -191,6 +275,7 @@ export function ChallengeWorkspace({ challenge }: ChallengeWorkspaceProps) {
 
       const result = await response.json();
       setValidationResult(result);
+      setShowValidationModal(true); // Show modal instead of inline
 
       // Save this validation to localStorage for next time
       localStorage.setItem(storageKey, JSON.stringify({
@@ -200,7 +285,9 @@ export function ChallengeWorkspace({ challenge }: ChallengeWorkspaceProps) {
       }));
     } catch (error: any) {
       console.error('Error validating code:', error);
-      alert(error.message || 'Failed to validate. Please try again.');
+      toast.error('Validation failed', {
+        description: error.message || 'Please try again.'
+      });
     } finally {
       setIsValidating(false);
     }
@@ -208,7 +295,7 @@ export function ChallengeWorkspace({ challenge }: ChallengeWorkspaceProps) {
 
   const handleSubmit = async () => {
     if (!validationResult) {
-      alert('Please validate your code first!');
+      toast.error('Please validate your code first!');
       return;
     }
 
@@ -233,172 +320,52 @@ export function ChallengeWorkspace({ challenge }: ChallengeWorkspaceProps) {
       const result = await response.json();
       setHasSubmitted(true);
       setSubmissionResult(result);
+      setShowValidationModal(false); // Close validation modal
+      setShowCelebration(true); // Show celebration!
 
-      // Clear validation history from localStorage on successful submit
-      const storageKey = `validation_${challenge.id}`;
-      localStorage.removeItem(storageKey);
+      // Clear validation history and saved code from localStorage on successful submit
+      const validationKey = `validation_${challenge.id}`;
+      const codeKey = `challenge_code_${challenge.id}`;
+      localStorage.removeItem(validationKey);
+      localStorage.removeItem(codeKey);
     } catch (error) {
       console.error('Error submitting code:', error);
-      alert('Failed to submit. Please try again.');
+      toast.error('Submission failed', {
+        description: 'Please try again.'
+      });
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  const handleNextChallenge = () => {
+    if (submissionResult?.nextChallenge) {
+      router.push(`/dashboard/challenges/${submissionResult.nextChallenge.slug}`);
+    } else {
+      router.push('/dashboard/challenges');
+    }
+  };
+
   return (
-    <div className="space-y-6 pb-8">
-      {/* Info Banner */}
-      {infoBanner?.show && (
-        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 w-full max-w-md px-4 animate-in slide-in-from-top duration-300">
-          <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 shadow-lg">
-            <div className="flex items-start gap-3">
-              <AlertCircle className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
-              <div className="flex-1 min-w-0">
-                <h3 className="font-semibold text-blue-900 mb-1">
-                  {infoBanner.title}
-                </h3>
-                <p className="text-sm text-blue-800">
-                  {infoBanner.message}
-                </p>
-              </div>
-              <button
-                onClick={() => setInfoBanner(null)}
-                className="text-blue-600 hover:text-blue-800 transition-colors flex-shrink-0"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+    <div className="h-screen flex flex-col bg-white overflow-hidden">
+      {/* Clean Header */}
+      <ChallengeHeader challenge={challenge} />
 
-      {/* Header */}
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex-1 space-y-3">
-          <Link href="/dashboard/challenges">
-            <Button variant="ghost" size="sm" className="gap-2 -ml-2">
-              <ArrowLeft className="h-4 w-4" />
-              Back to Challenges
-            </Button>
-          </Link>
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 leading-tight">
-              {challenge.title}
-            </h1>
-            <div className="mt-3 flex flex-wrap items-center gap-2">
-              <Badge
-                className={
-                  difficultyColors[
-                    challenge.difficulty as keyof typeof difficultyColors
-                  ]
-                }
-              >
-                {challenge.difficulty}
-              </Badge>
-              <Badge variant="outline" className="gap-1">
-                <Trophy className="h-3 w-3" />
-                {challenge.points} points
-              </Badge>
-              {challenge.estimated_time && (
-                <Badge variant="outline" className="gap-1">
-                  <Clock className="h-3 w-3" />
-                  ~{challenge.estimated_time} min
-                </Badge>
-              )}
-              <Badge variant="outline">{challenge.category}</Badge>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Description */}
-      <div className="rounded-lg border border-slate-200 bg-white p-4 sm:p-6 shadow-sm">
-        <h2 className="mb-3 text-lg font-semibold text-slate-900">
-          Description
-        </h2>
-        <div className="prose prose-slate max-w-none">
-          <ReactMarkdown
-            components={{
-              h1: ({ children }) => (
-                <h3 className="text-xl font-semibold text-slate-900 mt-4 mb-2">{children}</h3>
-              ),
-              h2: ({ children }) => (
-                <h4 className="text-lg font-semibold text-slate-900 mt-3 mb-2">{children}</h4>
-              ),
-              h3: ({ children }) => (
-                <h5 className="text-base font-semibold text-slate-900 mt-2 mb-1">{children}</h5>
-              ),
-              p: ({ children }) => (
-                <p className="text-slate-700 leading-relaxed mb-3">{children}</p>
-              ),
-              ul: ({ children }) => (
-                <ul className="list-disc list-outside ml-5 space-y-1.5 mb-3 text-slate-700">{children}</ul>
-              ),
-              ol: ({ children }) => (
-                <ol className="list-decimal list-outside ml-5 space-y-1.5 mb-3 text-slate-700">{children}</ol>
-              ),
-              li: ({ children }) => (
-                <li className="text-slate-700 leading-relaxed">{children}</li>
-              ),
-              strong: ({ children }) => (
-                <strong className="font-semibold text-slate-900">{children}</strong>
-              ),
-              em: ({ children }) => (
-                <em className="italic text-slate-700">{children}</em>
-              ),
-              code: ({ children }) => (
-                <code className="text-slate-800 font-mono text-sm border border-slate-200 px-1 py-0.5 rounded">
-                  {children}
-                </code>
-              ),
-              pre: ({ children }) => (
-                <pre className="bg-slate-50 border border-slate-200 text-slate-800 p-4 rounded-lg overflow-x-auto mb-3 font-mono text-sm">
-                  {children}
-                </pre>
-              ),
-            }}
-          >
-            {challenge.description}
-          </ReactMarkdown>
+      {/* Main Layout: Sidebar + Editor */}
+      <div className="flex flex-1 overflow-hidden">
+        {/* Left Sidebar - 25% */}
+        <div className="hidden lg:block w-[25%] min-w-[280px]">
+          <ChallengeSidebar
+            description={challenge.description}
+            requirements={requirements.length > 0 ? requirements : undefined}
+            objectives={challenge.learning_objectives}
+          />
         </div>
 
-        {challenge.learning_objectives &&
-          challenge.learning_objectives.length > 0 && (
-            <div className="mt-6 pt-6 border-t border-slate-200">
-              <h3 className="mb-3 flex items-center gap-2 text-base font-semibold text-slate-900">
-                <Target className="h-4 w-4 text-blue-600" />
-                Learning Objectives
-              </h3>
-              <ul className="space-y-2">
-                {challenge.learning_objectives.map(
-                  (objective: string, index: number) => (
-                    <li
-                      key={index}
-                      className="flex gap-2 text-sm text-slate-700"
-                    >
-                      <span className="text-blue-600 font-semibold">•</span>
-                      <span>{objective}</span>
-                    </li>
-                  )
-                )}
-              </ul>
-            </div>
-          )}
-      </div>
-
-      {/* Main Grid */}
-      <div className="grid gap-6 lg:grid-cols-2">
-        {/* Left Column - Editor */}
-        <div className="space-y-4">
-          <div className="rounded-lg border border-slate-200 bg-white p-4 sm:p-6 shadow-sm">
-            <h2 className="mb-4 text-lg font-semibold text-slate-900">
-              Your Solution
-            </h2>
-            <div className="mb-3 text-xs text-slate-500 italic">
-              {challengeType === 'document'
-                ? '💡 Write your response below using proper formatting. Make sure to include all required sections.'
-                : '💡 Write your code below. Make sure to modify the starter code before validating.'}
-            </div>
+        {/* Main Editor Area - 75% */}
+        <main className="flex-1 flex flex-col overflow-hidden">
+          {/* Editor */}
+          <div className="flex-1 p-6 overflow-hidden">
             <FlexibleEditor
               responseFormat={responseFormat}
               value={code}
@@ -406,175 +373,111 @@ export function ChallengeWorkspace({ challenge }: ChallengeWorkspaceProps) {
               placeholder={challengeType === 'document'
                 ? 'Write your response here...'
                 : 'Write your solution here...'}
+              className="h-full border border-gray-200 rounded-sm"
             />
-            <div className="mt-4 flex flex-col sm:flex-row gap-3">
+          </div>
+
+          {/* Action Bar - Fixed at bottom with proper z-index */}
+          <div className="sticky bottom-0 border-t border-gray-200 px-6 py-4 flex items-center justify-between bg-white shadow-lg z-30">
+            <div className="flex items-center gap-3">
+              {/* Prominent Test & Deploy Button */}
               <Button
                 onClick={handleValidate}
                 disabled={isValidating}
-                className="flex-1 gap-2"
+                className="bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white shadow-md transition-all hover:shadow-lg px-6 py-2.5"
                 size="lg"
               >
                 {isValidating ? (
                   <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    Validating...
+                    <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                    Testing Deployment...
                   </>
                 ) : (
                   <>
-                    <CheckCircle className="h-4 w-4" />
-                    Validate Code
+                    <svg className="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Test & Deploy
                   </>
                 )}
               </Button>
-              {validationResult && (
+
+              {/* Auto-save indicator (subtle) */}
+              <div className="flex items-center gap-1.5 text-xs text-gray-500">
+                <div className={`h-1.5 w-1.5 rounded-full ${isSaving ? 'bg-orange-400' : 'bg-green-500'}`}></div>
+                <span>{isSaving ? 'Saving...' : 'Saved'}</span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              {validationResult?.passed && !hasSubmitted && (
                 <Button
                   onClick={handleSubmit}
-                  disabled={isSubmitting || hasSubmitted}
-                  variant={validationResult.passed ? 'default' : 'secondary'}
-                  className="flex-1 gap-2"
+                  disabled={isSubmitting}
+                  className="bg-green-600 hover:bg-green-700 text-white shadow-md"
                   size="lg"
                 >
                   {isSubmitting ? (
                     <>
-                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <Loader2 className="h-5 w-5 mr-2 animate-spin" />
                       Submitting...
-                    </>
-                  ) : hasSubmitted ? (
-                    <>
-                      <CheckCircle className="h-4 w-4" />
-                      Submitted!
                     </>
                   ) : (
                     <>
-                      <Send className="h-4 w-4" />
-                      Submit Solution
+                      <svg className="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      Submit Challenge
                     </>
                   )}
                 </Button>
               )}
+              {hasSubmitted && (
+                <Button
+                  variant="outline"
+                  disabled
+                  className="text-green-600 border-green-600"
+                  size="lg"
+                >
+                  <svg className="h-5 w-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                  Submitted
+                </Button>
+              )}
             </div>
           </div>
-        </div>
-
-        {/* Right Column - AI Companion & Results */}
-        <div className="space-y-4">
-          {/* Validation Result */}
-          {validationResult && (
-            <ValidationResult result={validationResult} />
-          )}
-
-          {/* AI Learning Companion */}
-          <AILearningCompanion
-            challengeId={challenge.id}
-            challengeTitle={challenge.title}
-            challengeDescription={challenge.description}
-            currentCode={code}
-            difficulty={challenge.difficulty}
-          />
-        </div>
+        </main>
       </div>
 
-      {/* Submission Result Modal */}
-      {hasSubmitted && submissionResult && (
-        <div
-  className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-in fade-in duration-200"
-  style={{ marginTop: "auto" }}
->
+      {/* AI Mentor Floating Dock - Always visible on right side */}
+      <AIMentorDock
+        challengeId={challenge.id}
+        challengeTitle={challenge.title}
+        challengeDescription={challenge.description}
+        currentCode={code}
+        difficulty={challenge.difficulty}
+      />
 
-          <div className="rounded-xl bg-white p-8 text-center shadow-2xl max-w-md w-full animate-in zoom-in-95 duration-300">
-            {validationResult.passed ? (
-              <>
-                <CheckCircle className="mx-auto mb-4 h-16 w-16 text-green-600" />
-                <h3 className="mb-2 text-2xl font-bold text-slate-900">
-                  Challenge Passed! 🎉
-                </h3>
-                <p className="text-slate-600 mb-2">
-                  Earned {submissionResult.pointsEarned} points
-                </p>
+      {/* Validation Results Modal */}
+      <ValidationResultsModal
+        open={showValidationModal}
+        onOpenChange={setShowValidationModal}
+        result={validationResult}
+        onSubmit={validationResult?.passed ? handleSubmit : undefined}
+        onTryAgain={() => setShowValidationModal(false)}
+        isSubmitting={isSubmitting}
+      />
 
-                {/* Tier Unlocked Message */}
-                {submissionResult.tierUnlocked && (
-                  <div className="my-4 p-3 bg-purple-50 border border-purple-200 rounded-lg">
-                    <p className="text-purple-900 font-semibold">
-                      🚀 {submissionResult.tierUnlocked} tier unlocked!
-                    </p>
-                  </div>
-                )}
-
-                {/* Action Buttons */}
-                <div className="mt-6 space-y-3">
-                  {submissionResult.nextChallenge ? (
-                    <>
-                      <Button
-                        asChild
-                        className="w-full"
-                        size="lg"
-                      >
-                        <Link href={`/dashboard/challenges/${submissionResult.nextChallenge.slug}`}>
-                          Next Challenge →
-                        </Link>
-                      </Button>
-                      <Button
-                        asChild
-                        variant="outline"
-                        className="w-full"
-                      >
-                        <Link href="/dashboard/challenges">
-                          Back to Challenges
-                        </Link>
-                      </Button>
-                    </>
-                  ) : (
-                    <Button
-                      asChild
-                      className="w-full"
-                      size="lg"
-                    >
-                      <Link href="/dashboard/challenges">
-                        Back to Challenges
-                      </Link>
-                    </Button>
-                  )}
-                </div>
-              </>
-            ) : (
-              <>
-                <XCircle className="mx-auto mb-4 h-16 w-16 text-orange-600" />
-                <h3 className="mb-2 text-2xl font-bold text-slate-900">
-                  Keep Trying!
-                </h3>
-                <p className="text-slate-600 mb-6">
-                  Your solution didn't pass this time. Review the feedback and try again!
-                </p>
-
-                {/* Action Buttons */}
-                <div className="space-y-3">
-                  <Button
-                    onClick={() => {
-                      setHasSubmitted(false);
-                      setSubmissionResult(null);
-                      setValidationResult(null);
-                    }}
-                    className="w-full"
-                    size="lg"
-                  >
-                    Retry Challenge
-                  </Button>
-                  <Button
-                    asChild
-                    variant="outline"
-                    className="w-full"
-                  >
-                    <Link href="/dashboard/challenges">
-                      Back to Challenges
-                    </Link>
-                  </Button>
-                </div>
-              </>
-            )}
-          </div>
-        </div>
-      )}
+      {/* Bug Resolved Celebration */}
+      <BugResolvedCelebration
+        show={showCelebration && validationResult?.passed}
+        score={validationResult?.score || 0}
+        pointsEarned={submissionResult?.pointsEarned || challenge.points}
+        onNext={handleNextChallenge}
+        tierUnlocked={submissionResult?.tierUnlocked}
+        nextChallengeTitle={submissionResult?.nextChallenge?.title}
+      />
     </div>
   );
 }

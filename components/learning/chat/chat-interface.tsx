@@ -1,14 +1,11 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Loader2, Sparkles, Code, Lightbulb, TrendingUp, MessageSquare, GraduationCap } from 'lucide-react';
+import { Loader2, Sparkles, Code, Lightbulb, MessageSquare, Bot } from 'lucide-react';
 import { ChatMessage } from './chat-message';
 import { ChatInput } from './chat-input';
 import { ChatMode, ChatMessage as ChatMessageType } from '@/types/learning';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface ChatInterfaceProps {
@@ -59,13 +56,26 @@ export function ChatInterface({ lessonId, lessonTitle, lessonContent }: ChatInte
     }
   }, [chatHistory]);
 
+  // Optimized scroll - only auto-scroll if user is near bottom
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    const scrollArea = messagesEndRef.current?.parentElement;
+    if (!scrollArea) return;
+
+    const isNearBottom = scrollArea.scrollHeight - scrollArea.scrollTop - scrollArea.clientHeight < 100;
+
+    if (isNearBottom || isStreaming) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
   };
 
   useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+    // Debounce scroll updates during streaming
+    const timeoutId = setTimeout(() => {
+      scrollToBottom();
+    }, 50); // Small delay to batch multiple updates
+
+    return () => clearTimeout(timeoutId);
+  }, [messages, isStreaming]);
 
   const handleSendMessage = async (message: string) => {
     if (isStreaming) return; // Prevent sending while streaming
@@ -119,6 +129,9 @@ export function ChatInterface({ lessonId, lessonTitle, lessonContent }: ChatInte
       if (!reader) throw new Error('No reader available');
 
       let accumulatedMessage = '';
+      let updateQueue = '';
+      let lastUpdateTime = Date.now();
+      const UPDATE_THROTTLE = 50; // Throttle UI updates to every 50ms for smoother rendering
 
       while (true) {
         const { done, value } = await reader.read();
@@ -126,16 +139,33 @@ export function ChatInterface({ lessonId, lessonTitle, lessonContent }: ChatInte
 
         const chunk = decoder.decode(value, { stream: true });
         accumulatedMessage += chunk;
+        updateQueue += chunk;
 
-        // Update the assistant message with accumulated content
-        setMessages((prev) =>
-          prev.map((msg) =>
-            msg.id === assistantMessageId
-              ? { ...msg, message: accumulatedMessage }
-              : msg
-          )
-        );
+        // Throttle updates - only update UI if enough time has passed
+        const now = Date.now();
+        if (now - lastUpdateTime >= UPDATE_THROTTLE || done) {
+          if (updateQueue) {
+            setMessages((prev) =>
+              prev.map((msg) =>
+                msg.id === assistantMessageId
+                  ? { ...msg, message: accumulatedMessage }
+                  : msg
+              )
+            );
+            updateQueue = '';
+            lastUpdateTime = now;
+          }
+        }
       }
+
+      // Final update with complete message
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg.id === assistantMessageId
+            ? { ...msg, message: accumulatedMessage }
+            : msg
+        )
+      );
     } catch (error) {
       console.error('Streaming error:', error);
       // Update message with error
@@ -189,30 +219,18 @@ export function ChatInterface({ lessonId, lessonTitle, lessonContent }: ChatInte
   };
 
   return (
-    <Card className="h-full w-full flex flex-col border-0 shadow-none">
-      <CardHeader className="border-b bg-gradient-to-r from-purple-100 to-indigo-100 pb-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle className="text-lg flex items-center gap-2 font-semibold text-slate-800">
-              <div className="bg-purple-700 p-2 rounded-lg shadow-sm">
-                <GraduationCap className="h-5 w-5 text-white" />
-              </div>
-              Your Development Mentor
-            </CardTitle>
-            <p className="text-xs text-slate-600 mt-1.5 font-medium">Professional guidance for your learning journey</p>
-          </div>
-        </div>
-
-        {/* Mode Selector Pills */}
-        <div className="flex gap-2 pt-4">
+    <div className="h-full w-full flex flex-col bg-white">
+      {/* Mode Selector Pills - Clean design without duplicate header */}
+      <div className="border-b border-gray-200 bg-gray-50/50 px-6 py-3 flex-shrink-0">
+        <div className="flex gap-2">
           {chatModes.map(({ mode, label, icon: Icon }) => (
             <button
               key={mode}
               onClick={() => setCurrentMode(mode)}
-              className={`px-4 py-2 rounded-full text-xs font-medium transition-all ${
+              className={`px-4 py-2 rounded-lg text-xs font-medium transition-all ${
                 currentMode === mode
-                  ? 'bg-purple-700 text-white shadow-md'
-                  : 'bg-white text-slate-700 hover:bg-purple-50 hover:text-purple-700 border border-purple-200 hover:border-purple-300'
+                  ? 'bg-gradient-to-r from-sky-500 to-blue-600 text-white shadow-md'
+                  : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200 hover:border-sky-300'
               }`}
             >
               <Icon className="h-3.5 w-3.5 inline mr-1.5" />
@@ -220,38 +238,47 @@ export function ChatInterface({ lessonId, lessonTitle, lessonContent }: ChatInte
             </button>
           ))}
         </div>
-      </CardHeader>
+      </div>
 
-      <CardContent className="flex-1 flex flex-col p-0 overflow-hidden bg-gradient-to-b from-white to-purple-50/10">
+      <div className="flex-1 flex flex-col overflow-hidden bg-gradient-to-b from-white to-gray-50/50">
         {/* Messages Area */}
         <ScrollArea className="flex-1 w-full">
           <div className="space-y-4 px-6 py-4 w-full">
             {isLoadingHistory ? (
               <div className="flex items-center justify-center min-h-[400px]">
-                <Loader2 className="h-8 w-8 animate-spin text-purple-600" />
+                <div className="flex flex-col items-center gap-3">
+                  <Loader2 className="h-8 w-8 animate-spin text-sky-600" />
+                  <p className="text-sm text-gray-600 font-medium">Loading chat history...</p>
+                </div>
               </div>
             ) : messages.length === 0 ? (
-              <div className="flex flex-col items-center justify-center min-h-[450px] text-center py-8">
-                <div className="bg-gradient-to-br from-purple-600 to-indigo-600 p-6 rounded-full mb-6 shadow-lg">
-                  <GraduationCap className="h-14 w-14 text-white" />
+              <div className="flex flex-col items-center justify-center min-h-[280px] text-center py-6">
+                <div className="relative mb-5">
+                  <div className="bg-gradient-to-br from-sky-500 to-blue-600 p-6 rounded-2xl shadow-xl">
+                    <Bot className="h-12 w-12 text-white" />
+                  </div>
+                  <div className="absolute -top-1 -right-1 h-4 w-4 bg-green-400 rounded-full border-2 border-white shadow-sm"></div>
                 </div>
-                <h3 className="font-semibold text-xl mb-3 text-slate-800">Welcome! Let's Master This Together</h3>
-                <p className="text-sm text-slate-600 max-w-lg leading-relaxed mb-6">
+                <h3 className="font-bold text-lg mb-2 text-gray-900 flex items-center gap-2 justify-center">
+                  Ready to Learn? Let's Go!
+                  <Sparkles className="h-5 w-5 text-purple-500" />
+                </h3>
+                <p className="text-sm text-gray-600 max-w-md leading-relaxed mb-5">
                   {welcomeMessage[currentMode]}
                 </p>
 
                 {/* Suggested Questions */}
                 <div className="w-full max-w-lg space-y-2">
-                  <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-3">Suggested Questions</p>
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Quick Questions:</p>
                   <div className="space-y-2">
                     {getSuggestedQuestions().map((question, index) => (
                       <button
                         key={index}
                         onClick={() => handleSuggestedQuestion(question)}
                         disabled={isStreaming}
-                        className="w-full text-left px-4 py-3 rounded-lg border-2 border-purple-200 bg-white hover:bg-purple-50 hover:border-purple-400 transition-all text-sm text-slate-700 hover:text-purple-700 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="w-full text-left px-4 py-3 rounded-xl border-2 border-sky-200 bg-white hover:bg-sky-50 hover:border-sky-400 transition-all text-sm text-gray-700 hover:text-sky-700 font-medium disabled:opacity-50 disabled:cursor-not-allowed group"
                       >
-                        <Sparkles className="h-4 w-4 inline mr-2 text-purple-600" />
+                        <Sparkles className="h-4 w-4 inline mr-2 text-gray-400 group-hover:text-sky-500" />
                         {question}
                       </button>
                     ))}
@@ -281,18 +308,29 @@ export function ChatInterface({ lessonId, lessonTitle, lessonContent }: ChatInte
         </ScrollArea>
 
         {/* Input Area */}
-        <div className="border-t border-purple-100 p-5 bg-white shadow-sm">
+        <div className="border-t border-sky-100 p-5 bg-gradient-to-b from-white to-gray-50">
           <ChatInput
             onSendMessage={handleSendMessage}
             disabled={isStreaming}
-            placeholder={`Ask your mentor about ${lessonTitle.toLowerCase()}...`}
+            placeholder={isStreaming ? "Tutor is typing..." : `Ask your senior dev tutor about ${lessonTitle.toLowerCase()}...`}
           />
-          <p className="text-xs text-slate-500 mt-2.5 font-medium flex items-center gap-1">
-            <span className="text-purple-600">💡</span>
-            Press Enter to send • Shift+Enter for new line
-          </p>
+          <div className="flex items-center justify-center gap-2 mt-3">
+            <div className="flex items-center gap-1">
+              <kbd className="px-2 py-1 bg-white border border-gray-300 rounded text-xs font-mono shadow-sm">
+                Enter
+              </kbd>
+              <span className="text-xs text-gray-500">to send</span>
+            </div>
+            <span className="text-gray-300">•</span>
+            <div className="flex items-center gap-1">
+              <kbd className="px-2 py-1 bg-white border border-gray-300 rounded text-xs font-mono shadow-sm">
+                Shift+Enter
+              </kbd>
+              <span className="text-xs text-gray-500">new line</span>
+            </div>
+          </div>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
