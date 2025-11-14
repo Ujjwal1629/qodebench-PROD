@@ -240,7 +240,7 @@ export function CodeEditor({
             <span className="font-semibold">{displayLanguage}</span>
           </div>
           <span className="opacity-90">UTF-8</span>
-          <span className="opacity-90">Ln {(value || '').split('\n').length}, Col 1</span>
+          <span className="opacity-90">Ln {lineCount}, Col 1</span>
         </div>
 
         {/* Right Status */}
