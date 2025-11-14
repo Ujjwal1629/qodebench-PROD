@@ -136,7 +136,7 @@ export function AIMentorDock({
             <div className="absolute -inset-3 bg-gradient-to-r from-sky-400 via-blue-500 to-purple-500 rounded-full opacity-60 blur-xl group-hover:opacity-90 animate-pulse"></div>
 
             {/* Main button with text */}
-            <div className="relative bg-gradient-to-r from-sky-500 via-blue-600 to-purple-600 px-6 py-4 rounded-full shadow-2xl hover:shadow-sky-500/50 transition-all hover:scale-105 border-2 border-white/20">
+            <div className="relative bg-gradient-to-r from-sky-500 via-blue-600 to-purple-600 px-6 py-4 rounded-full shadow-2xl hover:shadow-sky-500/50 transition-all hover:scale-105 border-white/20">
               <div className="flex items-center gap-3">
                 <div className="relative">
                   <Bot className="h-7 w-7 text-white" />
@@ -287,9 +287,9 @@ export function AIMentorDock({
         </div>
       )}
 
-      {/* Chat Drawer - Slides in from right - 50% screen width */}
+      {/* Chat Drawer - Slides in from right - Responsive width */}
       <Sheet open={isChatOpen} onOpenChange={setIsChatOpen}>
-        <SheetContent side="right" className="w-[50vw] min-w-[500px] max-w-[800px] p-0 flex flex-col">
+        <SheetContent side="right" className="w-full sm:w-[95vw] md:w-[60vw] lg:w-[50vw] xl:w-[45vw] 2xl:max-w-[800px] p-0 flex flex-col">
           <SheetHeader className="px-6 py-4 border-b bg-gradient-to-r from-sky-50 via-blue-50 to-purple-50">
             <div className="flex items-center gap-3">
               <div className="bg-gradient-to-br from-sky-500 to-purple-600 p-2.5 rounded-xl relative">

@@ -44,8 +44,8 @@ export function ChallengeHeader({ challenge }: ChallengeHeaderProps) {
           Back to Challenges
         </Button>
 
-        {/* Center: Title */}
-        <h1 className="text-lg font-medium text-gray-900 truncate max-w-md">
+        {/* Center: Title - Responsive truncation */}
+        <h1 className="text-lg font-medium text-gray-900 line-clamp-2 sm:line-clamp-1 sm:truncate sm:max-w-md">
           {challenge.title}
         </h1>
 

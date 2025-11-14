@@ -64,9 +64,10 @@ export const NAV_ITEMS: NavItem[] = [
   // },
 ];
 
-// Mobile navigation items (reduced set)
+// Mobile navigation items (essential features)
 export const MOBILE_NAV_ITEMS: NavItem[] = [
   NAV_ITEMS[0], // Dashboard
+  NAV_ITEMS[1], // Learning
   NAV_ITEMS[2], // Challenges
   NAV_ITEMS[3], // Interviews
   NAV_ITEMS[4], // Leaderboard

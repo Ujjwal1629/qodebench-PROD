@@ -1,6 +1,7 @@
 'use client';
 
-import { Settings, HelpCircle, LogOut, Menu, Crown } from 'lucide-react';
+import { useState } from 'react';
+import { Settings, HelpCircle, LogOut, Menu, Crown, X } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   DropdownMenu,
@@ -10,6 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/hooks/use-auth';
@@ -17,6 +19,8 @@ import { useRouter, usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { useUIStore } from '@/store/ui-store';
 import { getUserInitials } from '@/lib/utils/format';
+import { MOBILE_NAV_ITEMS } from '@/lib/constants/dashboard';
+import Link from 'next/link';
 
 interface TopBarProps {
   pageTitle?: string;
@@ -30,6 +34,7 @@ interface TopBarProps {
 }
 
 export function TopBar({ pageTitle, user }: TopBarProps) {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { signOut } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
@@ -82,15 +87,16 @@ export function TopBar({ pageTitle, user }: TopBarProps) {
     >
       <div className="flex h-full items-center justify-between px-4 sm:px-6 lg:px-8">
         {/* Left: Page title */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 sm:gap-4">
           <Button
             variant="ghost"
             size="icon"
-            className="lg:hidden"
+            className="lg:hidden -ml-2"
+            onClick={() => setIsMobileMenuOpen(true)}
           >
-            <Menu className="h-5 w-5" />
+            <Menu className="h-6 w-6" />
           </Button>
-          <h1 className="text-lg font-semibold text-slate-900 sm:text-xl">
+          <h1 className="text-base font-bold text-slate-900 sm:text-lg lg:text-xl">
             {displayTitle}
           </h1>
         </div>
@@ -164,6 +170,43 @@ export function TopBar({ pageTitle, user }: TopBarProps) {
           </DropdownMenu>
         </div>
       </div>
+
+      {/* Mobile Navigation Drawer */}
+      <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
+        <SheetContent side="left" className="w-[280px] p-0">
+          <div className="flex flex-col h-full">
+            <div className="px-6 py-4 border-b bg-gradient-to-r from-sky-500 to-blue-600">
+              <SheetTitle className="text-lg font-bold text-white">Navigation</SheetTitle>
+              <p className="text-xs text-sky-50 mt-1">Quick access to all sections</p>
+            </div>
+            <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+              {MOBILE_NAV_ITEMS.map((item) => {
+                const isActive = item.href === '/dashboard'
+                  ? pathname === '/dashboard'
+                  : pathname.startsWith(item.href);
+                const Icon = item.icon;
+
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className={cn(
+                      'flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition-colors',
+                      isActive
+                        ? 'bg-sky-50 text-sky-700 border-l-4 border-sky-600'
+                        : 'text-gray-700 hover:bg-gray-100'
+                    )}
+                  >
+                    <Icon className={cn('h-5 w-5', isActive ? 'text-sky-600' : 'text-gray-500')} />
+                    <span>{item.title}</span>
+                  </Link>
+                );
+              })}
+            </nav>
+          </div>
+        </SheetContent>
+      </Sheet>
     </header>
   );
 }

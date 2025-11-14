@@ -260,7 +260,7 @@ export default async function OfficeFundamentalsLearningPage() {
   }
 
   return (
-    <div className="container max-w-6xl py-8 space-y-8">
+    <div className="container py-8 space-y-8">
       {/* Header Section with Progress - Wrapped in Suspense */}
       <Suspense fallback={<LearningModuleHeaderSkeleton />}>
         <ModuleHeader userId={user.id} learningPath={learningPath} />

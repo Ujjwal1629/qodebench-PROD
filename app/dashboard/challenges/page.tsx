@@ -23,13 +23,13 @@ export default async function ChallengesPage() {
     <div className="space-y-8">
       {/* Page Header */}
       <div className="space-y-4">
-        <div className="flex items-center gap-3">
-          <div className="rounded-lg bg-blue-100 p-2">
-            <Code2 className="h-6 w-6 text-blue-600" />
+        <div className="flex items-center gap-2 sm:gap-3">
+          <div className="rounded-lg bg-blue-100 p-1.5 sm:p-2">
+            <Code2 className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-slate-900">Challenges</h1>
-            <p className="text-slate-600">
+            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Challenges</h1>
+            <p className="text-sm sm:text-base text-slate-600">
               Progress through tiers and master full-stack web development
             </p>
           </div>
@@ -51,11 +51,11 @@ export default async function ChallengesPage() {
       </div>
 
       {/* Progressive Learning Path Explanation */}
-      <div className="rounded-lg bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 p-6">
-        <h2 className="text-lg font-semibold text-slate-900 mb-2 flex items-center gap-2">
+      <div className="rounded-lg bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 p-4 sm:p-5 md:p-6">
+        <h2 className="text-base sm:text-lg font-semibold text-slate-900 mb-2 flex items-center gap-2">
           🎯 Your Learning Path
         </h2>
-        <p className="text-slate-700 leading-relaxed">
+        <p className="text-sm sm:text-base text-slate-700 leading-relaxed">
           Progress through <strong>4 tiers</strong> of challenges: <strong>Beginner</strong> (coding basics) → <strong>Intermediate</strong> (features & bugs) → <strong>Office Workflow</strong> (professional practices) → <strong>Advanced</strong> (real-world simulations).
           Complete challenges sequentially within each tier to unlock the next!
         </p>
@@ -63,7 +63,7 @@ export default async function ChallengesPage() {
 
       {/* Tier Cards */}
       <div className="space-y-6">
-        <h2 className="text-2xl font-bold text-slate-900">Challenge Tiers</h2>
+        <h2 className="text-xl sm:text-2xl font-bold text-slate-900">Challenge Tiers</h2>
 
         <Suspense fallback={<TierCardsLoading />}>
           <TierCards tierProgress={tierProgress} />

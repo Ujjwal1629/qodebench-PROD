@@ -11,6 +11,7 @@ import {
   Code2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 interface CodeEditorProps {
   value: string;
@@ -166,10 +167,20 @@ export function CodeEditor({
         </div>
       </div>
 
-      {/* Editor Content Area */}
-      <div className="flex bg-[#1e1e1e] overflow-hidden" style={{ height: isFullscreen ? 'calc(100vh - 80px)' : '500px' }}>
+      {/* Editor Content Area - Responsive height for mobile */}
+      <div
+        className={cn(
+          "flex bg-[#1e1e1e] overflow-hidden",
+          isFullscreen ? "h-[calc(100vh-80px)]" : "h-[400px] md:h-[500px]"
+        )}
+      >
         {/* Line Numbers */}
-        <div className="flex-shrink-0 bg-[#1e1e1e] border-r border-slate-800 py-4 px-2 select-none overflow-hidden" style={{ height: isFullscreen ? 'calc(100vh - 80px)' : '500px' }}>
+        <div
+          className={cn(
+            "flex-shrink-0 bg-[#1e1e1e] border-r border-slate-800 py-4 px-2 select-none overflow-hidden",
+            isFullscreen ? "h-[calc(100vh-80px)]" : "h-[400px] md:h-[500px]"
+          )}
+        >
           <div className="space-y-0 font-mono text-right" style={{ fontSize: '13px', lineHeight: '21px' }}>
             {Array.from({ length: Math.max(lineCount, 20) }, (_, i) => (
               <div

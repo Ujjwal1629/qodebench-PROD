@@ -57,25 +57,25 @@ export default function LearningPage() {
     <div className="space-y-8">
       {/* Featured Banner */}
       <Card className="overflow-hidden bg-gradient-to-r from-sky-500 to-purple-600">
-        <CardContent className="p-6">
+        <CardContent className="p-4 sm:p-5 md:p-6">
           <div className="flex flex-col items-center gap-4 text-center text-white sm:flex-row sm:justify-between sm:text-left">
-            <div className="flex items-start gap-4">
-              <div className="rounded-lg bg-white/20 p-3">
-                <Sparkles className="h-6 w-6" />
+            <div className="flex items-start gap-3 sm:gap-4">
+              <div className="rounded-lg bg-white/20 p-2 sm:p-3">
+                <Sparkles className="h-5 w-5 sm:h-6 sm:w-6" />
               </div>
               <div>
                 <div className="flex items-center gap-2 mb-1">
-                  <Badge className="bg-white text-sky-600 hover:bg-white">
+                  <Badge className="bg-white text-sky-600 hover:bg-white text-xs sm:text-sm">
                     Now Available
                   </Badge>
                 </div>
-                <h3 className="text-2xl font-bold">Start Your Learning Journey</h3>
-                <p className="mt-1 text-sky-50">
+                <h3 className="text-xl sm:text-2xl font-bold">Start Your Learning Journey</h3>
+                <p className="mt-1 text-sm sm:text-base text-sky-50">
                   Interactive lessons with AI-powered assistance and hands-on quizzes
                 </p>
               </div>
             </div>
-            <Button asChild size="lg" className="bg-white text-sky-600 hover:bg-white/90">
+            <Button asChild size="lg" className="bg-white text-sky-600 hover:bg-white/90 text-sm sm:text-base">
               <Link href="/dashboard/learning/html-css">
                 Start Learning
                 <ArrowRight className="ml-2 h-4 w-4" />

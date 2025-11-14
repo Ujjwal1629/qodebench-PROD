@@ -20,14 +20,14 @@ export function ExperienceProgress({ totalPoints }: ExperienceProgressProps) {
 
   return (
     <Card>
-      <CardContent className="p-6">
+      <CardContent className="p-4 sm:p-5 md:p-6">
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-lg font-semibold text-slate-900">
+              <h3 className="text-base sm:text-lg font-semibold text-slate-900">
                 Experience Progress
               </h3>
-              <p className="text-sm text-slate-600">
+              <p className="text-xs sm:text-sm text-slate-600">
                 {currentLevel.description}
               </p>
             </div>

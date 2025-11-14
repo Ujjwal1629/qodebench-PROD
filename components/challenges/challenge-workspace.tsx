@@ -3,13 +3,14 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
+import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet';
 import { FlexibleEditor } from './flexible-editor';
 import { ChallengeHeader } from './challenge-header';
 import { ChallengeSidebar } from './challenge-sidebar';
 import { ValidationResultsModal } from './validation-results-modal';
 import { BugResolvedCelebration } from './bug-resolved-celebration';
 import { AIMentorDock } from './ai-mentor-dock';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Info } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface ChallengeWorkspaceProps {
@@ -96,6 +97,7 @@ export function ChallengeWorkspace({ challenge }: ChallengeWorkspaceProps) {
   const [isSaving, setIsSaving] = useState(false);
   const [showValidationModal, setShowValidationModal] = useState(false);
   const [showCelebration, setShowCelebration] = useState(false);
+  const [isMobileInfoOpen, setIsMobileInfoOpen] = useState(false);
 
   // Extract requirements from description if needed
   const extractRequirements = (): string[] => {
@@ -478,6 +480,37 @@ export function ChallengeWorkspace({ challenge }: ChallengeWorkspaceProps) {
         tierUnlocked={submissionResult?.tierUnlocked}
         nextChallengeTitle={submissionResult?.nextChallenge?.title}
       />
+
+      {/* Mobile Info Button - Floating top-left */}
+      <button
+        onClick={() => setIsMobileInfoOpen(true)}
+        className="lg:hidden fixed top-20 left-4 z-40 bg-gradient-to-r from-sky-500 to-blue-600 text-white p-3 rounded-full shadow-xl hover:shadow-2xl transition-all hover:scale-105"
+        aria-label="View Challenge Info"
+      >
+        <Info className="h-5 w-5" />
+      </button>
+
+      {/* Mobile Challenge Info Drawer */}
+      <Sheet open={isMobileInfoOpen} onOpenChange={setIsMobileInfoOpen}>
+        <SheetContent side="left" className="w-full sm:w-[90vw] md:w-[400px] p-0 overflow-hidden">
+          <div className="h-full flex flex-col">
+            <div className="px-6 py-4 border-b bg-gradient-to-r from-sky-500 to-blue-600">
+              <SheetTitle className="text-lg font-bold text-white flex items-center gap-2">
+                <Info className="h-5 w-5" />
+                Challenge Info
+              </SheetTitle>
+              <p className="text-xs text-sky-50 mt-1">Requirements & objectives for this challenge</p>
+            </div>
+            <div className="flex-1 overflow-y-auto">
+              <ChallengeSidebar
+                description={challenge.description}
+                requirements={requirements.length > 0 ? requirements : undefined}
+                objectives={challenge.learning_objectives}
+              />
+            </div>
+          </div>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }

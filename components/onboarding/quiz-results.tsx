@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { CheckCircle2, XCircle, ArrowRight, BookOpen } from 'lucide-react';
 import { getRecommendationMessage } from '@/lib/quiz-questions';
 import { Progress } from '@/components/ui/progress';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 interface QuizResultsProps {
   score: number;
@@ -16,6 +16,17 @@ interface QuizResultsProps {
 
 export function QuizResults({ score, totalQuestions, correctAnswers, experienceLevel }: QuizResultsProps) {
   const recommendation = getRecommendationMessage(score);
+  const router = useRouter();
+
+  const handleGoToDashboard = () => {
+    router.push('/dashboard');
+    router.refresh(); // Trigger server-side redirect via middleware
+  };
+
+  const handleContinueLearning = () => {
+    router.push('/dashboard/learning');
+    router.refresh(); // Trigger server-side redirect via middleware
+  };
 
   return (
     <Card className="w-full max-w-2xl mx-auto">
@@ -84,18 +95,14 @@ export function QuizResults({ score, totalQuestions, correctAnswers, experienceL
 
       <CardFooter className="flex justify-center">
         {recommendation.shouldRedirectToLearning ? (
-          <Button size="lg" asChild className="gap-2">
-            <Link href="/dashboard/learning">
-              Continue to Learning
-              <ArrowRight className="h-4 w-4" />
-            </Link>
+          <Button size="lg" onClick={handleContinueLearning} className="gap-2">
+            Continue to Learning
+            <ArrowRight className="h-4 w-4" />
           </Button>
         ) : (
-          <Button size="lg" asChild className="gap-2">
-            <Link href="/dashboard">
-              Go to Dashboard
-              <ArrowRight className="h-4 w-4" />
-            </Link>
+          <Button size="lg" onClick={handleGoToDashboard} className="gap-2">
+            Go to Dashboard
+            <ArrowRight className="h-4 w-4" />
           </Button>
         )}
       </CardFooter>

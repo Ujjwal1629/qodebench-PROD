@@ -18,7 +18,7 @@ export function MainContentWrapper({ children }: MainContentWrapperProps) {
         sidebarCollapsed ? 'lg:pl-20' : 'lg:pl-64'
       )}
     >
-      <div className="mx-auto pt-2 pb-2 sm:px-6 lg:px-4">
+      <div className="mx-auto px-4 py-4 sm:px-6 sm:py-6 lg:px-8">
         {children}
       </div>
     </main>

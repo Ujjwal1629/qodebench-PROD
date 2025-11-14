@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import OpenAI from 'openai';
 import { ChatRequest, ChatMode } from '@/types/learning';
+import { extractTopicsFromLesson, getTopicSummary } from '@/lib/learning/topic-extractor';
+import { validateQuestionRelevance, getRelevanceMessage } from '@/lib/learning/relevance-validator';
+import { getChatTableForLesson } from '@/lib/learning/get-chat-table';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY || '',
@@ -182,18 +185,43 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid request data' }, { status: 400 });
     }
 
+    // Get the correct chat table for this lesson's module
+    const chatTable = await getChatTableForLesson(body.lesson_id);
+    if (!chatTable) {
+      return NextResponse.json(
+        { error: 'Could not determine learning module for this lesson' },
+        { status: 400 }
+      );
+    }
+
+    // Extract lesson topics and validate question relevance
+    const lessonTopics = body.lesson_context
+      ? extractTopicsFromLesson(body.lesson_context)
+      : { title: 'this lesson', mainTopics: [], keywords: [], codeLanguages: [] };
+
+    const relevanceResult = validateQuestionRelevance(body.message, lessonTopics);
+    const relevanceMessage = getRelevanceMessage(relevanceResult, lessonTopics.title);
+
     // Build context from lesson content
+    const topicSummary = getTopicSummary(lessonTopics);
     const contextMessage = body.lesson_context
-      ? `Current Lesson Context:\n${body.lesson_context.substring(0, 1500)}...\n\n`
+      ? `Current Lesson Context (${topicSummary}):\n${body.lesson_context.substring(0, 1500)}...\n\nIMPORTANT: This lesson focuses on ${topicSummary}. ${
+          relevanceResult.category === 'off-topic'
+            ? 'The student\'s question is outside the lesson scope. Acknowledge this gently and provide a brief answer, then redirect to lesson topics.'
+            : relevanceResult.category === 'related'
+            ? 'The student\'s question is related but not directly covered. Acknowledge this and explain briefly how it connects to the lesson.'
+            : ''
+        }\n\n`
       : '';
 
     // Save user message to database first
-    const { error: userMessageError } = await supabase.from('html_css_chat_history').insert({
+    const { error: userMessageError } = await supabase.from(chatTable as any).insert({
       user_id: user.id,
       lesson_id: body.lesson_id,
       message: body.message,
       role: 'user',
       mode: body.mode,
+      is_off_topic: relevanceResult.isOffTopic,
     });
 
     if (userMessageError) {
@@ -252,12 +280,13 @@ export async function POST(request: NextRequest) {
           }
 
           // Save complete assistant response to database after streaming
-          await supabase.from('html_css_chat_history').insert({
+          await supabase.from(chatTable as any).insert({
             user_id: user.id,
             lesson_id: body.lesson_id,
             message: fullMessage,
             role: 'assistant',
             mode: body.mode,
+            is_off_topic: relevanceResult.isOffTopic,
           });
 
           controller.close();

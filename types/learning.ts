@@ -59,6 +59,7 @@ export interface ChatMessage {
   role: ChatRole;
   mode: ChatMode;
   context?: Record<string, any> | null;
+  is_off_topic?: boolean | null;
   created_at: string;
 }
 

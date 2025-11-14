@@ -35,19 +35,19 @@ export function QuickActions() {
   ];
 
   return (
-    <div className="grid gap-4 sm:grid-cols-3">
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {actions.map((action) => {
         const Icon = action.icon;
         return (
           <Card key={action.href} className="transition-shadow hover:shadow-md">
-            <CardContent className="p-6">
-              <div className="space-y-4">
-                <div className={`flex h-12 w-12 items-center justify-center rounded-lg ${action.bgColor}`}>
-                  <Icon className={`h-6 w-6 ${action.color}`} />
+            <CardContent className="p-4 sm:p-5 md:p-6">
+              <div className="space-y-3 sm:space-y-4">
+                <div className={`flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-lg ${action.bgColor}`}>
+                  <Icon className={`h-5 w-5 sm:h-6 sm:w-6 ${action.color}`} />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-slate-900">{action.title}</h3>
-                  <p className="mt-1 text-sm text-slate-600">{action.description}</p>
+                  <h3 className="text-base sm:text-lg font-semibold text-slate-900">{action.title}</h3>
+                  <p className="mt-1 text-xs sm:text-sm text-slate-600">{action.description}</p>
                 </div>
                 <Button asChild className="w-full">
                   <Link href={action.href}>{action.buttonText}</Link>

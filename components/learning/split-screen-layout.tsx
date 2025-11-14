@@ -11,7 +11,7 @@ export function SplitScreenLayout({ leftPanel }: SplitScreenLayoutProps) {
     <div className="overflow-y-auto h-[calc(100vh-4rem)] bg-slate-50">
       {/* Full Width Content Layout */}
       <div className="bg-white min-h-full">
-        <div className="px-6 md:px-8 lg:px-12 xl:px-16 py-6 max-w-6xl mx-auto">
+        <div className="px-6 md:px-8 lg:px-12 xl:px-16 py-6 mx-auto">
           {leftPanel}
         </div>
       </div>

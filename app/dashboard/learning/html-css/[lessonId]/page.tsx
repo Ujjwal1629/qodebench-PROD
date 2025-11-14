@@ -113,7 +113,7 @@ export default async function LessonPage({ params }: { params: Promise<{ lessonI
               {lesson.duration_minutes} min read • {quizQuestions.length} quiz questions
             </span>
           </div>
-          <h1 className="text-4xl font-bold leading-tight text-slate-900 tracking-tight">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold leading-tight text-slate-900 tracking-tight">
             {lesson.title}
           </h1>
           <p className="text-lg text-slate-600 leading-relaxed">

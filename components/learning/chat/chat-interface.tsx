@@ -227,7 +227,7 @@ export function ChatInterface({ lessonId, lessonTitle, lessonContent }: ChatInte
             <button
               key={mode}
               onClick={() => setCurrentMode(mode)}
-              className={`px-4 py-2 rounded-lg text-xs font-medium transition-all ${
+              className={`px-5 py-3 md:px-4 md:py-2 rounded-lg text-xs font-medium transition-all min-h-[44px] ${
                 currentMode === mode
                   ? 'bg-gradient-to-r from-sky-500 to-blue-600 text-white shadow-md'
                   : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200 hover:border-sky-300'
