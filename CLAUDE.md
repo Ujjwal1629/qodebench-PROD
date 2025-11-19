@@ -218,7 +218,13 @@ QodeBench supports multiple validation types for different challenge formats:
 - `code-editor.tsx`: Monaco-based editor for JavaScript/TypeScript/JSON
 - `markdown-editor.tsx`: Write/Preview tabs for markdown content
 - `text-editor.tsx`: Plain text editor for simple responses
+- `merge-conflict-resolver.tsx`: Interactive VS Code-style UI for merge conflict resolution
 - `flexible-editor.tsx`: Smart router that selects editor based on `challenge.response_format`
+
+**Response Formats**:
+- `javascript`, `typescript`, `json`: Code challenges using Monaco editor
+- `markdown`, `text`: Document challenges using markdown/text editors
+- `merge_conflict_interactive`: Interactive MCQ-style merge conflict resolution
 
 **Challenge Workspace Pattern**:
 ```typescript
@@ -240,6 +246,38 @@ const endpoint = validationType === 'hybrid' || validationType === 'ai_only'
 3. **Final Score**: Always 0-100, with 70+ being passing
 
 See `HYBRID_VALIDATION_IMPLEMENTATION.md` for detailed implementation guide.
+
+**Interactive Merge Conflict Challenges**:
+
+A special challenge type for teaching Git merge conflict resolution through interactive, step-by-step MCQ scenarios.
+
+**Structure** (`response_format: 'merge_conflict_interactive'`):
+- Challenge stores scenarios in `test_cases.scenarios[]`
+- Each scenario has: `id`, `context`, `description`, `currentBranch`, `incomingBranch`, `currentCode`, `incomingCode`, `correctAnswer`, `explanation`
+- User navigates through scenarios, selecting resolution strategies for each
+
+**Resolution Options** (VS Code-style):
+- `accept_current`: Keep changes from HEAD branch
+- `accept_incoming`: Keep changes from merging branch
+- `accept_both`: Include both sets of changes
+- `compare_changes`: View side-by-side comparison (no selection)
+
+**Component Flow**:
+1. `FlexibleEditor` detects `merge_conflict_interactive` format
+2. Renders `MergeConflictResolver` with scenarios from `test_cases.scenarios`
+3. User progresses through scenarios step-by-step
+4. On completion, submits JSON: `{ scenarios: [{ id, selected, timeSpent }] }`
+
+**Validation** (`/api/ai/validate-hybrid`):
+- **Phase 1 (50%)**: Binary check - correct answer = 12.5 points per scenario (4 scenarios)
+- **Phase 2 (50%)**: Base score of 25 points (AI reasoning optional)
+- **Passing**: Score >= 70
+- **Result**: Per-scenario feedback with correct answers and explanations
+
+**Database Migration**: `037_convert_merge_conflict_to_interactive.sql`
+- Updates `office-merge-conflict` challenge
+- Sets `response_format` to `merge_conflict_interactive`
+- Defines 4 realistic merge conflict scenarios
 
 ### Learning Modules & Mock Interviews
 

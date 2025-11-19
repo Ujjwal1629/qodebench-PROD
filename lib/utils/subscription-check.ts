@@ -8,6 +8,7 @@ import {
   FREE_TIER_LIMITS,
 } from '@/types/subscription';
 import { ChallengeTier } from '@/lib/constants/dashboard';
+import { FREE_CHALLENGES_PER_TIER } from '@/lib/constants/subscription';
 
 /**
  * Get user's subscription details
@@ -108,6 +109,66 @@ export async function canAccessChallengeTier(
   }
 
   return { canAccess: true };
+}
+
+/**
+ * Check if user can access a specific challenge
+ * Enforces tier-specific position-based access:
+ * - Beginner, Intermediate, Office Workflow: First 5 free
+ * - Advanced: First 2 free
+ * Rest require subscription
+ */
+export async function canAccessChallenge(
+  challengeId: string,
+  userId?: string
+): Promise<{ canAccess: boolean; reason?: string; requiresUpgrade: boolean }> {
+  try {
+    const supabase = await createClient();
+
+    // Fetch challenge details including position in tier
+    const { data: challenge, error } = await supabase
+      .from('challenges')
+      .select('tier, is_free_tier_accessible, order_in_tier, title')
+      .eq('id', challengeId)
+      .eq('is_active', true)
+      .single();
+
+    if (error || !challenge) {
+      return { canAccess: false, reason: 'Challenge not found', requiresUpgrade: false };
+    }
+
+    // TIER-SPECIFIC POSITION-BASED ACCESS CONTROL
+    const tier = challenge.tier as ChallengeTier;
+    const freeLimit = FREE_CHALLENGES_PER_TIER[tier] || 5; // Default to 5 if tier not found
+    const isFreePosition = challenge.order_in_tier <= freeLimit;
+
+    // Special override: if challenge is explicitly marked as free-tier accessible, grant access
+    // This allows admins to make specific challenges free beyond the free limit
+    if (challenge.is_free_tier_accessible) {
+      return { canAccess: true, requiresUpgrade: false };
+    }
+
+    // If challenge is in free position, grant access
+    if (isFreePosition) {
+      return { canAccess: true, requiresUpgrade: false };
+    }
+
+    // Challenges beyond free limit require active subscription
+    const hasSubscription = await hasActiveSubscription(userId);
+
+    if (!hasSubscription) {
+      return {
+        canAccess: false,
+        reason: `This is a premium challenge. Upgrade to unlock all challenges in the ${tier} tier!`,
+        requiresUpgrade: true,
+      };
+    }
+
+    return { canAccess: true, requiresUpgrade: false };
+  } catch (error) {
+    console.error('Error in canAccessChallenge:', error);
+    return { canAccess: false, reason: 'Error checking access', requiresUpgrade: false };
+  }
 }
 
 /**

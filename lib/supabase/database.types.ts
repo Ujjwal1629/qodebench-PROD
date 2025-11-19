@@ -96,6 +96,8 @@ export type Database = {
           challenge_type: 'code' | 'document' | 'mixed' | null
           response_format: 'javascript' | 'typescript' | 'markdown' | 'text' | 'json' | null
           validation_type: 'test_cases' | 'ai_only' | 'hybrid' | null
+          // Free tier access control (migration 036)
+          is_free_tier_accessible: boolean
         }
         Insert: {
           id?: string
@@ -127,6 +129,8 @@ export type Database = {
           challenge_type?: 'code' | 'document' | 'mixed' | null
           response_format?: 'javascript' | 'typescript' | 'markdown' | 'text' | 'json' | null
           validation_type?: 'test_cases' | 'ai_only' | 'hybrid' | null
+          // Free tier access control
+          is_free_tier_accessible?: boolean
         }
         Update: {
           id?: string
@@ -158,6 +162,8 @@ export type Database = {
           challenge_type?: 'code' | 'document' | 'mixed' | null
           response_format?: 'javascript' | 'typescript' | 'markdown' | 'text' | 'json' | null
           validation_type?: 'test_cases' | 'ai_only' | 'hybrid' | null
+          // Free tier access control
+          is_free_tier_accessible?: boolean
         }
       }
       submissions: {

@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { Menu, X, User, Crown, LogOut } from "lucide-react";
+import { Menu, X, User, Crown, LogOut, Code2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
 import {
@@ -20,7 +20,6 @@ import type { User as SupabaseUser } from "@supabase/supabase-js";
 
 const navLinks = [
   { name: "Features", href: "#features", isAnchor: true },
-  { name: "Challenges", href: "/dashboard/challenges", isAnchor: false },
   { name: "Pricing", href: "#pricing", isAnchor: true },
   { name: "About", href: "/about", isAnchor: false },
 ];
@@ -94,6 +93,15 @@ export function Navbar() {
 
   const scrollToSection = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
     e.preventDefault();
+
+    // If we're not on the home page, navigate there first
+    if (pathname !== '/') {
+      router.push(`/${href}`);
+      setIsMobileMenuOpen(false);
+      return;
+    }
+
+    // If we're on the home page, scroll to the section
     const element = document.querySelector(href);
     if (element) {
       const offset = 100;
@@ -193,6 +201,10 @@ export function Navbar() {
                   <DropdownMenuItem onClick={() => router.push('/dashboard')}>
                     <User className="mr-2 h-4 w-4" />
                     Dashboard
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => router.push('/dashboard/challenges')}>
+                    <Code2 className="mr-2 h-4 w-4" />
+                    Challenges
                   </DropdownMenuItem>
                   {subscriptionTier === 'free' && (
                     <DropdownMenuItem onClick={() => router.push('/pricing')}>
@@ -302,6 +314,17 @@ export function Navbar() {
                   >
                     <User className="mr-2 h-4 w-4" />
                     Dashboard
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => {
+                      router.push('/dashboard/challenges');
+                      setIsMobileMenuOpen(false);
+                    }}
+                  >
+                    <Code2 className="mr-2 h-4 w-4" />
+                    Challenges
                   </Button>
                   {subscriptionTier === 'free' && (
                     <Button

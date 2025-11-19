@@ -5,6 +5,7 @@ import { TierCard } from '@/components/challenges/tier-card';
 import { Badge } from '@/components/ui/badge';
 import { Code2, Sparkles } from 'lucide-react';
 import { TIER_ORDER } from '@/lib/constants/dashboard';
+import { hasActiveSubscription } from '@/lib/utils/subscription-check';
 
 export const metadata: Metadata = {
   title: 'Challenges | QodeBench',
@@ -75,6 +76,9 @@ export default async function ChallengesPage() {
 
 // Server component to load challenges for each tier
 async function TierCards({ tierProgress }: { tierProgress: Awaited<ReturnType<typeof getTierProgress>> }) {
+  // Check user's subscription status
+  const hasPaidSubscription = await hasActiveSubscription();
+
   // Load challenges for each unlocked tier
   const tierData = await Promise.all(
     TIER_ORDER.map(async (tierId) => {
@@ -98,6 +102,7 @@ async function TierCards({ tierProgress }: { tierProgress: Awaited<ReturnType<ty
           key={tier!.tier}
           tierStats={tier!}
           challenges={tier!.challenges}
+          hasActiveSubscription={hasPaidSubscription}
         />
       ))}
     </div>

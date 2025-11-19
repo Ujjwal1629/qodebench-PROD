@@ -23,6 +23,7 @@ export type UserRank = {
   rank: number;
   total_users: number;
   percentile: number;
+  points: number;
 };
 
 /**
@@ -129,6 +130,7 @@ export const getUserRank = cache(
         rank,
         total_users: total,
         percentile,
+        points: userPoints,
       };
     } catch (error) {
       console.error('Error in getUserRank:', error);

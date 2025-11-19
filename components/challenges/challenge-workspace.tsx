@@ -10,6 +10,7 @@ import { ChallengeSidebar } from './challenge-sidebar';
 import { ValidationResultsModal } from './validation-results-modal';
 import { BugResolvedCelebration } from './bug-resolved-celebration';
 import { AIMentorDock } from './ai-mentor-dock';
+import { OfficeChallengeLayout } from './office-challenge-layout';
 import { Loader2, Info } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -18,6 +19,18 @@ interface ChallengeWorkspaceProps {
 }
 
 export function ChallengeWorkspace({ challenge }: ChallengeWorkspaceProps) {
+  // Check for office challenge and route to appropriate layout
+  const isOfficeChallenge = challenge.category === 'office' || challenge.category === 'office-fundamentals';
+
+  if (isOfficeChallenge) {
+    return <OfficeChallengeLayout challenge={challenge} />;
+  }
+
+  return <CodeChallengeLayout challenge={challenge} />;
+}
+
+// Code challenges layout (existing implementation)
+function CodeChallengeLayout({ challenge }: ChallengeWorkspaceProps) {
   const router = useRouter();
 
   // Scroll to top when challenge changes
@@ -25,21 +38,10 @@ export function ChallengeWorkspace({ challenge }: ChallengeWorkspaceProps) {
     window.scrollTo({ top: 0, behavior: 'instant' });
   }, [challenge.id]);
 
-  // Get response format and challenge type with intelligent fallback
-  const isOfficeChallenge = challenge.category === 'office' || challenge.category === 'office-fundamentals';
-
-  // Detect document challenges by title/slug patterns
-  const documentKeywords = ['description', 'rca', 'root cause', 'meeting', 'notes', 'communication', 'incident', 'documentation', 'email', 'stakeholder'];
-  const isLikelyDocument = documentKeywords.some(keyword =>
-    challenge.title?.toLowerCase().includes(keyword) ||
-    challenge.slug?.toLowerCase().includes(keyword)
-  );
-
-  const responseFormat = challenge.response_format ||
-    (isOfficeChallenge && isLikelyDocument ? 'markdown' : 'javascript');
-  const challengeType = challenge.challenge_type ||
-    (isOfficeChallenge && isLikelyDocument ? 'document' : 'code');
-  const validationType = challenge.validation_type || 'ai_only';
+  // These are code challenges only (office challenges use separate layout)
+  const responseFormat = challenge.response_format || 'javascript';
+  const challengeType = challenge.challenge_type || 'code';
+  const validationType = challenge.validation_type || 'test_cases';
 
   // Determine starter code based on response format
   const getStarterCode = () => {
@@ -134,17 +136,13 @@ export function ChallengeWorkspace({ challenge }: ChallengeWorkspaceProps) {
   const handleValidate = async () => {
     // Check if code is empty
     if (!code.trim()) {
-      toast.error(
-        challengeType === 'document' ? 'Please write your response first!' : 'Please write some code first!',
-        {
-          description: challengeType === 'document'
-            ? 'The editor is empty. Write your response before validating.'
-            : 'The code editor is empty. Write your solution before validating.'
-        }
-      );
+      toast.error('Please write some code first!', {
+        description: 'The code editor is empty. Write your solution before validating.'
+      });
       return;
     }
 
+    // Apply validation checks
     // Check if code has been modified from starter code
     const normalizedCode = code.trim().replace(/\s+/g, ' ');
     const normalizedStarter = starterCode.trim().replace(/\s+/g, ' ');
@@ -237,8 +235,8 @@ export function ChallengeWorkspace({ challenge }: ChallengeWorkspaceProps) {
 
     try {
       // Determine which validation endpoint to use
-      // Use hybrid validation for all Office Fundamentals challenges
-      const useHybridValidation = isOfficeChallenge;
+      // Code challenges use test_cases by default
+      const useHybridValidation = validationType === 'hybrid' || validationType === 'ai_only';
 
       const validationEndpoint = useHybridValidation
         ? '/api/ai/validate-hybrid'
@@ -341,9 +339,13 @@ export function ChallengeWorkspace({ challenge }: ChallengeWorkspaceProps) {
   };
 
   const handleNextChallenge = () => {
+    // Check if next challenge is available and accessible
     if (submissionResult?.nextChallenge) {
+      // Navigation will trigger server-side subscription check
+      // If locked, user will see paywall on the challenge page
       router.push(`/dashboard/challenges/${submissionResult.nextChallenge.slug}`);
     } else {
+      // No next challenge, go back to challenges list
       router.push('/dashboard/challenges');
     }
   };
@@ -372,10 +374,10 @@ export function ChallengeWorkspace({ challenge }: ChallengeWorkspaceProps) {
               responseFormat={responseFormat}
               value={code}
               onChange={setCode}
-              placeholder={challengeType === 'document'
-                ? 'Write your response here...'
-                : 'Write your solution here...'}
+              placeholder="Write your solution here..."
               className="h-full border border-gray-200 rounded-sm"
+              starterCode={starterCode}
+              onReset={() => setCode(starterCode)}
             />
           </div>
 

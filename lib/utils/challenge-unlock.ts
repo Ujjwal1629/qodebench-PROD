@@ -1,4 +1,5 @@
 import { ChallengeTier, TIERS } from '@/lib/constants/dashboard';
+import { FREE_CHALLENGES_PER_TIER } from '@/lib/constants/subscription';
 
 // Types
 export type ChallengeUnlockStatus = {
@@ -24,6 +25,8 @@ export type Challenge = {
   unlock_requirement_type: 'none' | 'previous' | 'tier_completion';
   unlock_requirement_count?: number;
   previous_challenge_id?: string | null;
+  is_free_tier_accessible?: boolean;
+  requiresSubscription?: boolean; // Added for position-based access control
 };
 
 export type UserProgress = {
@@ -32,13 +35,26 @@ export type UserProgress = {
 };
 
 /**
- * Check if a specific challenge is unlocked for the user
+ * Check if a specific challenge is unlocked for the user (progression-based only)
+ * Note: This does NOT check subscription access - use canAccessChallenge for that
  */
 export function isChallengeUnlocked(
   challenge: Challenge,
   allChallenges: Challenge[],
   userProgress: UserProgress[]
 ): ChallengeUnlockStatus {
+  // Note: Subscription checks are handled separately in canAccessChallenge()
+  // This function only handles progression-based unlocking
+
+  // Free-tier accessible challenges AND challenges within free limit bypass progressive unlock
+  // Tier-specific free limits: Advanced: 2, Others: 5
+  const freeLimit = FREE_CHALLENGES_PER_TIER[challenge.tier] || 5;
+  const isFreePosition = challenge.order_in_tier <= freeLimit;
+
+  if (challenge.is_free_tier_accessible && isFreePosition) {
+    return { isUnlocked: true };
+  }
+
   // No unlock requirement - always unlocked (first challenge in tier)
   if (challenge.unlock_requirement_type === 'none') {
     return { isUnlocked: true };

@@ -9,6 +9,7 @@ import { Progress } from '@/components/ui/progress';
 import { Lock, Unlock, ChevronDown, ChevronUp, CheckCircle2, Circle, PlayCircle } from 'lucide-react';
 import { TierProgressStats } from '@/app/actions/challenges';
 import { cn } from '@/lib/utils';
+import { FREE_CHALLENGES_PER_TIER } from '@/lib/constants/subscription';
 
 interface TierCardProps {
   tierStats: TierProgressStats;
@@ -19,16 +20,24 @@ interface TierCardProps {
     order_in_tier: number;
     isUnlocked: boolean;
     unlockReason?: string;
+    is_free_tier_accessible?: boolean;
     userProgress?: {
       status: 'not_started' | 'in_progress' | 'completed';
       attempts: number;
     } | null;
   }>;
   onUnlock?: () => void;
+  hasActiveSubscription?: boolean;
 }
 
-export function TierCard({ tierStats, challenges, onUnlock }: TierCardProps) {
-  const [isExpanded, setIsExpanded] = useState(tierStats.isUnlocked && tierStats.percentage < 100);
+export function TierCard({ tierStats, challenges, onUnlock, hasActiveSubscription = false }: TierCardProps) {
+  // Check if tier has any free-accessible challenges first (used for initial expand state)
+  const hasFreeAccessibleChallenges = challenges?.some((c) => c.is_free_tier_accessible) || false;
+
+  // Expand by default if tier is unlocked OR has free challenges
+  const [isExpanded, setIsExpanded] = useState(
+    (tierStats.isUnlocked && tierStats.percentage < 100) || hasFreeAccessibleChallenges
+  );
 
   const {
     tier,
@@ -53,7 +62,9 @@ export function TierCard({ tierStats, challenges, onUnlock }: TierCardProps) {
         'transition-all duration-300',
         isUnlocked
           ? 'border-2 hover:shadow-lg'
-          : 'border-dashed opacity-75 hover:opacity-90',
+          : hasFreeAccessibleChallenges
+          ? 'border-2 border-blue-200 hover:shadow-lg' // Tier has free challenges
+          : 'border-dashed opacity-75 hover:opacity-90', // Fully locked
         isCompleted && 'bg-gradient-to-br from-green-50 to-emerald-50 border-green-300'
       )}
     >
@@ -64,7 +75,11 @@ export function TierCard({ tierStats, challenges, onUnlock }: TierCardProps) {
             <div
               className={cn(
                 'text-4xl w-14 h-14 flex items-center justify-center rounded-xl',
-                isUnlocked ? 'bg-white shadow-sm' : 'bg-slate-100'
+                isUnlocked
+                  ? 'bg-white shadow-sm'
+                  : hasFreeAccessibleChallenges
+                  ? 'bg-white shadow-sm'
+                  : 'bg-slate-100'
               )}
             >
               {icon}
@@ -78,21 +93,35 @@ export function TierCard({ tierStats, challenges, onUnlock }: TierCardProps) {
                     Completed
                   </Badge>
                 )}
-                {!isUnlocked && (
+                {!isUnlocked && !hasFreeAccessibleChallenges && (
                   <Badge variant="outline" className="bg-slate-50 text-slate-600 border-slate-300">
                     <Lock className="h-3 w-3 mr-1" />
                     Locked
                   </Badge>
                 )}
+                {/* {!isUnlocked && hasFreeAccessibleChallenges && (
+                  <Badge variant="outline" className="bg-blue-50 text-blue-600 border-blue-200">
+                    Free Tier
+                  </Badge>
+                )} */}
               </div>
               <p className="text-sm text-slate-600">{description}</p>
             </div>
           </div>
 
           {/* Lock/Unlock Icon */}
-          <div className={cn('p-2 rounded-lg', isUnlocked ? 'bg-green-50' : 'bg-slate-100')}>
+          <div className={cn(
+            'p-2 rounded-lg',
+            isUnlocked
+              ? 'bg-green-50'
+              : hasFreeAccessibleChallenges
+              ? 'bg-blue-50'
+              : 'bg-slate-100'
+          )}>
             {isUnlocked ? (
               <Unlock className="h-5 w-5 text-green-600" />
+            ) : hasFreeAccessibleChallenges ? (
+              <Unlock className="h-5 w-5 text-blue-600" />
             ) : (
               <Lock className="h-5 w-5 text-slate-400" />
             )}
@@ -114,8 +143,8 @@ export function TierCard({ tierStats, challenges, onUnlock }: TierCardProps) {
           </div>
         )}
 
-        {/* Unlock Requirement */}
-        {!isUnlocked && unlockRequirement && (
+        {/* Unlock Requirement - Hide if tier has free-accessible challenges */}
+        {!isUnlocked && unlockRequirement && !hasFreeAccessibleChallenges && (
           <div className="rounded-lg bg-amber-50 border border-amber-200 p-3">
             <div className="flex items-start gap-2">
               <Lock className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
@@ -145,8 +174,8 @@ export function TierCard({ tierStats, challenges, onUnlock }: TierCardProps) {
           </div>
         )}
 
-        {/* Expand/Collapse for unlocked tiers with challenges */}
-        {isUnlocked && challenges && challenges.length > 0 && (
+        {/* Expand/Collapse for unlocked tiers OR tiers with free challenges */}
+        {(isUnlocked || hasFreeAccessibleChallenges) && challenges && challenges.length > 0 && (
           <>
             <Button
               variant="ghost"
@@ -171,6 +200,14 @@ export function TierCard({ tierStats, challenges, onUnlock }: TierCardProps) {
                   const isCompleted = challenge.userProgress?.status === 'completed';
                   const isInProgress = challenge.userProgress?.status === 'in_progress';
                   const isLocked = !challenge.isUnlocked;
+                  const isFreeAccessible = challenge.is_free_tier_accessible;
+
+                  // TIER-SPECIFIC POSITION-BASED PREMIUM CHECK
+                  // Each tier has different free limits (Advanced: 2, Others: 5)
+                  const freeLimit = FREE_CHALLENGES_PER_TIER[tier] || 5;
+                  const isPremiumPosition = challenge.order_in_tier > freeLimit;
+                  const requiresSubscription = isPremiumPosition && !isFreeAccessible;
+                  const isSubscriptionLocked = requiresSubscription && !hasActiveSubscription;
 
                   return (
                     <div
@@ -179,13 +216,16 @@ export function TierCard({ tierStats, challenges, onUnlock }: TierCardProps) {
                         'flex items-center gap-3 p-3 rounded-lg border transition-all',
                         isCompleted && 'bg-green-50 border-green-200',
                         isInProgress && 'bg-blue-50 border-blue-200',
-                        !isCompleted && !isInProgress && isLocked && 'bg-slate-50 border-slate-200 opacity-60',
-                        !isCompleted && !isInProgress && !isLocked && 'bg-white border-slate-200 hover:border-slate-300'
+                        isSubscriptionLocked && 'bg-amber-50 border-amber-200 hover:border-amber-300',
+                        !isCompleted && !isInProgress && isLocked && !isSubscriptionLocked && 'bg-slate-50 border-slate-200 opacity-60',
+                        !isCompleted && !isInProgress && !isLocked && !isSubscriptionLocked && 'bg-white border-slate-200 hover:border-slate-300'
                       )}
                     >
                       {/* Challenge Status Icon */}
                       <div className="flex-shrink-0">
-                        {isLocked ? (
+                        {isSubscriptionLocked ? (
+                          <Lock className="h-4 w-4 text-amber-600" />
+                        ) : isLocked ? (
                           <Lock className="h-4 w-4 text-slate-400" />
                         ) : isCompleted ? (
                           <CheckCircle2 className="h-4 w-4 text-green-600" />
@@ -198,16 +238,42 @@ export function TierCard({ tierStats, challenges, onUnlock }: TierCardProps) {
 
                       {/* Challenge Title */}
                       <div className="flex-1 min-w-0">
-                        <p className={cn('text-sm font-medium truncate', isLocked && 'text-slate-500')}>
-                          {index + 1}. {challenge.title}
-                        </p>
-                        {challenge.unlockReason && (
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <p className={cn('text-sm font-medium truncate', (isLocked || isSubscriptionLocked) && 'text-slate-500')}>
+                            {index + 1}. {challenge.title}
+                          </p>
+                          {isFreeAccessible && tier !== 'beginner' && challenge.order_in_tier <= freeLimit && (
+                            <Badge variant="outline" className="text-xs py-0 px-1.5 bg-green-50 text-green-700 border-green-200 flex-shrink-0">
+                              Free
+                            </Badge>
+                          )}
+                          {requiresSubscription && (
+                            <Badge variant="outline" className="text-xs py-0 px-1.5 bg-amber-50 text-amber-700 border-amber-200 flex-shrink-0">
+                              Premium
+                            </Badge>
+                          )}
+                        </div>
+                        {/* Show unlock requirement or subscription message */}
+                        {isSubscriptionLocked ? (
+                          <p className="text-xs text-amber-700 mt-0.5">Upgrade to unlock premium challenges</p>
+                        ) : challenge.unlockReason && !isFreeAccessible && (
                           <p className="text-xs text-slate-500 mt-0.5">{challenge.unlockReason}</p>
                         )}
                       </div>
 
                       {/* Action Button */}
-                      {!isLocked && (
+                      {isSubscriptionLocked ? (
+                        <Button
+                          asChild
+                          variant="outline"
+                          size="sm"
+                          className="flex-shrink-0 border-amber-600 text-amber-700 hover:bg-amber-600 hover:text-white"
+                        >
+                          <Link href={`/dashboard/challenges/${challenge.slug}`}>
+                            Upgrade
+                          </Link>
+                        </Button>
+                      ) : !isLocked && (
                         <Button
                           asChild
                           variant={isCompleted ? 'outline' : 'default'}

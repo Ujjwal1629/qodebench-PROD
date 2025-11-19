@@ -8,9 +8,20 @@ import {
   Minimize2,
   Copy,
   Check,
-  Code2
+  Code2,
+  RotateCcw
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { cn } from '@/lib/utils';
 
 interface CodeEditorProps {
@@ -18,6 +29,8 @@ interface CodeEditorProps {
   onChange: (value: string) => void;
   language: string;
   placeholder?: string;
+  starterCode?: string;
+  onReset?: () => void;
 }
 
 export function CodeEditor({
@@ -25,10 +38,13 @@ export function CodeEditor({
   onChange,
   language,
   placeholder,
+  starterCode,
+  onReset,
 }: CodeEditorProps) {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [copied, setCopied] = useState(false);
   const [lineCount, setLineCount] = useState(1);
+  const [showResetDialog, setShowResetDialog] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Update line count whenever value changes
@@ -84,6 +100,16 @@ export function CodeEditor({
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const handleResetConfirm = () => {
+    if (onReset) {
+      onReset();
+      setShowResetDialog(false);
+    }
+  };
+
+  // Check if code has been modified from starter
+  const isModified = starterCode && value !== starterCode;
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     // Handle Tab key
     if (e.key === 'Tab') {
@@ -123,6 +149,19 @@ export function CodeEditor({
 
         {/* Right - Editor Actions */}
         <div className="flex items-center gap-1">
+          {/* Reset Button - Only show if starter code exists and code is modified */}
+          {onReset && isModified && (
+            <Button
+              onClick={() => setShowResetDialog(true)}
+              variant="ghost"
+              size="sm"
+              className="h-7 px-2 text-amber-400 hover:text-amber-300 hover:bg-slate-700 transition-colors"
+              title="Reset to starter code"
+            >
+              <RotateCcw className="h-3.5 w-3.5 mr-1.5" />
+              <span className="text-xs">Reset</span>
+            </Button>
+          )}
           <Button
             onClick={handleCopy}
             variant="ghost"
@@ -291,6 +330,30 @@ export function CodeEditor({
           background: #264f78;
         }
       `}</style>
+
+      {/* Reset Confirmation Dialog */}
+      <AlertDialog open={showResetDialog} onOpenChange={setShowResetDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <RotateCcw className="h-5 w-5 text-amber-500" />
+              Reset to Starter Code?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              This will discard all your current changes and restore the original starter code. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleResetConfirm}
+              className="bg-amber-500 hover:bg-amber-600 text-white"
+            >
+              Reset Code
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

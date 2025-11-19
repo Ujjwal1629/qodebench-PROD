@@ -30,11 +30,13 @@ export const getChallengesList = cache(
     try {
       const supabase = await createClient();
 
-      // Build query
+      // Build query (excluding Code Friday challenges)
       let query = supabase
         .from('challenges')
         .select('*')
         .eq('is_active', true)
+        .not('title', 'ilike', 'Code Friday:%')
+        .not('slug', 'ilike', 'code-friday-%')
         .order('created_at', { ascending: false });
 
       // Apply filters
@@ -613,6 +615,7 @@ import {
   type UserProgress,
 } from '@/lib/utils/challenge-unlock';
 import {
+  canAccessChallenge,
   canAccessChallengeTier,
   canMakeAttempt,
   incrementDailyUsage,
@@ -648,11 +651,13 @@ export const getTierProgress = cache(async (): Promise<TierProgressStats[]> => {
       data: { user },
     } = await supabase.auth.getUser();
 
-    // Get all active challenges
+    // Get all active challenges (excluding Code Friday challenges)
     const { data: challenges } = await supabase
       .from('challenges')
-      .select('id, slug, title, tier, order_in_tier, unlock_requirement_type, unlock_requirement_count, previous_challenge_id')
+      .select('id, slug, title, tier, order_in_tier, unlock_requirement_type, unlock_requirement_count, previous_challenge_id, is_free_tier_accessible')
       .eq('is_active', true)
+      .not('title', 'ilike', 'Code Friday:%')
+      .not('slug', 'ilike', 'code-friday-%')
       .order('tier')
       .order('order_in_tier');
 
@@ -763,12 +768,14 @@ export const getChallengesByTier = cache(
         data: { user },
       } = await supabase.auth.getUser();
 
-      // Get all challenges in this tier
+      // Get all challenges in this tier (excluding Code Friday challenges)
       const { data: challenges } = await supabase
         .from('challenges')
         .select('*')
         .eq('tier', tier)
         .eq('is_active', true)
+        .not('title', 'ilike', 'Code Friday:%')
+        .not('slug', 'ilike', 'code-friday-%')
         .order('order_in_tier');
 
       if (!challenges || challenges.length === 0) {
@@ -790,11 +797,13 @@ export const getChallengesByTier = cache(
         };
       }
 
-      // Get all challenges and user progress for unlock checks
+      // Get all challenges and user progress for unlock checks (excluding Code Friday challenges)
       const { data: allChallenges } = await supabase
         .from('challenges')
-        .select('id, slug, title, tier, order_in_tier, unlock_requirement_type, unlock_requirement_count, previous_challenge_id')
-        .eq('is_active', true);
+        .select('id, slug, title, tier, order_in_tier, unlock_requirement_type, unlock_requirement_count, previous_challenge_id, is_free_tier_accessible')
+        .eq('is_active', true)
+        .not('title', 'ilike', 'Code Friday:%')
+        .not('slug', 'ilike', 'code-friday-%');
 
       let userProgress: UserProgress[] = [];
       if (user) {
@@ -889,7 +898,7 @@ export const checkChallengeUnlocked = cache(
       // Get the challenge
       const { data: challenge } = await supabase
         .from('challenges')
-        .select('id, slug, title, tier, order_in_tier, unlock_requirement_type, unlock_requirement_count, previous_challenge_id')
+        .select('id, slug, title, tier, order_in_tier, unlock_requirement_type, unlock_requirement_count, previous_challenge_id, is_free_tier_accessible')
         .eq('id', challengeId)
         .eq('is_active', true)
         .single();
@@ -898,19 +907,22 @@ export const checkChallengeUnlocked = cache(
         return { isUnlocked: false, reason: 'Challenge not found' };
       }
 
-      // SECURITY CHECK: Verify user has access to this challenge tier
-      if (challenge.tier && challenge.tier !== 'beginner') {
-        const access = await canAccessChallengeTier(challenge.tier as ChallengeTier);
-        if (!access.canAccess) {
-          return { isUnlocked: false, reason: access.reason };
-        }
+      // SUBSCRIPTION CHECK: Use new granular access check
+      const accessCheck = await canAccessChallenge(challengeId, user.id);
+      if (!accessCheck.canAccess) {
+        return {
+          isUnlocked: false,
+          reason: accessCheck.reason,
+        };
       }
 
-      // Get all challenges
+      // Get all challenges (excluding Code Friday challenges)
       const { data: allChallenges } = await supabase
         .from('challenges')
-        .select('id, slug, title, tier, order_in_tier, unlock_requirement_type, unlock_requirement_count, previous_challenge_id')
-        .eq('is_active', true);
+        .select('id, slug, title, tier, order_in_tier, unlock_requirement_type, unlock_requirement_count, previous_challenge_id, is_free_tier_accessible')
+        .eq('is_active', true)
+        .not('title', 'ilike', 'Code Friday:%')
+        .not('slug', 'ilike', 'code-friday-%');
 
       // Get user progress
       const { data: progressData } = await supabase

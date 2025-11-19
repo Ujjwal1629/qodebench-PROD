@@ -95,6 +95,141 @@ export async function POST(req: NextRequest) {
     const testCases = challenge.test_cases || [];
     const responseFormat = challenge.response_format || 'javascript';
 
+    // Special handling for merge conflict interactive challenges
+    if (responseFormat === 'merge_conflict_interactive') {
+      try {
+        const parsed = JSON.parse(code);
+        const scenarios = testCases.scenarios || [];
+        const userResponses = parsed.scenarios || [];
+
+        if (!scenarios || scenarios.length === 0) {
+          return NextResponse.json(
+            { error: 'No merge conflict scenarios found in challenge' },
+            { status: 400 }
+          );
+        }
+
+        if (userResponses.length !== scenarios.length) {
+          return NextResponse.json(
+            { error: 'Incomplete scenario responses' },
+            { status: 400 }
+          );
+        }
+
+        // Phase 1: Structure validation (50%) - Check correct answers
+        let correctCount = 0;
+        const scenarioResults: any[] = [];
+
+        for (let i = 0; i < scenarios.length; i++) {
+          const scenario = scenarios[i];
+          const userResponse = userResponses.find((r: any) => r.id === scenario.id);
+
+          if (!userResponse) {
+            scenarioResults.push({
+              scenarioId: scenario.id,
+              isCorrect: false,
+              selectedAnswer: 'none',
+              correctAnswer: scenario.correctAnswer,
+              score: 0,
+              feedback: 'No response provided for this scenario',
+              explanation: scenario.explanation
+            });
+            continue;
+          }
+
+          const isCorrect = userResponse.selected === scenario.correctAnswer;
+          if (isCorrect) correctCount++;
+
+          scenarioResults.push({
+            scenarioId: scenario.id,
+            isCorrect,
+            selectedAnswer: userResponse.selected,
+            correctAnswer: scenario.correctAnswer,
+            score: isCorrect ? 12.5 : 0,
+            feedback: isCorrect
+              ? `✅ Correct! ${scenario.correctAnswer.replace(/_/g, ' ')}`
+              : `❌ Incorrect. You selected "${userResponse.selected.replace(/_/g, ' ')}", but the best choice was "${scenario.correctAnswer.replace(/_/g, ' ')}"`,
+            explanation: scenario.explanation
+          });
+        }
+
+        const structureScore = (correctCount / scenarios.length) * 50;
+
+        // Phase 2: AI quality assessment (50%) - Evaluate reasoning (if provided)
+        const hasReasoning = userResponses.some((r: any) => r.reasoning);
+        let aiScore = 0;
+        let aiReasoning = '';
+
+        if (hasReasoning && openai.apiKey) {
+          const reasoningText = userResponses
+            .filter((r: any) => r.reasoning)
+            .map((r: any, i: number) => `Scenario ${r.id}: ${r.reasoning}`)
+            .join('\n\n');
+
+          const aiResponse = await openai.chat.completions.create({
+            model: 'gpt-4o-mini',
+            messages: [
+              {
+                role: 'system',
+                content: 'You are evaluating a student\'s understanding of Git merge conflict resolution. Rate their reasoning on a scale of 0-50 based on clarity, understanding of merge strategies, and decision-making logic.'
+              },
+              {
+                role: 'user',
+                content: `Evaluate this student's reasoning for their merge conflict resolutions:\n\n${reasoningText}\n\nProvide a score from 0-50 and brief feedback.`
+              }
+            ],
+            temperature: 0.3
+          });
+
+          const aiContent = aiResponse.choices[0].message.content || '';
+          const scoreMatch = aiContent.match(/\b(\d+(?:\.\d+)?)\b/);
+          aiScore = scoreMatch ? Math.min(50, parseFloat(scoreMatch[1])) : 25;
+          aiReasoning = aiContent;
+        } else {
+          // No AI reasoning provided, give base score
+          aiScore = 25;
+        }
+
+        const totalScore = Math.round(structureScore + aiScore);
+        const passed = totalScore >= 70;
+
+        const result = {
+          passed,
+          score: totalScore,
+          structureScore,
+          qualityScore: aiScore,
+          scenarioResults,
+          overallFeedback: passed
+            ? `Excellent work! You got ${correctCount} out of ${scenarios.length} scenarios correct.`
+            : `Good effort! You got ${correctCount} out of ${scenarios.length} scenarios correct. Review the explanations to improve.`,
+          strengths: scenarioResults
+            .filter((r: any) => r.isCorrect)
+            .map((r: any) => `Scenario ${r.scenarioId}: ${r.feedback}`),
+          improvements: scenarioResults
+            .filter((r: any) => !r.isCorrect)
+            .map((r: any) => ({
+              issue: `Scenario ${r.scenarioId}`,
+              yourCode: r.selectedAnswer,
+              betterApproach: r.correctAnswer,
+              explanation: r.explanation
+            })),
+          pointsEarned: passed ? challenge.points : 0,
+          codeQuality: totalScore >= 90 ? 'Excellent' : totalScore >= 70 ? 'Good' : 'Needs Improvement'
+        };
+
+        // Cache the result
+        validationCache.set(challengeId, code, result);
+
+        return NextResponse.json(result);
+      } catch (error: any) {
+        console.error('Error validating merge conflict challenge:', error);
+        return NextResponse.json(
+          { error: 'Failed to validate merge conflict responses' },
+          { status: 500 }
+        );
+      }
+    }
+
     let structureScore = 0;
     let structureFeedback: string[] = [];
     let aiScore = 0;
