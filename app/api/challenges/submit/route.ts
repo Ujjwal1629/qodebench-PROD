@@ -30,10 +30,38 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { passed, score, codeQuality, improvements, suggestions, strengths } =
+    const { passed, score, codeQuality, improvements, suggestions, strengths, testResults } =
       validationResult;
 
-    const pointsEarned = validationResult.pointsEarned || 0;
+    // Extract test case counts (for test case validation)
+    const passedTests = testResults?.passed || (passed ? 1 : 0);
+    const totalTests = testResults?.total || 1;
+
+    // Check if user already has a passing submission (prevent point farming)
+    // This implements the LeetCode/HackerRank pattern: points awarded only on FIRST pass
+    let actualPointsEarned = validationResult.pointsEarned || 0;
+    let isFirstPass = true;
+
+    if (passed) {
+      const { data: previousPassingSubmission } = await supabase
+        .from('submissions')
+        .select('id, submitted_at')
+        .eq('user_id', user.id)
+        .eq('challenge_id', challengeId)
+        .eq('status', 'passed')
+        .order('submitted_at', { ascending: true })
+        .limit(1)
+        .single();
+
+      if (previousPassingSubmission) {
+        // User already passed this challenge before - no points this time
+        actualPointsEarned = 0;
+        isFirstPass = false;
+        console.log(`⚠️ User already passed challenge ${challengeId} - not awarding points again`);
+      } else {
+        console.log(`✅ First pass for challenge ${challengeId} - awarding ${actualPointsEarned} points`);
+      }
+    }
 
     // Parallelize independent database operations
     console.log('Executing parallel database operations...');
@@ -62,11 +90,12 @@ export async function POST(req: NextRequest) {
             improvements,
             ...(suggestions && { suggestions }),
             ...(strengths && { strengths }),
+            ...(testResults && { testResults }),
           }),
           score,
-          passed_tests: passed ? 1 : 0,
-          total_tests: 1,
-          points_earned: pointsEarned,
+          passed_tests: passedTests,
+          total_tests: totalTests,
+          points_earned: actualPointsEarned, // Will be 0 if not first pass
         })
         .select()
         .single()
@@ -172,7 +201,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       success: true,
       submission,
-      pointsEarned,
+      pointsEarned: actualPointsEarned, // Returns 0 if not first pass
+      isFirstPass, // Let frontend know if this was first pass
       tierUnlocked,
       nextChallenge,
     });

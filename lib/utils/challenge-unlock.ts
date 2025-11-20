@@ -189,8 +189,9 @@ export function getCompletionStatsByTier(
   const stats: Record<ChallengeTier, { completed: number; total: number }> = {
     beginner: { completed: 0, total: 0 },
     intermediate: { completed: 0, total: 0 },
-    'office-workflow': { completed: 0, total: 0 },
+    'software-engineering-essentials': { completed: 0, total: 0 },
     advanced: { completed: 0, total: 0 },
+    'product-planning': { completed: 0, total: 0 },
   };
 
   allChallenges.forEach((challenge) => {

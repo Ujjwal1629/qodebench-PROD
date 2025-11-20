@@ -699,7 +699,7 @@ export const getTierProgress = cache(async (): Promise<TierProgressStats[]> => {
     // Build tier progress array
     const tierProgress: TierProgressStats[] = TIER_ORDER.map((tierId) => {
       const tierInfo = TIERS[tierId];
-      const stats = statsByTier[tierId];
+      const stats = statsByTier[tierId] || { completed: 0, total: 0 }; // Defensive: handle missing tier stats
       const percentage = stats.total > 0 ? Math.round((stats.completed / stats.total) * 100) : 0;
 
       // Check if tier is unlocked
@@ -711,7 +711,7 @@ export const getTierProgress = cache(async (): Promise<TierProgressStats[]> => {
       ) {
         const previousTier = tierInfo.unlockRequirement.previousTier;
         const requiredCount = tierInfo.unlockRequirement.requiredCount;
-        const previousCompleted = statsByTier[previousTier].completed;
+        const previousCompleted = statsByTier[previousTier]?.completed || 0; // Defensive: handle missing previous tier
         isUnlocked = previousCompleted >= requiredCount;
       }
 

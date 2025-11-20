@@ -11,6 +11,7 @@ interface ChallengeHeaderProps {
     difficulty: string;
     points: number;
     estimated_time?: number;
+    tier?: string;
   };
 }
 
@@ -30,6 +31,24 @@ export function ChallengeHeader({ challenge }: ChallengeHeaderProps) {
     }
   };
 
+  const getBackUrl = () => {
+    const tier = challenge.tier?.toLowerCase();
+    switch (tier) {
+      case 'beginner':
+        return '/dashboard/challenges/software-engineering-essentials';
+      case 'intermediate':
+        return '/dashboard/challenges/practical';
+      case 'advanced':
+        return '/dashboard/challenges/advanced';
+      case 'product_planning':
+        return '/dashboard/challenges/product-planning';
+      case 'office_fundamentals':
+        return '/dashboard/challenges';
+      default:
+        return '/dashboard/challenges';
+    }
+  };
+
   return (
     <header className="border-b border-gray-200 bg-white px-6 py-4">
       <div className="flex items-center justify-between">
@@ -37,7 +56,7 @@ export function ChallengeHeader({ challenge }: ChallengeHeaderProps) {
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => router.push('/dashboard/challenges')}
+          onClick={() => router.push(getBackUrl())}
           className="text-gray-600 hover:text-gray-900"
         >
           <ArrowLeft className="h-4 w-4 mr-2" />

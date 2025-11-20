@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
 import { createClient } from '@/lib/supabase/server';
 import { validationCache } from '@/lib/utils/validation-cache';
+import { runTestCases, type TestCase } from '@/lib/utils/test-runner';
 
 export async function POST(req: NextRequest) {
   try {
@@ -49,6 +50,128 @@ export async function POST(req: NextRequest) {
         { error: 'Challenge not found' },
         { status: 404 }
       );
+    }
+
+    // ============================================================================
+    // TEST CASE validation for code challenges
+    // ============================================================================
+    if (challenge.validation_type === 'test_cases' && challenge.test_cases) {
+      console.log('🧪 Running test case validation for:', challenge.slug);
+
+      // Parse test_cases if it's a JSON string (fix for JSONB fields)
+      let testCases = challenge.test_cases;
+      if (typeof challenge.test_cases === 'string') {
+        try {
+          testCases = JSON.parse(challenge.test_cases);
+        } catch (e) {
+          console.error('Failed to parse test_cases:', e);
+          return NextResponse.json(
+            { error: 'Invalid test case format' },
+            { status: 500 }
+          );
+        }
+      }
+
+      // Extract tests array if wrapped in {tests: [...]} format
+      let testsArray: TestCase[];
+      if (testCases && typeof testCases === 'object' && 'tests' in testCases) {
+        testsArray = testCases.tests as TestCase[];
+      } else if (Array.isArray(testCases)) {
+        testsArray = testCases;
+      } else {
+        console.error('Invalid test_cases structure:', testCases);
+        return NextResponse.json(
+          { error: 'Invalid test case structure. Expected array or {tests: [...]}' },
+          { status: 500 }
+        );
+      }
+
+      // Run test cases
+      const testResults = runTestCases(
+        code,
+        testsArray,
+        challenge.points
+      );
+
+      console.log(`Test results: ${testResults.passedTests}/${testResults.totalTests} passed (${testResults.pointsEarned}/${challenge.points} points)`);
+
+      // Get code quality feedback (ONLY if all tests passed)
+      let qualityCheck = null;
+      if (testResults.passed) {
+        try {
+          const qualityPrompt = `You are a SENIOR DEVELOPER reviewing code quality ONLY.
+
+**CRITICAL RULES:**
+- DO NOT check correctness (test cases already validated that)
+- DO NOT check scoring
+- ONLY analyze code quality and maintainability
+- Is this code production-ready?
+
+Code to review:
+\`\`\`${language}
+${code}
+\`\`\`
+
+Analyze ONLY:
+1. Code readability (clear naming, proper structure)
+2. Best practices (error handling, edge cases)
+3. Maintainability (comments if needed, simplicity)
+4. Performance (any obvious inefficiencies)
+
+Return JSON:
+{
+  "is_quality_good": boolean,
+  "reasons": string[] // Each reason should be 1 sentence, max 5 reasons
+}`;
+
+          const completion = await openai.chat.completions.create({
+            model: 'gpt-4o-mini',
+            messages: [
+              {
+                role: 'system',
+                content: 'You are a senior developer reviewing code quality ONLY. Do not check correctness.',
+              },
+              {
+                role: 'user',
+                content: qualityPrompt,
+              },
+            ],
+            temperature: 0.2,
+            max_tokens: 300,
+            response_format: { type: 'json_object' },
+          });
+
+          qualityCheck = JSON.parse(completion.choices[0].message.content || '{}');
+        } catch (error) {
+          console.error('Error getting quality check:', error);
+          // Continue without quality check if it fails
+        }
+      }
+
+      // Return test case results + optional quality check
+      const response = {
+        passed: testResults.passed,
+        score: testResults.score,
+        pointsEarned: testResults.pointsEarned,
+        maxPoints: challenge.points,
+        difficulty: challenge.difficulty,
+
+        // Test case results
+        testResults: {
+          total: testResults.totalTests,
+          passed: testResults.passedTests,
+          failed: testResults.failedTests,
+          details: testResults.results,
+        },
+
+        // Code quality check (only if passed)
+        ...(qualityCheck && { qualityCheck }),
+      };
+
+      // Cache result
+      validationCache.set(challengeId, code, response);
+
+      return NextResponse.json(response);
     }
 
     // Get only the last submission for comparison (reduced from 3 to 1 for performance)

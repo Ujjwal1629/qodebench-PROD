@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet';
@@ -44,15 +44,31 @@ function CodeChallengeLayout({ challenge }: ChallengeWorkspaceProps) {
   const validationType = challenge.validation_type || 'test_cases';
 
   // Determine starter code based on response format
-  const getStarterCode = () => {
-    if (challenge.starter_code?.[responseFormat]) {
-      return challenge.starter_code[responseFormat];
+  // useMemo to prevent hydration mismatches and unnecessary re-parsing
+  const getStarterCode = useMemo(() => {
+    // Parse starter_code if it's a JSON string (fix for JSONB fields)
+    let parsedStarterCode = challenge.starter_code;
+
+    if (typeof challenge.starter_code === 'string') {
+      try {
+        parsedStarterCode = JSON.parse(challenge.starter_code);
+        console.log('✅ Parsed starter_code JSON string');
+      } catch (e) {
+        console.error('❌ Failed to parse starter_code:', e);
+      }
+    }
+
+    if (parsedStarterCode?.[responseFormat]) {
+      console.log('✅ Using database starter code for format:', responseFormat);
+      return parsedStarterCode[responseFormat];
     }
 
     // Check for markdown starter in old format
-    if (responseFormat === 'markdown' && challenge.starter_code?.markdown) {
-      return challenge.starter_code.markdown;
+    if (responseFormat === 'markdown' && parsedStarterCode?.markdown) {
+      return parsedStarterCode.markdown;
     }
+
+    console.log('⚠️ Using fallback starter code (no database value for format:', responseFormat, ')');
 
     // Default starter code based on response format
     switch (responseFormat) {
@@ -74,9 +90,9 @@ function CodeChallengeLayout({ challenge }: ChallengeWorkspaceProps) {
       default:
         return '// Write your solution here\n\nfunction solution() {\n  // Your code here\n}';
     }
-  };
+  }, [challenge.starter_code, responseFormat]); // Dependencies for useMemo
 
-  const starterCode = getStarterCode();
+  const starterCode = getStarterCode;
 
   // Load saved code from localStorage or use starter code
   const [code, setCode] = useState(() => {
@@ -171,35 +187,40 @@ function CodeChallengeLayout({ challenge }: ChallengeWorkspaceProps) {
       return true;
     });
 
-    // Check minimum length (STRICT)
-    const minLength = isDocFormat ? 200 : 50;
-    if (code.trim().length < minLength) {
-      toast.error('Your response is too short!', {
-        description: isDocFormat
-          ? `Please write at least ${minLength} characters. Your ${challengeType === 'document' ? 'response' : 'solution'} needs more detail.`
-          : `Please write at least ${minLength} characters of meaningful code.`
-      });
-      return;
-    }
+    // REMOVED: Strict line count validation
+    // For test case validation, the test cases themselves validate correctness
+    // For AI validation, we rely on AI to judge code quality
+    // These strict checks were blocking valid short solutions
 
-    // Check minimum line count (STRICT)
-    const minLines = isDocFormat ? 3 : 5;
-    if (meaningfulLines.length < minLines) {
-      toast.error(`Not enough content!`, {
-        description: isCodeFormat
-          ? `Your code has only ${meaningfulLines.length} meaningful line${meaningfulLines.length !== 1 ? 's' : ''}. Please write at least ${minLines} lines of actual code (excluding comments).`
-          : `Your response needs at least ${minLines} non-empty lines. Currently: ${meaningfulLines.length} line${meaningfulLines.length !== 1 ? 's' : ''}.`
-      });
-      return;
-    }
+    // // Check minimum length (STRICT) - DISABLED for test case validation
+    // const minLength = isDocFormat ? 200 : 50;
+    // if (validationType !== 'test_cases' && code.trim().length < minLength) {
+    //   toast.error('Your response is too short!', {
+    //     description: isDocFormat
+    //       ? `Please write at least ${minLength} characters. Your ${challengeType === 'document' ? 'response' : 'solution'} needs more detail.`
+    //       : `Please write at least ${minLength} characters of meaningful code.`
+    //   });
+    //   return;
+    // }
 
-    // Check for single-line code submissions (common for lazy attempts)
-    if (isCodeFormat && meaningfulLines.length === 1) {
-      toast.error('Single-line solution detected!', {
-        description: 'Real solutions require multiple lines. Please write a complete implementation.'
-      });
-      return;
-    }
+    // // Check minimum line count (STRICT) - DISABLED for test case validation
+    // const minLines = isDocFormat ? 3 : 5;
+    // if (validationType !== 'test_cases' && meaningfulLines.length < minLines) {
+    //   toast.error(`Not enough content!`, {
+    //     description: isCodeFormat
+    //       ? `Your code has only ${meaningfulLines.length} meaningful line${meaningfulLines.length !== 1 ? 's' : ''}. Please write at least ${minLines} lines of actual code (excluding comments).`
+    //       : `Your response needs at least ${minLines} non-empty lines. Currently: ${meaningfulLines.length} line${meaningfulLines.length !== 1 ? 's' : ''}.`
+    //   });
+    //   return;
+    // }
+
+    // // Check for single-line code submissions - DISABLED for test case validation
+    // if (validationType !== 'test_cases' && isCodeFormat && meaningfulLines.length === 1) {
+    //   toast.error('Single-line solution detected!', {
+    //     description: 'Real solutions require multiple lines. Please write a complete implementation.'
+    //   });
+    //   return;
+    // }
 
     // Check for placeholder text or gibberish
     const lowerCode = code.toLowerCase();
@@ -383,8 +404,8 @@ function CodeChallengeLayout({ challenge }: ChallengeWorkspaceProps) {
 
           {/* Action Bar - Fixed at bottom with proper z-index */}
           <div className="sticky bottom-0 border-t border-gray-200 px-6 py-4 flex items-center justify-between bg-white shadow-lg z-30">
-            <div className="flex items-center gap-3">
-              {/* Prominent Test & Deploy Button */}
+            <div className="flex items-center gap-3 flex-1">
+              {/* Test & Deploy Button */}
               <Button
                 onClick={handleValidate}
                 disabled={isValidating}
@@ -406,14 +427,7 @@ function CodeChallengeLayout({ challenge }: ChallengeWorkspaceProps) {
                 )}
               </Button>
 
-              {/* Auto-save indicator (subtle) */}
-              <div className="flex items-center gap-1.5 text-xs text-gray-500">
-                <div className={`h-1.5 w-1.5 rounded-full ${isSaving ? 'bg-orange-400' : 'bg-green-500'}`}></div>
-                <span>{isSaving ? 'Saving...' : 'Saved'}</span>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3">
+              {/* Submit Button - Appears after validation passes */}
               {validationResult?.passed && !hasSubmitted && (
                 <Button
                   onClick={handleSubmit}
@@ -436,6 +450,8 @@ function CodeChallengeLayout({ challenge }: ChallengeWorkspaceProps) {
                   )}
                 </Button>
               )}
+
+              {/* Submitted Status */}
               {hasSubmitted && (
                 <Button
                   variant="outline"
@@ -449,6 +465,12 @@ function CodeChallengeLayout({ challenge }: ChallengeWorkspaceProps) {
                   Submitted
                 </Button>
               )}
+
+              {/* Auto-save indicator (at the end) */}
+              <div className="flex items-center gap-1.5 text-xs text-gray-500 ml-auto">
+                <div className={`h-1.5 w-1.5 rounded-full ${isSaving ? 'bg-orange-400' : 'bg-green-500'}`}></div>
+                <span>{isSaving ? 'Saving...' : 'Saved'}</span>
+              </div>
             </div>
           </div>
         </main>
@@ -478,6 +500,8 @@ function CodeChallengeLayout({ challenge }: ChallengeWorkspaceProps) {
         show={showCelebration && validationResult?.passed}
         score={validationResult?.score || 0}
         pointsEarned={submissionResult?.pointsEarned || challenge.points}
+        maxPoints={challenge.points}
+        isFirstPass={submissionResult?.isFirstPass}
         onNext={handleNextChallenge}
         tierUnlocked={submissionResult?.tierUnlocked}
         nextChallengeTitle={submissionResult?.nextChallenge?.title}

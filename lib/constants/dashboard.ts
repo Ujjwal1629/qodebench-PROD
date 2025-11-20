@@ -208,7 +208,7 @@ export const CATEGORY_COLORS = {
 // TIER-BASED CHALLENGE SYSTEM
 // ============================================================================
 
-export type ChallengeTier = 'beginner' | 'intermediate' | 'office-workflow' | 'advanced';
+export type ChallengeTier = 'beginner' | 'intermediate' | 'software-engineering-essentials' | 'advanced' | 'product-planning';
 
 export type TierInfo = {
   id: ChallengeTier;
@@ -236,7 +236,7 @@ export const TIERS: Record<ChallengeTier, TierInfo> = {
     color: 'text-green-600',
     bgColor: 'bg-green-50',
     borderColor: 'border-green-200',
-    totalChallenges: 10,
+    totalChallenges: 30,
     unlockRequirement: {
       type: 'none',
       description: 'Unlocked by default',
@@ -252,26 +252,22 @@ export const TIERS: Record<ChallengeTier, TierInfo> = {
     borderColor: 'border-blue-200',
     totalChallenges: 10,
     unlockRequirement: {
-      type: 'tier_completion',
-      previousTier: 'beginner',
-      requiredCount: 5,
-      description: 'Complete 5 Beginner challenges',
+      type: 'none',
+      description: 'Unlocked by default',
     },
   },
-  'office-workflow': {
-    id: 'office-workflow',
-    name: 'Office Workflow',
+  'software-engineering-essentials': {
+    id: 'software-engineering-essentials',
+    name: 'Software Engineering Essentials',
     icon: '📋',
-    description: 'Full workflow tasks - Master professional practices',
+    description: 'Professional workflow practices and office fundamentals',
     color: 'text-orange-600',
     bgColor: 'bg-orange-50',
     borderColor: 'border-orange-200',
     totalChallenges: 10,
     unlockRequirement: {
-      type: 'tier_completion',
-      previousTier: 'intermediate',
-      requiredCount: 8,
-      description: 'Complete 8 Intermediate challenges',
+      type: 'none',
+      description: 'Unlocked by default',
     },
   },
   advanced: {
@@ -284,10 +280,22 @@ export const TIERS: Record<ChallengeTier, TierInfo> = {
     borderColor: 'border-purple-200',
     totalChallenges: 5,
     unlockRequirement: {
-      type: 'tier_completion',
-      previousTier: 'office-workflow',
-      requiredCount: 3,
-      description: 'Complete 3 Office Workflow challenges',
+      type: 'none',
+      description: 'Unlocked by default',
+    },
+  },
+  'product-planning': {
+    id: 'product-planning',
+    name: 'Product & Feature Planning',
+    icon: '🎯',
+    description: 'Product management, sprint planning, and WBS creation',
+    color: 'text-indigo-600',
+    bgColor: 'bg-indigo-50',
+    borderColor: 'border-indigo-200',
+    totalChallenges: 0,
+    unlockRequirement: {
+      type: 'none',
+      description: 'Coming soon',
     },
   },
 };
@@ -296,8 +304,9 @@ export const TIERS: Record<ChallengeTier, TierInfo> = {
 export const TIER_ORDER: ChallengeTier[] = [
   'beginner',
   'intermediate',
-  'office-workflow',
+  'software-engineering-essentials',
   'advanced',
+  'product-planning',
 ];
 
 // Get tier info by id

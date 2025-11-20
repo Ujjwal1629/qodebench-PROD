@@ -143,8 +143,8 @@ export function TierCard({ tierStats, challenges, onUnlock, hasActiveSubscriptio
           </div>
         )}
 
-        {/* Unlock Requirement - Hide if tier has free-accessible challenges */}
-        {!isUnlocked && unlockRequirement && !hasFreeAccessibleChallenges && (
+        {/* Unlock Requirement - REMOVED: All tiers should be accessible without unlock requirements */}
+        {/* {!isUnlocked && unlockRequirement && !hasFreeAccessibleChallenges && (
           <div className="rounded-lg bg-amber-50 border border-amber-200 p-3">
             <div className="flex items-start gap-2">
               <Lock className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
@@ -154,7 +154,7 @@ export function TierCard({ tierStats, challenges, onUnlock, hasActiveSubscriptio
               </div>
             </div>
           </div>
-        )}
+        )} */}
 
         {/* Next Challenge (for unlocked tiers) */}
         {isUnlocked && nextChallenge && !isCompleted && (

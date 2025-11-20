@@ -9,6 +9,8 @@ interface BugResolvedCelebrationProps {
   show: boolean;
   score: number;
   pointsEarned: number;
+  maxPoints?: number;
+  isFirstPass?: boolean;
   onNext?: () => void;
   tierUnlocked?: any;
   nextChallengeTitle?: string;
@@ -18,6 +20,8 @@ export function BugResolvedCelebration({
   show,
   score,
   pointsEarned,
+  maxPoints = 50,
+  isFirstPass = true,
   onNext,
   tierUnlocked,
   nextChallengeTitle,
@@ -80,24 +84,24 @@ export function BugResolvedCelebration({
       setAnimatedScore(0);
       setAnimatedPoints(0);
 
-      // Score animation
+      // Score animation (now uses pointsEarned for both, just delayed)
       const scoreDuration = 1500;
       const scoreSteps = 50;
-      const scoreIncrement = score / scoreSteps;
+      const scoreIncrement = pointsEarned / scoreSteps;
       const scoreStepDuration = scoreDuration / scoreSteps;
 
       let currentScoreStep = 0;
       const scoreTimer = setInterval(() => {
         currentScoreStep++;
         if (currentScoreStep >= scoreSteps) {
-          setAnimatedScore(score);
+          setAnimatedScore(pointsEarned);
           clearInterval(scoreTimer);
         } else {
           setAnimatedScore(Math.floor(scoreIncrement * currentScoreStep));
         }
       }, scoreStepDuration);
 
-      // Points animation (delayed)
+      // Points animation (same value, just for the second box)
       setTimeout(() => {
         const pointsDuration = 1000;
         const pointsSteps = 30;
@@ -120,7 +124,7 @@ export function BugResolvedCelebration({
         clearInterval(scoreTimer);
       };
     }
-  }, [show, score, pointsEarned]);
+  }, [show, pointsEarned]);
 
   // Auto-dismiss countdown
   useEffect(() => {
@@ -232,7 +236,7 @@ export function BugResolvedCelebration({
                   className="bg-gradient-to-br from-blue-50 to-sky-50 rounded-xl p-6 border-2 border-blue-200 text-center"
                 >
                   <div className="text-sm font-semibold text-blue-800 mb-2">Final Score</div>
-                  <div className="text-4xl font-bold text-blue-900">{animatedScore}/100</div>
+                  <div className="text-4xl font-bold text-blue-900">{animatedScore}/{maxPoints}</div>
                 </motion.div>
 
                 <motion.div
@@ -245,6 +249,23 @@ export function BugResolvedCelebration({
                   <div className="text-4xl font-bold text-amber-900">+{animatedPoints}</div>
                 </motion.div>
               </div>
+
+              {/* Already Passed Notice */}
+              {!isFirstPass && pointsEarned === 0 && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.8 }}
+                  className="bg-gradient-to-br from-blue-50 to-sky-50 rounded-xl p-4 border-2 border-blue-200"
+                >
+                  <div className="flex items-center justify-center gap-2 text-blue-800">
+                    <Trophy className="h-5 w-5" />
+                    <span className="text-sm font-semibold">
+                      You've already passed this challenge! Points awarded on first pass only.
+                    </span>
+                  </div>
+                </motion.div>
+              )}
 
               {/* Tier Unlocked */}
               {tierUnlocked && (

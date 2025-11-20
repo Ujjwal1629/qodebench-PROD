@@ -40,6 +40,24 @@ export function OfficeChallengeLayout({ challenge }: OfficeChallengeLayoutProps)
     ? challenge.test_cases.scenarios
     : [];
 
+  const getBackUrl = () => {
+    const tier = challenge.tier?.toLowerCase();
+    switch (tier) {
+      case 'beginner':
+        return '/dashboard/challenges/software-engineering-essentials';
+      case 'intermediate':
+        return '/dashboard/challenges/practical';
+      case 'advanced':
+        return '/dashboard/challenges/advanced';
+      case 'product_planning':
+        return '/dashboard/challenges/product-planning';
+      case 'office_fundamentals':
+        return '/dashboard/challenges';
+      default:
+        return '/dashboard/challenges';
+    }
+  };
+
   const handleValidate = async () => {
     // Special validation for merge conflict challenges
     if (isMergeConflictChallenge) {
@@ -159,7 +177,7 @@ export function OfficeChallengeLayout({ challenge }: OfficeChallengeLayoutProps)
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => router.push('/dashboard/challenges')}
+                onClick={() => router.push(getBackUrl())}
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Back
@@ -416,6 +434,7 @@ export function OfficeChallengeLayout({ challenge }: OfficeChallengeLayoutProps)
           show={showCelebration}
           score={validationResult?.score || 0}
           pointsEarned={challenge.points}
+          maxPoints={challenge.points}
         />
       )}
     </div>

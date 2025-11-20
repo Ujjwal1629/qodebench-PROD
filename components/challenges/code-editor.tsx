@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import {
   Play,
   FileCode,
@@ -45,13 +45,41 @@ export function CodeEditor({
   const [copied, setCopied] = useState(false);
   const [lineCount, setLineCount] = useState(1);
   const [showResetDialog, setShowResetDialog] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+  const [cursorPosition, setCursorPosition] = useState({ line: 1, col: 1 });
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const lineNumbersRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  // Track mount state to prevent hydration mismatch
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   // Update line count whenever value changes
   useEffect(() => {
     const lines = (value || '').split('\n').length;
-    setLineCount(lines);
+    setLineCount(Math.max(lines, 1));
   }, [value]);
+
+  // Update cursor position
+  const updateCursorPosition = useCallback(() => {
+    if (!textareaRef.current) return;
+
+    const textarea = textareaRef.current;
+    const cursorPos = textarea.selectionStart;
+    const textBeforeCursor = value.substring(0, cursorPos);
+    const lines = textBeforeCursor.split('\n');
+    const currentLine = lines.length;
+    const currentCol = lines[lines.length - 1].length + 1;
+
+    setCursorPosition({ line: currentLine, col: currentCol });
+  }, [value]);
+
+  // Initialize cursor position on mount and value change
+  useEffect(() => {
+    updateCursorPosition();
+  }, [value, updateCursorPosition]);
 
   // Get intelligent language display name
   const getLanguageDisplay = () => {
@@ -92,6 +120,7 @@ export function CodeEditor({
 
   const handleCodeChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     onChange(e.target.value);
+    updateCursorPosition();
   };
 
   const handleCopy = async () => {
@@ -128,6 +157,8 @@ export function CodeEditor({
     }
   };
 
+  // No scroll handler needed - line numbers scroll naturally with the container
+
   return (
     <div className={`vscode-editor-container ${isFullscreen ? 'fixed inset-0 z-50 bg-[#1e1e1e]' : 'rounded-lg overflow-hidden border border-slate-700 shadow-xl'}`}>
       {/* VS Code Title Bar */}
@@ -150,7 +181,7 @@ export function CodeEditor({
         {/* Right - Editor Actions */}
         <div className="flex items-center gap-1">
           {/* Reset Button - Only show if starter code exists and code is modified */}
-          {onReset && isModified && (
+          {isMounted && onReset && isModified && (
             <Button
               onClick={() => setShowResetDialog(true)}
               variant="ghost"
@@ -206,65 +237,102 @@ export function CodeEditor({
         </div>
       </div>
 
-      {/* Editor Content Area - Responsive height for mobile */}
+      {/* Editor Content Area - COMPLETELY REDESIGNED */}
       <div
+        ref={scrollContainerRef}
         className={cn(
-          "flex bg-[#1e1e1e] overflow-hidden",
+          "relative bg-[#1e1e1e] overflow-auto scroll-smooth",
           isFullscreen ? "h-[calc(100vh-80px)]" : "h-[400px] md:h-[500px]"
         )}
+        style={{
+          // Custom scrollbar styling
+          scrollbarWidth: 'thin',
+          scrollbarColor: '#424242 #1e1e1e'
+        }}
       >
-        {/* Line Numbers */}
-        <div
-          className={cn(
-            "flex-shrink-0 bg-[#1e1e1e] border-r border-slate-800 py-4 px-2 select-none overflow-hidden",
-            isFullscreen ? "h-[calc(100vh-80px)]" : "h-[400px] md:h-[500px]"
-          )}
-        >
-          <div className="space-y-0 font-mono text-right" style={{ fontSize: '13px', lineHeight: '21px' }}>
-            {Array.from({ length: Math.max(lineCount, 20) }, (_, i) => (
-              <div
-                key={i + 1}
-                className="text-slate-600 pr-2"
-                style={{ minWidth: '40px' }}
-              >
-                {i + 1}
-              </div>
-            ))}
+        {/* Inner content wrapper - this creates the scrollable height */}
+        <div className="relative flex" style={{ minHeight: '100%' }}>
+          {/* Line Numbers - Scrolls naturally with content */}
+          <div
+            className="flex-shrink-0 bg-[#1e1e1e] border-r border-slate-800 select-none"
+            style={{ width: '56px' }}
+          >
+            <div
+              ref={lineNumbersRef}
+              className="py-4 px-3"
+            >
+              {Array.from({ length: lineCount }, (_, i) => (
+                <div
+                  key={i + 1}
+                  className="text-slate-500 text-right font-mono leading-[21px] whitespace-nowrap"
+                  style={{
+                    fontSize: '13px',
+                    height: '21px',
+                    userSelect: 'none'
+                  }}
+                >
+                  {i + 1}
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
 
-        {/* Text Editor */}
-        <div className="flex-1 relative">
-          <textarea
-            ref={textareaRef}
-            value={value || ''}
-            onChange={handleCodeChange}
-            onKeyDown={handleKeyDown}
-            className="w-full h-full bg-[#1e1e1e] text-slate-100 p-4 font-mono resize-none focus:outline-none"
-            style={{
-              fontSize: '14px',
-              lineHeight: '21px',
-              tabSize: 2,
-              letterSpacing: '0.2px',
-            }}
-            spellCheck={false}
-            placeholder={placeholder || "// Start typing your code here...\n// Use Tab for indentation\n"}
-          />
+          {/* Code Editor Area */}
+          <div className="flex-1 relative min-w-0">
+            {/* Textarea - static positioned, scrolls with container */}
+            <textarea
+              ref={textareaRef}
+              value={value || ''}
+              onChange={handleCodeChange}
+              onKeyDown={handleKeyDown}
+              onClick={updateCursorPosition}
+              onKeyUp={updateCursorPosition}
+              className="editor-textarea"
+              style={{
+                display: 'block',
+                width: '100%',
+                minHeight: '100%',
+                backgroundColor: 'transparent',
+                color: '#d4d4d4',
+                padding: '16px 96px 16px 16px', // Right padding for minimap
+                fontFamily: '"Fira Code", "Cascadia Code", "Consolas", "Monaco", monospace',
+                fontSize: '14px',
+                lineHeight: '21px',
+                tabSize: 2,
+                MozTabSize: 2,
+                letterSpacing: '0.2px',
+                border: 'none',
+                outline: 'none',
+                resize: 'none',
+                overflow: 'visible', // Allow content to create scroll area
+                whiteSpace: 'pre',
+                wordWrap: 'normal',
+                overflowWrap: 'normal',
+                caretColor: '#ffffff',
+                pointerEvents: 'auto'
+              }}
+              spellCheck={false}
+              autoComplete="off"
+              autoCorrect="off"
+              autoCapitalize="off"
+              placeholder={placeholder || "// Start typing your code here...\n// Use Tab for indentation"}
+            />
 
-          {/* Editor Minimap (visual indicator only) */}
-          <div className="absolute top-0 right-0 w-20 h-full bg-[#1e1e1e]/60 border-l border-slate-800 pointer-events-none opacity-40">
-            <div className="space-y-[2px] p-2">
-              {Array.from({ length: Math.min(lineCount, 50) }, (_, i) => {
-                // Deterministic width based on line index to avoid hydration mismatch
-                const width = 40 + ((i * 7) % 60);
-                return (
-                  <div
-                    key={i}
-                    className="h-[4px] bg-slate-600 rounded-full"
-                    style={{ width: `${width}%` }}
-                  />
-                );
-              })}
+            {/* Editor Minimap (visual indicator only) */}
+            <div className="absolute top-0 right-0 w-20 h-full bg-[#1e1e1e]/60 border-l border-slate-800 pointer-events-none opacity-40">
+              <div className="space-y-[2px] p-2">
+                {Array.from({ length: Math.min(lineCount, 100) }, (_, i) => {
+                  // Deterministic width based on line index
+                  const width = 40 + ((i * 7) % 60);
+                  return (
+                    <div
+                      key={i}
+                      className="h-[3px] bg-slate-600 rounded-full"
+                      style={{ width: `${width}%` }}
+                    />
+                  );
+                })}
+              </div>
             </div>
           </div>
         </div>
@@ -279,13 +347,13 @@ export function CodeEditor({
             <span className="font-semibold">{displayLanguage}</span>
           </div>
           <span className="opacity-90">UTF-8</span>
-          <span className="opacity-90">Ln {lineCount}, Col 1</span>
+          <span className="opacity-90">Ln {cursorPosition.line}, Col {cursorPosition.col}</span>
         </div>
 
         {/* Right Status */}
         <div className="flex items-center gap-4 opacity-90">
           <span>{lineCount} lines</span>
-          <span>{(value || '').length} chars</span>
+          {isMounted && <span>{(value || '').length} chars</span>}
         </div>
       </div>
 
@@ -299,35 +367,64 @@ export function CodeEditor({
         </div>
       )}
 
-      {/* Custom Scrollbar Styles */}
+      {/* Custom Scrollbar & Editor Styles */}
       <style jsx global>{`
-        .vscode-editor-container textarea::-webkit-scrollbar {
+        /* Webkit Scrollbar Styling */
+        .vscode-editor-container > div:nth-child(3)::-webkit-scrollbar {
           width: 14px;
           height: 14px;
         }
 
-        .vscode-editor-container textarea::-webkit-scrollbar-track {
+        .vscode-editor-container > div:nth-child(3)::-webkit-scrollbar-track {
           background: #1e1e1e;
         }
 
-        .vscode-editor-container textarea::-webkit-scrollbar-thumb {
+        .vscode-editor-container > div:nth-child(3)::-webkit-scrollbar-thumb {
           background: #424242;
           border: 3px solid #1e1e1e;
           border-radius: 10px;
         }
 
-        .vscode-editor-container textarea::-webkit-scrollbar-thumb:hover {
+        .vscode-editor-container > div:nth-child(3)::-webkit-scrollbar-thumb:hover {
           background: #4e4e4e;
         }
 
-        .vscode-editor-container textarea::placeholder {
-          color: #6a9955;
-          font-style: italic;
+        .vscode-editor-container > div:nth-child(3)::-webkit-scrollbar-corner {
+          background: #1e1e1e;
         }
 
-        /* VS Code-like selection */
-        .vscode-editor-container textarea::selection {
+        /* Textarea Styling */
+        .editor-textarea::placeholder {
+          color: #6a9955;
+          font-style: italic;
+          opacity: 0.6;
+        }
+
+        .editor-textarea::selection {
           background: #264f78;
+          color: inherit;
+        }
+
+        /* CRITICAL: Remove ALL focus-related styles that could interfere with scrolling */
+        .editor-textarea:focus {
+          outline: none !important;
+          box-shadow: none !important;
+          border: none !important;
+        }
+
+        /* Remove any default textarea scrollbar - container handles it */
+        .editor-textarea::-webkit-scrollbar {
+          display: none;
+        }
+
+        /* Ensure textarea doesn't create its own scroll */
+        .editor-textarea {
+          overflow: visible !important;
+        }
+
+        /* Smooth scrolling for the container */
+        .vscode-editor-container > div:nth-child(3) {
+          scroll-behavior: auto;
         }
       `}</style>
 

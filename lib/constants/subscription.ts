@@ -7,6 +7,7 @@ import { ChallengeTier } from './dashboard';
 export const FREE_CHALLENGES_PER_TIER: Record<ChallengeTier, number> = {
   beginner: 5,
   intermediate: 5,
-  'office-workflow': 5,
+  'software-engineering-essentials': 5, // Renamed from office-workflow
   advanced: 2, // Advanced tier: only first 2 are free
+  'product-planning': 0, // Coming soon - no challenges yet
 } as const;
