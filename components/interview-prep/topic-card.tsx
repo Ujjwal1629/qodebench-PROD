@@ -55,15 +55,13 @@ export function TopicCard({
       </CardHeader>
       <CardContent>
         {/* Progress */}
-        {attemptedQuestions > 0 && (
-          <div className="mb-4 space-y-2">
-            <div className="flex justify-between text-sm">
-              <span className="text-slate-600">Progress</span>
-              <span className="font-medium">{attemptedQuestions}/{totalQuestions}</span>
-            </div>
-            <Progress value={completionPercentage} className="h-2" />
+        <div className="mb-4 space-y-2">
+          <div className="flex justify-between text-sm">
+            <span className="text-slate-600">Progress</span>
+            <span className="font-medium">{attemptedQuestions}/{totalQuestions}</span>
           </div>
-        )}
+          <Progress value={completionPercentage} className="h-2" />
+        </div>
 
         {/* Action Buttons */}
         <div className="grid grid-cols-2 gap-2">

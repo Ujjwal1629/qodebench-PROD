@@ -23,6 +23,7 @@ export default async function ChallengesPage() {
   const beginnerTier = tierProgress.find((t) => t.tier === 'beginner');
   const intermediateTier = tierProgress.find((t) => t.tier === 'intermediate');
   const softwareEngTier = tierProgress.find((t) => t.tier === 'software-engineering-essentials');
+  const productPlanningTier = tierProgress.find((t) => t.tier === 'product-planning');
   const advancedTier = tierProgress.find((t) => t.tier === 'advanced');
 
   const practicalCompleted = (beginnerTier?.completed || 0) + (intermediateTier?.completed || 0);
@@ -53,7 +54,7 @@ export default async function ChallengesPage() {
             <span className="ml-1 text-slate-500">Completed</span>
           </Badge>
           <Badge variant="outline" className="px-3 py-1 text-sm">
-            <span className="text-slate-600">3 Categories Available</span>
+            <span className="text-slate-600">4 Categories Available</span>
           </Badge>
         </div>
       </div>
@@ -191,15 +192,15 @@ export default async function ChallengesPage() {
             </CardContent>
           </Card>
 
-          {/* Category 3: Product & Feature Planning (Coming Soon) */}
-          <Card className="border-2 border-indigo-200 hover:border-indigo-300 hover:shadow-lg transition-all duration-300 group overflow-visible">
+          {/* Category 3: Product & Feature Planning */}
+          <Card className="border-2 border-indigo-200 hover:border-indigo-400 hover:shadow-lg transition-all duration-300 group overflow-visible">
             <CardHeader className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-t-xl">
               <div className="flex items-start justify-between">
-                <div className="p-3 rounded-xl bg-white shadow-sm">
-                  <span className="text-4xl opacity-60">🎯</span>
+                <div className="p-3 rounded-xl bg-white shadow-sm group-hover:scale-110 transition-transform">
+                  <span className="text-4xl">🎯</span>
                 </div>
-                <Badge className="bg-yellow-100 text-yellow-800 border-yellow-300">
-                  Coming Soon
+                <Badge variant="outline" className="bg-white">
+                  {productPlanningTier?.total || 15} Challenges
                 </Badge>
               </div>
             </CardHeader>
@@ -214,24 +215,31 @@ export default async function ChallengesPage() {
                 </p>
               </div>
 
-              {/* Coming Soon Features */}
+              {/* Progress Stats */}
+              <div className="flex items-center gap-4 text-sm">
+                <div className="flex items-center gap-1">
+                  <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                  <span className="text-slate-600">
+                    {productPlanningTier?.completed || 0} completed
+                  </span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <div className="w-2 h-2 rounded-full bg-indigo-500"></div>
+                  <span className="text-slate-600">1 tier</span>
+                </div>
+              </div>
+
+              {/* Features */}
               <div className="space-y-1 text-xs text-slate-600">
                 <p>✓ Sprint planning & estimation</p>
                 <p>✓ Work breakdown structures</p>
                 <p>✓ Feature prioritization</p>
               </div>
 
-              {/* Disabled visual indicator */}
-              <div className="rounded-lg bg-slate-50 border border-slate-200 p-3 text-center">
-                <p className="text-xs text-slate-500">
-                  Challenges are being prepared
-                </p>
-              </div>
-
-              <Button asChild variant="outline" className="w-full border-indigo-300">
+              <Button asChild variant="outline" className="w-full group-hover:bg-indigo-700 group-hover:text-white border-indigo-300">
                 <Link href="/dashboard/challenges/product-planning">
-                  Learn More
-                  <ArrowRight className="h-4 w-4 ml-2" />
+                  Explore Challenges
+                  <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
                 </Link>
               </Button>
             </CardContent>

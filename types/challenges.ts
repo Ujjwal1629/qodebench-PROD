@@ -71,3 +71,44 @@ export interface MergeConflictValidationResult {
   strengths: string[];
   improvements: string[];
 }
+
+/**
+ * Advanced challenge metadata for office simulation challenges
+ */
+export interface AdvancedChallengeMetadata {
+  ticketId: string;
+  ctoMessage: string;
+  ctoName?: string;
+  ctoRole?: string;
+  impact: 'Low' | 'Medium' | 'High' | 'Critical';
+  urgency: 'P1' | 'P2' | 'P3' | 'P4';
+  affectedModules: string[];
+  stepsToReproduce: string[];
+  expectedBehavior: string;
+  actualBehavior: string;
+  acceptanceCriteria: string[];
+  sampleRequest?: string;
+  sampleResponse?: string;
+  architectureNotes?: string;
+  seniorHint?: string;
+  learningObjectives?: string[];
+  exampleTestCases?: {
+    input: string;
+    expected: string;
+    description: string;
+  }[];
+}
+
+/**
+ * Product planning challenge metadata for feature planning scenarios
+ */
+export interface ProductPlanningMetadata {
+  pmMessage: string;
+  pmName?: string;
+  pmRole?: string;
+  jiraSummary: string;
+  teamDiscussion?: string;
+  scenario?: string;
+  taskItems: string[];
+  learningObjectives?: string[];
+}

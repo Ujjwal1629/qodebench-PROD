@@ -87,7 +87,7 @@ export type Database = {
           created_at: string
           updated_at: string
           // Tier-based system fields (migration 017)
-          tier: 'beginner' | 'intermediate' | 'office-workflow' | 'advanced' | null
+          tier: 'beginner' | 'intermediate' | 'office-workflow' | 'advanced' | 'product-planning' | 'software-engineering-essentials' | null
           order_in_tier: number | null
           unlock_requirement_type: 'none' | 'previous' | 'tier_completion' | null
           unlock_requirement_count: number | null
@@ -120,7 +120,7 @@ export type Database = {
           created_at?: string
           updated_at?: string
           // Tier-based system fields
-          tier?: 'beginner' | 'intermediate' | 'office-workflow' | 'advanced' | null
+          tier?: 'beginner' | 'intermediate' | 'office-workflow' | 'advanced' | 'product-planning' | 'software-engineering-essentials' | null
           order_in_tier?: number | null
           unlock_requirement_type?: 'none' | 'previous' | 'tier_completion' | null
           unlock_requirement_count?: number | null
@@ -153,7 +153,7 @@ export type Database = {
           created_at?: string
           updated_at?: string
           // Tier-based system fields
-          tier?: 'beginner' | 'intermediate' | 'office-workflow' | 'advanced' | null
+          tier?: 'beginner' | 'intermediate' | 'office-workflow' | 'advanced' | 'product-planning' | 'software-engineering-essentials' | null
           order_in_tier?: number | null
           unlock_requirement_type?: 'none' | 'previous' | 'tier_completion' | null
           unlock_requirement_count?: number | null

@@ -13,6 +13,9 @@ npm run lint         # Run ESLint
 
 # Adding UI components
 npx shadcn@latest add [component-name]
+
+# Database migrations (run via Supabase CLI or dashboard)
+# Migration files located in supabase/migrations/
 ```
 
 ## Architecture Overview

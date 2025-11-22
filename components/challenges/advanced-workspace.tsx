@@ -6,85 +6,54 @@ import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet';
 import { FlexibleEditor } from './flexible-editor';
 import { ChallengeHeader } from './challenge-header';
-import { ChallengeSidebar } from './challenge-sidebar';
+import { ChallengeDetailsPanel } from './challenge-details-panel';
 import { ValidationResultsModal } from './validation-results-modal';
 import { BugResolvedCelebration } from './bug-resolved-celebration';
 import { AIMentorDock } from './ai-mentor-dock';
-import { OfficeChallengeLayout } from './office-challenge-layout';
 import { Loader2, Info } from 'lucide-react';
 import { toast } from 'sonner';
+import type { AdvancedChallengeMetadata } from '@/types/challenges';
 
-interface ChallengeWorkspaceProps {
+interface AdvancedWorkspaceProps {
   challenge: any;
+  metadata: AdvancedChallengeMetadata;
 }
 
-export function ChallengeWorkspace({ challenge }: ChallengeWorkspaceProps) {
-  // Check for office/document challenge and route to appropriate layout
-  const isDocumentChallenge =
-    challenge.category === 'office' ||
-    challenge.category === 'office-fundamentals' ||
-    challenge.tier === 'software-engineering-essentials' ||
-    challenge.validation_type === 'ai_only';
-
-  if (isDocumentChallenge) {
-    return <OfficeChallengeLayout challenge={challenge} />;
-  }
-
-  return <CodeChallengeLayout challenge={challenge} />;
-}
-
-// Code challenges layout (existing implementation)
-function CodeChallengeLayout({ challenge }: ChallengeWorkspaceProps) {
+export function AdvancedWorkspace({ challenge, metadata }: AdvancedWorkspaceProps) {
   const router = useRouter();
+  const [isPanelCollapsed, setIsPanelCollapsed] = useState(false);
 
   // Scroll to top when challenge changes
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'instant' });
   }, [challenge.id]);
 
-  // These are code challenges only (office challenges use separate layout)
   const responseFormat = challenge.response_format || 'javascript';
-  const challengeType = challenge.challenge_type || 'code';
   const validationType = challenge.validation_type || 'test_cases';
 
   // Determine starter code based on response format
-  // useMemo to prevent hydration mismatches and unnecessary re-parsing
   const getStarterCode = useMemo(() => {
-    // Parse starter_code if it's a JSON string (fix for JSONB fields)
     let parsedStarterCode = challenge.starter_code;
 
     if (typeof challenge.starter_code === 'string') {
       try {
         parsedStarterCode = JSON.parse(challenge.starter_code);
-        console.log('✅ Parsed starter_code JSON string');
       } catch (e) {
-        console.error('❌ Failed to parse starter_code:', e);
+        console.error('Failed to parse starter_code:', e);
       }
     }
 
     if (parsedStarterCode?.[responseFormat]) {
-      console.log('✅ Using database starter code for format:', responseFormat);
       return parsedStarterCode[responseFormat];
     }
 
-    // Check for markdown starter in old format
     if (responseFormat === 'markdown' && parsedStarterCode?.markdown) {
       return parsedStarterCode.markdown;
     }
 
-    console.log('⚠️ Using fallback starter code (no database value for format:', responseFormat, ')');
-
-    // Default starter code based on response format
     switch (responseFormat) {
       case 'markdown':
-        // Smart defaults based on challenge type
-        if (challenge.slug?.includes('pr-description') || challenge.title?.toLowerCase().includes('pr description')) {
-          return '## Summary\n\nBriefly describe what this PR does and why.\n\n## Changes Made\n\n- Change 1\n- Change 2\n\n## Testing\n\nHow was this tested?\n\n## Related Issues\n\nFixes #';
-        }
-        if (challenge.slug?.includes('rca') || challenge.title?.toLowerCase().includes('root cause')) {
-          return '## Incident Summary\n\n**Date:** \n**Duration:** \n**Impact:** \n\n## Timeline\n\n- Time: Event description\n\n## Root Cause\n\n### Analysis\n\n## Action Items\n\n- [ ] Action 1\n- [ ] Action 2';
-        }
-        return '## Your Response\n\nWrite your response here using markdown formatting.\n\n### Section 1\n\n- Point 1\n- Point 2\n\n### Section 2\n\nMore details...';
+        return '## Your Response\n\nWrite your response here using markdown formatting.';
       case 'text':
         return 'Write your response here...';
       case 'typescript':
@@ -94,11 +63,11 @@ function CodeChallengeLayout({ challenge }: ChallengeWorkspaceProps) {
       default:
         return '// Write your solution here\n\nfunction solution() {\n  // Your code here\n}';
     }
-  }, [challenge.starter_code, responseFormat]); // Dependencies for useMemo
+  }, [challenge.starter_code, responseFormat]);
 
   const starterCode = getStarterCode;
 
-  // Load saved code from localStorage or use starter code
+  // State
   const [code, setCode] = useState(() => {
     if (typeof window !== 'undefined') {
       const savedCode = localStorage.getItem(`challenge_code_${challenge.id}`);
@@ -114,144 +83,35 @@ function CodeChallengeLayout({ challenge }: ChallengeWorkspaceProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const [submissionResult, setSubmissionResult] = useState<any>(null);
-  const [showAI, setShowAI] = useState(false);
-  const [isModified, setIsModified] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [showValidationModal, setShowValidationModal] = useState(false);
   const [showCelebration, setShowCelebration] = useState(false);
   const [isMobileInfoOpen, setIsMobileInfoOpen] = useState(false);
 
-  // Extract requirements from description if needed
-  const extractRequirements = (): string[] => {
-    const lines = challenge.description.split('\n');
-    const requirements: string[] = [];
-
-    lines.forEach((line: string) => {
-      if (line.trim().startsWith('- ') || line.trim().startsWith('* ')) {
-        requirements.push(line.trim().substring(2));
-      }
-    });
-
-    return requirements;
-  };
-
-  const requirements = extractRequirements();
-
-  // Track code changes and auto-save to localStorage
+  // Auto-save to localStorage
   useEffect(() => {
-    setIsModified(code !== starterCode);
     setIsSaving(true);
-
-    // Auto-save to localStorage with debounce
     const saveTimer = setTimeout(() => {
       if (typeof window !== 'undefined') {
         localStorage.setItem(`challenge_code_${challenge.id}`, code);
       }
       setIsSaving(false);
-    }, 500); // Save 500ms after user stops typing
+    }, 500);
 
     return () => clearTimeout(saveTimer);
-  }, [code, starterCode, challenge.id]);
+  }, [code, challenge.id]);
 
   const handleValidate = async () => {
-    // Check if code is empty
     if (!code.trim()) {
-      toast.error('Please write some code first!', {
-        description: 'The code editor is empty. Write your solution before validating.'
-      });
+      toast.error('Please write some code first!');
       return;
     }
 
-    // Apply validation checks
-    // Check if code has been modified from starter code
     const normalizedCode = code.trim().replace(/\s+/g, ' ');
     const normalizedStarter = starterCode.trim().replace(/\s+/g, ' ');
 
     if (normalizedCode === normalizedStarter) {
-      toast.error('Please modify the content before validating!', {
-        description: 'The current content is the same as the starter template. Make your changes and try again.'
-      });
-      return;
-    }
-
-    // STRICT validation based on response format
-    const isCodeFormat = responseFormat === 'javascript' || responseFormat === 'typescript' || responseFormat === 'json';
-    const isDocFormat = responseFormat === 'markdown' || responseFormat === 'text';
-
-    // Get non-empty lines (excluding pure whitespace and comment-only lines)
-    const lines = code.split('\n');
-    const meaningfulLines = lines.filter((line: string) => {
-      const trimmed = line.trim();
-      // Skip empty lines
-      if (!trimmed) return false;
-      // Skip comment-only lines for code
-      if (isCodeFormat && (trimmed.startsWith('//') || trimmed.startsWith('/*') || trimmed.startsWith('*'))) {
-        return false;
-      }
-      return true;
-    });
-
-    // REMOVED: Strict line count validation
-    // For test case validation, the test cases themselves validate correctness
-    // For AI validation, we rely on AI to judge code quality
-    // These strict checks were blocking valid short solutions
-
-    // // Check minimum length (STRICT) - DISABLED for test case validation
-    // const minLength = isDocFormat ? 200 : 50;
-    // if (validationType !== 'test_cases' && code.trim().length < minLength) {
-    //   toast.error('Your response is too short!', {
-    //     description: isDocFormat
-    //       ? `Please write at least ${minLength} characters. Your ${challengeType === 'document' ? 'response' : 'solution'} needs more detail.`
-    //       : `Please write at least ${minLength} characters of meaningful code.`
-    //   });
-    //   return;
-    // }
-
-    // // Check minimum line count (STRICT) - DISABLED for test case validation
-    // const minLines = isDocFormat ? 3 : 5;
-    // if (validationType !== 'test_cases' && meaningfulLines.length < minLines) {
-    //   toast.error(`Not enough content!`, {
-    //     description: isCodeFormat
-    //       ? `Your code has only ${meaningfulLines.length} meaningful line${meaningfulLines.length !== 1 ? 's' : ''}. Please write at least ${minLines} lines of actual code (excluding comments).`
-    //       : `Your response needs at least ${minLines} non-empty lines. Currently: ${meaningfulLines.length} line${meaningfulLines.length !== 1 ? 's' : ''}.`
-    //   });
-    //   return;
-    // }
-
-    // // Check for single-line code submissions - DISABLED for test case validation
-    // if (validationType !== 'test_cases' && isCodeFormat && meaningfulLines.length === 1) {
-    //   toast.error('Single-line solution detected!', {
-    //     description: 'Real solutions require multiple lines. Please write a complete implementation.'
-    //   });
-    //   return;
-    // }
-
-    // Check for placeholder text or gibberish
-    const lowerCode = code.toLowerCase();
-    const placeholderPatterns = [
-      'lorem ipsum',
-      'placeholder',
-      'your code here',
-      'todo:',
-      'fixme:',
-      'write your',
-      'asdfasdf',
-      'test test',
-      'hello world' // Only if it's the entire content
-    ];
-
-    const hasPlaceholder = placeholderPatterns.some(pattern => {
-      if (pattern === 'hello world') {
-        // Only flag if it's basically the entire content
-        return lowerCode.includes(pattern) && code.trim().length < 50;
-      }
-      return lowerCode.includes(pattern);
-    });
-
-    if (hasPlaceholder) {
-      toast.error('Placeholder content detected!', {
-        description: 'Please replace placeholder text with your actual solution before validating.'
-      });
+      toast.error('Please modify the content before validating!');
       return;
     }
 
@@ -259,28 +119,10 @@ function CodeChallengeLayout({ challenge }: ChallengeWorkspaceProps) {
     setValidationResult(null);
 
     try {
-      // Determine which validation endpoint to use
-      // Code challenges use test_cases by default
       const useHybridValidation = validationType === 'hybrid' || validationType === 'ai_only';
-
       const validationEndpoint = useHybridValidation
         ? '/api/ai/validate-hybrid'
         : '/api/ai/validate';
-
-      // Get previous validation attempt from localStorage (for non-hybrid only)
-      const storageKey = `validation_${challenge.id}`;
-      let previousAttempt = null;
-
-      if (!useHybridValidation) {
-        const previousAttemptData = localStorage.getItem(storageKey);
-        if (previousAttemptData) {
-          try {
-            previousAttempt = JSON.parse(previousAttemptData);
-          } catch (e) {
-            localStorage.removeItem(storageKey);
-          }
-        }
-      }
 
       const response = await fetch(validationEndpoint, {
         method: 'POST',
@@ -289,7 +131,6 @@ function CodeChallengeLayout({ challenge }: ChallengeWorkspaceProps) {
           challengeId: challenge.id,
           code,
           language: responseFormat,
-          ...(previousAttempt && { previousAttempt }),
         }),
       });
 
@@ -300,10 +141,9 @@ function CodeChallengeLayout({ challenge }: ChallengeWorkspaceProps) {
 
       const result = await response.json();
       setValidationResult(result);
-      setShowValidationModal(true); // Show modal instead of inline
+      setShowValidationModal(true);
 
-      // Save this validation to localStorage for next time
-      localStorage.setItem(storageKey, JSON.stringify({
+      localStorage.setItem(`validation_${challenge.id}`, JSON.stringify({
         code,
         score: result.score,
         timestamp: Date.now(),
@@ -345,14 +185,11 @@ function CodeChallengeLayout({ challenge }: ChallengeWorkspaceProps) {
       const result = await response.json();
       setHasSubmitted(true);
       setSubmissionResult(result);
-      setShowValidationModal(false); // Close validation modal
-      setShowCelebration(true); // Show celebration!
+      setShowValidationModal(false);
+      setShowCelebration(true);
 
-      // Clear validation history and saved code from localStorage on successful submit
-      const validationKey = `validation_${challenge.id}`;
-      const codeKey = `challenge_code_${challenge.id}`;
-      localStorage.removeItem(validationKey);
-      localStorage.removeItem(codeKey);
+      localStorage.removeItem(`validation_${challenge.id}`);
+      localStorage.removeItem(`challenge_code_${challenge.id}`);
     } catch (error) {
       console.error('Error submitting code:', error);
       toast.error('Submission failed', {
@@ -364,34 +201,31 @@ function CodeChallengeLayout({ challenge }: ChallengeWorkspaceProps) {
   };
 
   const handleNextChallenge = () => {
-    // Check if next challenge is available and accessible
     if (submissionResult?.nextChallenge) {
-      // Navigation will trigger server-side subscription check
-      // If locked, user will see paywall on the challenge page
       router.push(`/dashboard/challenges/${submissionResult.nextChallenge.slug}`);
     } else {
-      // No next challenge, go back to challenges list
-      router.push('/dashboard/challenges');
+      router.push('/dashboard/challenges/advanced');
     }
   };
 
   return (
     <div className="h-screen flex flex-col bg-white overflow-hidden">
-      {/* Clean Header */}
+      {/* Header */}
       <ChallengeHeader challenge={challenge} />
 
-      {/* Main Layout: Sidebar + Editor */}
+      {/* Main Layout */}
       <div className="flex flex-1 overflow-hidden">
-        {/* Left Sidebar - 25% */}
-        <div className="hidden lg:block w-[25%] min-w-[280px]">
-          <ChallengeSidebar
-            description={challenge.description}
-            requirements={requirements.length > 0 ? requirements : undefined}
-            objectives={challenge.learning_objectives}
+        {/* Left: Challenge Details Panel (collapsible) */}
+        <div className="hidden lg:block">
+          <ChallengeDetailsPanel
+            title={challenge.title}
+            metadata={metadata}
+            isCollapsed={isPanelCollapsed}
+            onToggle={() => setIsPanelCollapsed(!isPanelCollapsed)}
           />
         </div>
 
-        {/* Main Editor Area - 75% */}
+        {/* Main Editor Area */}
         <main className="flex-1 flex flex-col overflow-hidden">
           {/* Editor */}
           <div className="flex-1 p-6 overflow-hidden">
@@ -406,20 +240,20 @@ function CodeChallengeLayout({ challenge }: ChallengeWorkspaceProps) {
             />
           </div>
 
-          {/* Action Bar - Fixed at bottom with proper z-index */}
+          {/* Action Bar */}
           <div className="sticky bottom-0 border-t border-gray-200 px-6 py-4 flex items-center justify-between bg-white shadow-lg z-30">
             <div className="flex items-center gap-3 flex-1">
               {/* Test & Deploy Button */}
               <Button
                 onClick={handleValidate}
                 disabled={isValidating}
-                className="bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white shadow-md transition-all hover:shadow-lg px-6 py-2.5"
+                className="bg-gradient-to-r from-purple-500 to-purple-700 hover:from-purple-600 hover:to-purple-800 text-white shadow-md transition-all hover:shadow-lg px-6 py-2.5"
                 size="lg"
               >
                 {isValidating ? (
                   <>
                     <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-                    Testing Deployment...
+                    Testing...
                   </>
                 ) : (
                   <>
@@ -431,7 +265,7 @@ function CodeChallengeLayout({ challenge }: ChallengeWorkspaceProps) {
                 )}
               </Button>
 
-              {/* Submit Button - Appears after validation passes */}
+              {/* Submit Button */}
               {validationResult?.passed && !hasSubmitted && (
                 <Button
                   onClick={handleSubmit}
@@ -470,7 +304,7 @@ function CodeChallengeLayout({ challenge }: ChallengeWorkspaceProps) {
                 </Button>
               )}
 
-              {/* Auto-save indicator (at the end) */}
+              {/* Auto-save indicator */}
               <div className="flex items-center gap-1.5 text-xs text-gray-500 ml-auto">
                 <div className={`h-1.5 w-1.5 rounded-full ${isSaving ? 'bg-orange-400' : 'bg-green-500'}`}></div>
                 <span>{isSaving ? 'Saving...' : 'Saved'}</span>
@@ -480,7 +314,7 @@ function CodeChallengeLayout({ challenge }: ChallengeWorkspaceProps) {
         </main>
       </div>
 
-      {/* AI Mentor Floating Dock - Always visible on right side */}
+      {/* AI Mentor Dock */}
       <AIMentorDock
         challengeId={challenge.id}
         challengeTitle={challenge.title}
@@ -511,31 +345,31 @@ function CodeChallengeLayout({ challenge }: ChallengeWorkspaceProps) {
         nextChallengeTitle={submissionResult?.nextChallenge?.title}
       />
 
-      {/* Mobile Info Button - Floating top-left */}
+      {/* Mobile Info Button */}
       <button
         onClick={() => setIsMobileInfoOpen(true)}
-        className="lg:hidden fixed top-20 left-4 z-40 bg-gradient-to-r from-sky-500 to-blue-600 text-white p-3 rounded-full shadow-xl hover:shadow-2xl transition-all hover:scale-105"
-        aria-label="View Challenge Info"
+        className="lg:hidden fixed top-20 left-4 z-40 bg-gradient-to-r from-purple-500 to-purple-700 text-white p-3 rounded-full shadow-xl hover:shadow-2xl transition-all hover:scale-105"
+        aria-label="View Challenge Details"
       >
         <Info className="h-5 w-5" />
       </button>
 
-      {/* Mobile Challenge Info Drawer */}
+      {/* Mobile Challenge Details Drawer */}
       <Sheet open={isMobileInfoOpen} onOpenChange={setIsMobileInfoOpen}>
         <SheetContent side="left" className="w-full sm:w-[90vw] md:w-[400px] p-0 overflow-hidden">
           <div className="h-full flex flex-col">
-            <div className="px-6 py-4 border-b bg-gradient-to-r from-sky-500 to-blue-600">
+            <div className="px-6 py-4 border-b bg-gradient-to-r from-purple-500 to-purple-700">
               <SheetTitle className="text-lg font-bold text-white flex items-center gap-2">
                 <Info className="h-5 w-5" />
-                Challenge Info
+                Challenge Details
               </SheetTitle>
-              <p className="text-xs text-sky-50 mt-1">Requirements & objectives for this challenge</p>
+              <p className="text-xs text-purple-100 mt-1">Requirements & objectives</p>
             </div>
             <div className="flex-1 overflow-y-auto">
-              <ChallengeSidebar
-                description={challenge.description}
-                requirements={requirements.length > 0 ? requirements : undefined}
-                objectives={challenge.learning_objectives}
+              <ChallengeDetailsPanel
+                title={challenge.title}
+                metadata={metadata}
+                isCollapsed={false}
               />
             </div>
           </div>

@@ -37,12 +37,6 @@ export const NAV_ITEMS: NavItem[] = [
     icon: Code2,
     description: 'Browse coding challenges',
   },
-  {
-    title: 'Interview Prep',
-    href: '/dashboard/interview-prep',
-    icon: FileQuestion,
-    description: 'MERN interview questions - FREE',
-  },
   // Temporarily hidden - Coming soon
   // {
   //   title: 'Roadmap',
@@ -51,10 +45,10 @@ export const NAV_ITEMS: NavItem[] = [
   //   description: 'Your learning path',
   // },
   {
-    title: 'Mock Interviews',
+    title: 'Interviews',
     href: '/dashboard/interviews',
     icon: Mic,
-    description: 'Practice technical interviews',
+    description: 'Interview prep & mock interviews',
   },
   {
     title: 'Leaderboard',
@@ -76,8 +70,7 @@ export const MOBILE_NAV_ITEMS: NavItem[] = [
   NAV_ITEMS[0], // Dashboard
   NAV_ITEMS[1], // Learning
   NAV_ITEMS[2], // Challenges
-  NAV_ITEMS[3], // Interview Prep
-  NAV_ITEMS[4], // Mock Interviews
+  NAV_ITEMS[3], // Interviews
 ];
 
 // Experience levels and point thresholds

@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { verifyInterviewAPIAccess } from '@/lib/utils/api-access-checks';
+import {
+  sandboxExecuteAsync,
+  getDetectedFunctionName,
+} from '@/lib/utils/sandbox-executor';
 
 interface TestCase {
   input: any;
@@ -15,42 +19,7 @@ interface TestResult {
   actual: any;
   error?: string;
   isHidden: boolean;
-}
-
-// Safe code execution with timeout
-function executeCode(code: string, input: any, timeout = 5000): Promise<any> {
-  return new Promise((resolve, reject) => {
-    const timeoutId = setTimeout(() => {
-      reject(new Error('Execution timeout'));
-    }, timeout);
-
-    try {
-      // Create a safe execution context
-      const wrappedCode = `
-        'use strict';
-        ${code}
-
-        // Find the main function (usually the first function defined)
-        const functionMatch = ${JSON.stringify(code)}.match(/function\\s+(\\w+)/);
-        const funcName = functionMatch ? functionMatch[1] : null;
-
-        if (funcName && typeof eval(funcName) === 'function') {
-          return eval(funcName)(${JSON.stringify(input)});
-        }
-
-        throw new Error('No valid function found in code');
-      `;
-
-      const func = new Function(wrappedCode);
-      const result = func();
-
-      clearTimeout(timeoutId);
-      resolve(result);
-    } catch (error) {
-      clearTimeout(timeoutId);
-      reject(error);
-    }
-  });
+  executionTime?: number;
 }
 
 // Deep equality check for test results
@@ -125,42 +94,75 @@ export async function POST(request: NextRequest) {
     const results: TestResult[] = [];
     const consoleOutput: string[] = [];
 
+    // Detect function name once for all test cases
+    const detectedFunction = getDetectedFunctionName(code);
+
+    if (!detectedFunction) {
+      return NextResponse.json({
+        results: [],
+        consoleOutput: [
+          'ERROR: Could not find a function in your code.',
+          'Please define a function named "solution" or any named function.',
+        ],
+        error:
+          'No function found in code. Please define a function named "solution" or any named function.',
+      });
+    }
+
     // Only run visible test cases for the "Run Tests" button
     const visibleTestCases = testCases.filter(tc => !tc.is_hidden);
 
     for (const testCase of visibleTestCases) {
-      try {
-        const actual = await executeCode(code, testCase.input);
-        const passed = deepEqual(actual, testCase.expected_output);
+      // Prepare arguments - handle both array and single value inputs
+      const args = Array.isArray(testCase.input)
+        ? testCase.input
+        : [testCase.input];
 
-        results.push({
-          passed,
-          input: testCase.input,
-          expected: testCase.expected_output,
-          actual,
-          isHidden: false,
-        });
+      // Execute using sandbox with async timeout support
+      const execution = await sandboxExecuteAsync(code, args, {
+        timeout: 5000,
+        functionName: detectedFunction,
+      });
 
-        consoleOutput.push(
-          `Test ${results.length}: ${passed ? 'PASSED' : 'FAILED'}`
-        );
-      } catch (error: any) {
+      if (!execution.success) {
         results.push({
           passed: false,
           input: testCase.input,
           expected: testCase.expected_output,
           actual: null,
-          error: error.message || 'Execution error',
+          error: execution.error,
           isHidden: false,
+          executionTime: execution.executionTime,
         });
 
         consoleOutput.push(
-          `Test ${results.length}: ERROR - ${error.message || 'Unknown error'}`
+          `Test ${results.length}: ERROR - ${execution.error || 'Unknown error'}`
+        );
+      } else {
+        const passed = deepEqual(execution.result, testCase.expected_output);
+
+        results.push({
+          passed,
+          input: testCase.input,
+          expected: testCase.expected_output,
+          actual: execution.result,
+          isHidden: false,
+          executionTime: execution.executionTime,
+        });
+
+        consoleOutput.push(
+          `Test ${results.length}: ${passed ? 'PASSED' : 'FAILED'}${
+            execution.executionTime ? ` (${execution.executionTime}ms)` : ''
+          }`
         );
       }
     }
 
-    return NextResponse.json({ results, consoleOutput });
+    return NextResponse.json({
+      results,
+      consoleOutput,
+      detectedFunction,
+    });
   } catch (error) {
     console.error('Error running tests:', error);
     return NextResponse.json(

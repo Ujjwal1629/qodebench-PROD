@@ -2,6 +2,8 @@ import { Metadata } from 'next';
 import { notFound, redirect } from 'next/navigation';
 import { getChallengeById, checkChallengeUnlocked } from '@/app/actions/challenges';
 import { ChallengeWorkspace } from '@/components/challenges/challenge-workspace';
+import { AdvancedChallengeOverview } from '@/components/challenges/advanced-challenge-overview';
+import { ProductPlanningOverview } from '@/components/challenges/product-planning-overview';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Lock, ArrowLeft } from 'lucide-react';
@@ -113,6 +115,16 @@ export default async function ChallengePage({ params }: ChallengePageProps) {
         </Card>
       </div>
     );
+  }
+
+  // For advanced challenges, show the overview page first
+  if (challenge.tier === 'advanced') {
+    return <AdvancedChallengeOverview challenge={challenge} />;
+  }
+
+  // For product planning challenges, show the overview page first
+  if (challenge.tier === 'product-planning') {
+    return <ProductPlanningOverview challenge={challenge} />;
   }
 
   return <ChallengeWorkspace challenge={challenge} />;

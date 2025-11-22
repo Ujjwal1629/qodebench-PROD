@@ -1,16 +1,26 @@
+import { Suspense } from 'react';
 import { Metadata } from 'next';
 import Link from 'next/link';
+import { getTierProgress, getChallengesByTier } from '@/app/actions/challenges';
+import { TierCard } from '@/components/challenges/tier-card';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Target, ChevronLeft, Clock, CheckCircle2 } from 'lucide-react';
+import { Target, ChevronLeft } from 'lucide-react';
+import { hasActiveSubscription } from '@/lib/utils/subscription-check';
 
 export const metadata: Metadata = {
   title: 'Product & Feature Planning | QodeBench',
-  description: 'Product management, sprint planning, and WBS creation - Coming Soon',
+  description: 'Product management, sprint planning, and WBS creation',
 };
 
-export default function ProductPlanningPage() {
+export default async function ProductPlanningPage() {
+  // Fetch tier progress
+  const tierProgress = await getTierProgress();
+  const currentTier = tierProgress.find((t) => t.tier === 'product-planning');
+
+  const totalCompleted = currentTier?.completed || 0;
+  const totalChallenges = currentTier?.total || 0;
+
   return (
     <div className="space-y-8">
       {/* Back Navigation */}
@@ -28,126 +38,77 @@ export default function ProductPlanningPage() {
             <Target className="h-5 w-5 sm:h-6 sm:w-6 text-indigo-600" />
           </div>
           <div>
-            <div className="flex items-center gap-3">
-              <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">
-                🎯 Product & Feature Planning
-              </h1>
-              <Badge className="bg-yellow-100 text-yellow-800 border-yellow-300">
-                Coming Soon
-              </Badge>
-            </div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">
+              🎯 Product & Feature Planning
+            </h1>
             <p className="text-sm sm:text-base text-slate-600">
               Product management, sprint planning, and WBS creation
             </p>
           </div>
         </div>
+
+        {/* Overall Stats */}
+        <div className="flex flex-wrap items-center gap-3">
+          <Badge variant="outline" className="px-3 py-1 text-sm">
+            <span className="font-semibold text-green-600">{totalCompleted}</span>
+            <span className="mx-1 text-slate-400">/</span>
+            <span className="text-slate-600">{totalChallenges}</span>
+            <span className="ml-1 text-slate-500">Completed</span>
+          </Badge>
+          <Badge variant="outline" className="px-3 py-1 text-sm">
+            <span className="text-slate-600">1 Tier Available</span>
+          </Badge>
+        </div>
       </div>
 
-      {/* Coming Soon Card */}
-      <Card className="border-2 border-indigo-200">
-        <CardHeader className="bg-gradient-to-r from-indigo-50 to-purple-50">
-          <div className="flex items-start gap-4">
-            <div className="p-3 rounded-lg bg-white shadow-sm">
-              <Clock className="h-8 w-8 text-indigo-600" />
-            </div>
-            <div>
-              <h2 className="text-xl font-bold text-slate-900 mb-2">
-                Challenges Are Being Prepared
-              </h2>
-              <p className="text-sm text-slate-600">
-                We're crafting comprehensive challenges to help you master product management
-                and planning skills. Stay tuned!
-              </p>
-            </div>
-          </div>
-        </CardHeader>
+      {/* Info Banner */}
+      <div className="rounded-lg bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-200 p-4 sm:p-5 md:p-6">
+        <h2 className="text-base sm:text-lg font-semibold text-slate-900 mb-2">
+          🎯 Master Product Planning
+        </h2>
+        <p className="text-sm sm:text-base text-slate-700 leading-relaxed">
+          Learn essential product management skills including{' '}
+          <strong>sprint planning</strong>, <strong>feature estimation</strong>,{' '}
+          <strong>work breakdown structures</strong>, <strong>prioritization</strong>, and{' '}
+          <strong>stakeholder communication</strong>. These challenges simulate real PM discussions
+          and help you think like a product manager.
+        </p>
+      </div>
 
-        <CardContent className="pt-6 space-y-6">
-          {/* What to Expect */}
-          <div>
-            <h3 className="text-lg font-semibold text-slate-900 mb-4">
-              What You'll Learn
-            </h3>
-            <div className="space-y-3">
-              <div className="flex items-start gap-3">
-                <CheckCircle2 className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
-                <div>
-                  <p className="font-medium text-slate-900">
-                    Sprint Planning & Estimation
-                  </p>
-                  <p className="text-sm text-slate-600">
-                    Learn to break down features, estimate story points, and plan effective sprints
-                  </p>
-                </div>
-              </div>
+      {/* Tier Card */}
+      <div className="space-y-6">
+        <h2 className="text-xl sm:text-2xl font-bold text-slate-900">Challenges</h2>
 
-              <div className="flex items-start gap-3">
-                <CheckCircle2 className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
-                <div>
-                  <p className="font-medium text-slate-900">
-                    Work Breakdown Structure (WBS)
-                  </p>
-                  <p className="text-sm text-slate-600">
-                    Master the art of decomposing complex projects into manageable tasks
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-3">
-                <CheckCircle2 className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
-                <div>
-                  <p className="font-medium text-slate-900">
-                    Feature Prioritization
-                  </p>
-                  <p className="text-sm text-slate-600">
-                    Learn frameworks like RICE, MoSCoW, and Kano model for effective prioritization
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-3">
-                <CheckCircle2 className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
-                <div>
-                  <p className="font-medium text-slate-900">
-                    Stakeholder Communication
-                  </p>
-                  <p className="text-sm text-slate-600">
-                    Practice writing PRDs, user stories, and communicating technical decisions
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-3">
-                <CheckCircle2 className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
-                <div>
-                  <p className="font-medium text-slate-900">
-                    Product Discovery & User Research
-                  </p>
-                  <p className="text-sm text-slate-600">
-                    Learn to validate ideas, conduct user interviews, and analyze feedback
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Notify Me (Future enhancement) */}
-          <div className="rounded-lg bg-indigo-50 border border-indigo-200 p-4">
-            <p className="text-sm text-indigo-900">
-              💡 <strong>Tip:</strong> While you wait, explore our other challenge categories to
-              strengthen your coding and engineering fundamentals. These skills will complement
-              your product planning abilities!
-            </p>
-          </div>
-
-          {/* CTA Button */}
-          <Button asChild size="lg" className="w-full">
-            <Link href="/dashboard/challenges">
-              Explore Other Challenges
-            </Link>
-          </Button>
-        </CardContent>
-      </Card>
+        <Suspense fallback={<TierCardLoading />}>
+          <TierCardContent />
+        </Suspense>
+      </div>
     </div>
+  );
+}
+
+// Server component to load challenges
+async function TierCardContent() {
+  // Check user's subscription status
+  const hasPaidSubscription = await hasActiveSubscription();
+
+  // Load challenges for product planning tier
+  const tierData = await getChallengesByTier('product-planning');
+
+  return (
+    <div className="grid gap-6">
+      <TierCard
+        tierStats={tierData.tierInfo}
+        challenges={tierData.challenges}
+        hasActiveSubscription={hasPaidSubscription}
+      />
+    </div>
+  );
+}
+
+// Loading skeleton for tier card
+function TierCardLoading() {
+  return (
+    <div className="h-64 rounded-lg border-2 border-slate-200 bg-slate-50 animate-pulse" />
   );
 }

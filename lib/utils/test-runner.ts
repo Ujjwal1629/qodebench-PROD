@@ -1,9 +1,21 @@
 /**
  * Test Runner for Challenge Validation
  *
- * Executes user code against test cases in a sandboxed environment
+ * Executes user code against test cases using a sandboxed environment
  * Returns detailed results for each test case
+ *
+ * Features:
+ * - Supports modern JavaScript (const, let, arrow functions, classes)
+ * - Auto-detects solution function
+ * - Timeout protection
+ * - Secure sandboxed execution
  */
+
+import {
+  sandboxExecute,
+  getDetectedFunctionName,
+  type SandboxOptions,
+} from './sandbox-executor';
 
 export type TestCase = {
   input: any; // Can be array of args or object with named params
@@ -18,6 +30,7 @@ export type TestResult = {
   actual: any;
   description: string;
   error?: string;
+  executionTime?: number;
 };
 
 export type ValidationResult = {
@@ -28,6 +41,7 @@ export type ValidationResult = {
   failedTests: number;
   results: TestResult[];
   pointsEarned: number;
+  detectedFunction?: string; // The function name that was detected and executed
 };
 
 /**
@@ -64,20 +78,57 @@ function deepEqual(a: any, b: any): boolean {
 /**
  * Execute user code against test cases
  *
- * SECURITY NOTE: This runs user code using Function constructor
- * In production, you should use a proper sandboxing solution like:
- * - isolated-vm
- * - vm2 (deprecated but safer than Function)
- * - Worker threads with resource limits
- * - External sandboxing service (e.g., Judge0, Piston)
+ * This function now uses the sandbox executor which supports:
+ * - Top-level const, let, var declarations
+ * - Arrow functions and function expressions
+ * - Multiple helper functions
+ * - Classes and objects
+ * - Modern JavaScript syntax
+ *
+ * @param userCode - The user's JavaScript/TypeScript code
+ * @param testCases - Array of test cases with input and expected output
+ * @param maxPoints - Maximum points for this challenge (default: 50)
+ * @param options - Optional sandbox configuration
  */
 export function runTestCases(
   userCode: string,
   testCases: TestCase[],
-  maxPoints: number = 50
+  maxPoints: number = 50,
+  options: SandboxOptions = {}
 ): ValidationResult {
   const results: TestResult[] = [];
   let passedCount = 0;
+
+  // Detect the function name once (for efficiency and consistency)
+  const detectedFunction = getDetectedFunctionName(userCode);
+
+  if (!detectedFunction) {
+    // No function found - return early with all failures
+    return {
+      passed: false,
+      score: 0,
+      totalTests: testCases.length,
+      passedTests: 0,
+      failedTests: testCases.length,
+      results: testCases.map((testCase, i) => ({
+        passed: false,
+        input: testCase.input,
+        expected: testCase.expected,
+        actual: null,
+        description: testCase.description || `Test case ${i + 1}`,
+        error:
+          'Could not find a function in your code. Please define a function named "solution" or any named function.',
+      })),
+      pointsEarned: 0,
+    };
+  }
+
+  // Use detected function name in options
+  const execOptions: SandboxOptions = {
+    ...options,
+    functionName: detectedFunction,
+    timeout: options.timeout || 5000,
+  };
 
   for (let i = 0; i < testCases.length; i++) {
     const testCase = testCases[i];
@@ -85,69 +136,28 @@ export function runTestCases(
     const description = testCase.description || `Test case ${i + 1}`;
 
     try {
-      // Strip 'export' keyword from user code (new Function() doesn't support ES6 modules)
-      // User code format: export function functionName(...args) { ... }
-      const codeWithoutExport = userCode.replace(/export\s+/g, '');
+      // Prepare arguments - handle both array and single value inputs
+      const args = Array.isArray(testCase.input)
+        ? testCase.input
+        : [testCase.input];
 
-      // Extract all function names from code
-      const functionMatches = codeWithoutExport.matchAll(/function\s+(\w+)\s*\(/g);
-      const functionNames = Array.from(functionMatches).map(m => m[1]);
+      // Execute using sandbox
+      const execution = sandboxExecute(userCode, args, execOptions);
 
-      if (functionNames.length === 0) {
+      if (!execution.success) {
         results.push({
           passed: false,
           input: testCase.input,
           expected: testCase.expected,
           actual: null,
           description,
-          error: 'Could not find function in your code',
+          error: execution.error,
+          executionTime: execution.executionTime,
         });
         continue;
       }
 
-      // For challenges with multiple functions, find the main entry point
-      // Priority: function with "get" prefix, then last function, then first function
-      let mainFunctionName = functionNames[0];
-
-      // Check for getter functions (getActiveVerifiedUsers, etc.)
-      const getterFunction = functionNames.find(name => name.startsWith('get'));
-      if (getterFunction) {
-        mainFunctionName = getterFunction;
-      } else if (functionNames.length > 1) {
-        // If multiple functions and no getter, use the last one (usually the entry point)
-        mainFunctionName = functionNames[functionNames.length - 1];
-      }
-
-      // Execute all code in a single scope
-      // This ensures variables, constants, and all functions can reference each other
-      const wrappedCode = `
-        ${codeWithoutExport}
-        return ${mainFunctionName};
-      `;
-
-      const userFunction = new Function(wrappedCode)();
-
-      if (typeof userFunction !== 'function') {
-        results.push({
-          passed: false,
-          input: testCase.input,
-          expected: testCase.expected,
-          actual: null,
-          description,
-          error: `Function '${mainFunctionName}' not found in your code`,
-        });
-        continue;
-      }
-
-      // Execute function with test inputs
-      let actual: any;
-      if (Array.isArray(testCase.input)) {
-        // Input is array of arguments: [arg1, arg2, ...]
-        actual = userFunction(...testCase.input);
-      } else {
-        // Input is single value or object
-        actual = userFunction(testCase.input);
-      }
+      const actual = execution.result;
 
       // Compare result
       const passed = deepEqual(actual, testCase.expected);
@@ -160,10 +170,10 @@ export function runTestCases(
         expected: testCase.expected,
         actual,
         description,
+        executionTime: execution.executionTime,
       });
-
     } catch (error: any) {
-      // Runtime error in user code
+      // Unexpected error (shouldn't happen with sandbox, but just in case)
       results.push({
         passed: false,
         input: testCase.input,
@@ -177,8 +187,10 @@ export function runTestCases(
 
   const totalTests = testCases.length;
   const failedTests = totalTests - passedCount;
-  const score = totalTests > 0 ? Math.round((passedCount / totalTests) * 100) : 0;
-  const pointsEarned = totalTests > 0 ? Math.round((passedCount / totalTests) * maxPoints) : 0;
+  const score =
+    totalTests > 0 ? Math.round((passedCount / totalTests) * 100) : 0;
+  const pointsEarned =
+    totalTests > 0 ? Math.round((passedCount / totalTests) * maxPoints) : 0;
 
   return {
     passed: passedCount === totalTests,
@@ -188,6 +200,7 @@ export function runTestCases(
     failedTests,
     results,
     pointsEarned,
+    detectedFunction,
   };
 }
 
@@ -209,5 +222,28 @@ export function formatTestResult(result: TestResult): string {
     message += `\n   Error: ${result.error}`;
   }
 
+  if (result.executionTime !== undefined) {
+    message += `\n   Time: ${result.executionTime}ms`;
+  }
+
   return message;
+}
+
+/**
+ * Quick validation helper - runs a single test case
+ * Useful for quick checks without full test suite
+ */
+export function runSingleTest(
+  userCode: string,
+  input: any,
+  expected: any,
+  options: SandboxOptions = {}
+): TestResult {
+  const result = runTestCases(
+    userCode,
+    [{ input, expected, description: 'Single test' }],
+    100,
+    options
+  );
+  return result.results[0];
 }

@@ -113,7 +113,7 @@ export function FlashcardView() {
   const difficultyStyle = INTERVIEW_DIFFICULTY[currentQuestion.difficulty];
 
   return (
-    <div className="max-w-4xl mx-auto p-6 space-y-6">
+    <div className="max-w-7xl mx-auto p-6 space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="space-y-1">
@@ -144,21 +144,25 @@ export function FlashcardView() {
       </div>
 
       {/* Flashcard */}
-      <div className="perspective-1000">
-        <Card
-          className={`min-h-[400px] cursor-pointer transition-all duration-500 transform preserve-3d ${
-            isFlipped ? 'rotate-y-180' : ''
-          }`}
+      <div style={{ perspective: '1000px' }}>
+        <div
+          className="cursor-pointer transition-all duration-500 relative min-h-[500px]"
           onClick={handleFlip}
           style={{
             transformStyle: 'preserve-3d',
             transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
           }}
         >
-          <CardContent className="p-8 flex flex-col items-center justify-center min-h-[400px]">
-            {!isFlipped ? (
-              // Front - Question
-              <div className="text-center space-y-6" style={{ backfaceVisibility: 'hidden' }}>
+          {/* Front - Question */}
+          <Card
+            className="absolute inset-0 min-h-[500px]"
+            style={{
+              backfaceVisibility: 'hidden',
+              WebkitBackfaceVisibility: 'hidden',
+            }}
+          >
+            <CardContent className="p-8 flex flex-col items-center justify-center min-h-[500px]">
+              <div className="text-center space-y-6">
                 <div className="text-sm font-medium text-brand-600 uppercase tracking-wide">
                   Question
                 </div>
@@ -170,15 +174,20 @@ export function FlashcardView() {
                   <span className="text-sm">Click or press Space to reveal answer</span>
                 </div>
               </div>
-            ) : (
-              // Back - Key Points
-              <div
-                className="w-full space-y-6"
-                style={{
-                  backfaceVisibility: 'hidden',
-                  transform: 'rotateY(180deg)',
-                }}
-              >
+            </CardContent>
+          </Card>
+
+          {/* Back - Key Points */}
+          <Card
+            className="absolute inset-0 min-h-[500px]"
+            style={{
+              backfaceVisibility: 'hidden',
+              WebkitBackfaceVisibility: 'hidden',
+              transform: 'rotateY(180deg)',
+            }}
+          >
+            <CardContent className="p-8 flex flex-col items-center justify-center min-h-[500px]">
+              <div className="w-full max-w-3xl space-y-6">
                 <div className="text-sm font-medium text-green-600 uppercase tracking-wide text-center">
                   Key Points
                 </div>
@@ -193,9 +202,9 @@ export function FlashcardView() {
                   ))}
                 </ul>
               </div>
-            )}
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </div>
       </div>
 
       {/* Navigation */}

@@ -95,60 +95,119 @@ export async function POST(req: NextRequest) {
 
       console.log(`Test results: ${testResults.passedTests}/${testResults.totalTests} passed (${testResults.pointsEarned}/${challenge.points} points)`);
 
-      // Get code quality feedback (ONLY if all tests passed)
-      let qualityCheck = null;
-      if (testResults.passed) {
-        try {
-          const qualityPrompt = `You are a SENIOR DEVELOPER reviewing code quality ONLY.
+      // Analyze test failures to provide helpful context for AI feedback
+      const failedTests = testResults.results.filter(r => !r.passed);
+      const hasExecutionErrors = failedTests.some(r => r.error);
+      const executionErrors = failedTests
+        .filter(r => r.error)
+        .map(r => r.error)
+        .filter((v, i, a) => a.indexOf(v) === i); // unique errors
 
-**CRITICAL RULES:**
-- DO NOT check correctness (test cases already validated that)
-- DO NOT check scoring
-- ONLY analyze code quality and maintainability
-- Is this code production-ready?
+      // Get AI feedback - ALWAYS provide feedback (pass or fail)
+      let aiFeedback = null;
+      try {
+        // Build context about test results for AI
+        const testContext = testResults.passed
+          ? 'All test cases passed.'
+          : `${testResults.failedTests}/${testResults.totalTests} test cases failed.${
+              hasExecutionErrors
+                ? ` Execution errors: ${executionErrors.join('; ')}`
+                : ''
+            }`;
 
-Code to review:
+        // Different prompt based on pass/fail status
+        const feedbackPrompt = testResults.passed
+          ? `You are a SENIOR DEVELOPER reviewing code that PASSED all tests.
+
+**CONTEXT:** ${testContext}
+
+**Code:**
 \`\`\`${language}
 ${code}
 \`\`\`
 
-Analyze ONLY:
-1. Code readability (clear naming, proper structure)
-2. Best practices (error handling, edge cases)
-3. Maintainability (comments if needed, simplicity)
-4. Performance (any obvious inefficiencies)
+**YOUR TASK:** Review code quality and maintainability. The code is correct, so focus on:
+1. Code readability (naming, structure)
+2. Best practices (error handling, edge cases consideration)
+3. Maintainability (simplicity, potential tech debt)
+4. Performance (any inefficiencies)
 
 Return JSON:
 {
-  "is_quality_good": boolean,
-  "reasons": string[] // Each reason should be 1 sentence, max 5 reasons
+  "status": "passed",
+  "summary": "1-2 sentence overall assessment",
+  "strengths": ["strength 1", "strength 2"], // 1-3 strengths
+  "improvements": ["suggestion 1", "suggestion 2"], // 0-3 suggestions (empty if perfect)
+  "codeQualityScore": number // 1-10 score for code quality
+}`
+          : `You are a SENIOR DEVELOPER helping a student debug FAILING code.
+
+**CONTEXT:** ${testContext}
+
+**Challenge:** ${challenge.title}
+${challenge.description ? `**Description:** ${challenge.description.substring(0, 500)}` : ''}
+
+**Student's Code:**
+\`\`\`${language}
+${code}
+\`\`\`
+
+**Failed Test Details:**
+${failedTests
+  .slice(0, 3)
+  .map(
+    (t, i) =>
+      `Test ${i + 1}: Input=${JSON.stringify(t.input)}, Expected=${JSON.stringify(t.expected)}, Got=${JSON.stringify(t.actual)}${t.error ? `, Error: ${t.error}` : ''}`
+  )
+  .join('\n')}
+
+**YOUR TASK:** Help the student understand WHY their code is failing and HOW to fix it.
+- Be encouraging but direct
+- Point out specific issues in their code
+- Give concrete suggestions (not solutions)
+- If there are execution errors, explain what they mean
+
+Return JSON:
+{
+  "status": "failed",
+  "summary": "1-2 sentence diagnosis of the main issue",
+  "issues": [
+    {
+      "issue": "What's wrong (be specific)",
+      "location": "Where in the code (line/function if identifiable)",
+      "hint": "How to think about fixing it (don't give answer)"
+    }
+  ], // 1-3 issues max
+  "encouragement": "Brief encouraging message",
+  "nextSteps": ["Step 1 to try", "Step 2 to try"] // 1-2 concrete next steps
 }`;
 
-          const completion = await openai.chat.completions.create({
-            model: 'gpt-4o-mini',
-            messages: [
-              {
-                role: 'system',
-                content: 'You are a senior developer reviewing code quality ONLY. Do not check correctness.',
-              },
-              {
-                role: 'user',
-                content: qualityPrompt,
-              },
-            ],
-            temperature: 0.2,
-            max_tokens: 300,
-            response_format: { type: 'json_object' },
-          });
+        const completion = await openai.chat.completions.create({
+          model: 'gpt-4o-mini',
+          messages: [
+            {
+              role: 'system',
+              content: testResults.passed
+                ? 'You are a senior developer providing code quality feedback on working code.'
+                : 'You are a helpful senior developer mentoring a student. Be encouraging but honest.',
+            },
+            {
+              role: 'user',
+              content: feedbackPrompt,
+            },
+          ],
+          temperature: 0.3,
+          max_tokens: 500,
+          response_format: { type: 'json_object' },
+        });
 
-          qualityCheck = JSON.parse(completion.choices[0].message.content || '{}');
-        } catch (error) {
-          console.error('Error getting quality check:', error);
-          // Continue without quality check if it fails
-        }
+        aiFeedback = JSON.parse(completion.choices[0].message.content || '{}');
+      } catch (error) {
+        console.error('Error getting AI feedback:', error);
+        // Continue without AI feedback if it fails
       }
 
-      // Return test case results + optional quality check
+      // Return test case results + AI feedback (always included when available)
       const response = {
         passed: testResults.passed,
         score: testResults.score,
@@ -164,8 +223,11 @@ Return JSON:
           details: testResults.results,
         },
 
-        // Code quality check (only if passed)
-        ...(qualityCheck && { qualityCheck }),
+        // AI feedback (always included when available)
+        ...(aiFeedback && { aiFeedback }),
+
+        // Detected function name (helpful for debugging)
+        detectedFunction: testResults.detectedFunction,
       };
 
       // Cache result
