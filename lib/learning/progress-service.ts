@@ -5,7 +5,7 @@ import { QuizService } from '@/lib/quiz/quiz-service';
 export class ProgressService {
   /**
    * Check if a user can access a specific lesson
-   * First lesson is always accessible, others require previous lesson completion
+   * All lessons are now accessible - users can start from any lesson they prefer
    */
   static async canAccessLesson(
     userId: string,
@@ -13,7 +13,7 @@ export class ProgressService {
   ): Promise<LessonAccessCheck> {
     const supabase = await createClient();
 
-    // Get current lesson details
+    // Get current lesson details to verify it exists
     const { data: currentLesson, error } = await supabase
       .from('ai_learning_lessons')
       .select('*')
@@ -27,44 +27,7 @@ export class ProgressService {
       };
     }
 
-    // First lesson is always accessible
-    if (currentLesson.order_index === 1) {
-      return {
-        can_access: true,
-      };
-    }
-
-    // Get previous lesson
-    const previousOrder = currentLesson.order_index - 1;
-    const { data: previousLesson } = await supabase
-      .from('ai_learning_lessons')
-      .select('*')
-      .eq('learning_path_id', currentLesson.learning_path_id)
-      .eq('order_index', previousOrder)
-      .single();
-
-    if (!previousLesson) {
-      return {
-        can_access: false,
-        reason: 'Previous lesson not found',
-      };
-    }
-
-    // Check if previous lesson quiz was passed
-    const hasPassed = await QuizService.hasPassedQuiz(userId, previousLesson.id);
-
-    if (!hasPassed) {
-      return {
-        can_access: false,
-        reason: 'You must complete the previous lesson to unlock this one',
-        required_lesson: {
-          id: previousLesson.id,
-          title: previousLesson.title,
-          passed: false,
-        },
-      };
-    }
-
+    // All lessons are accessible - users can start from any lesson
     return {
       can_access: true,
     };
@@ -129,28 +92,18 @@ export class ProgressService {
       }
     }
 
-    // Process lessons and determine access in memory
-    const lessonsWithStatus = lessonsResult.data.map((lesson: any, index: number) => {
+    // Process lessons - all lessons are now accessible
+    const lessonsWithStatus = lessonsResult.data.map((lesson: any) => {
       // Get the latest quiz session from our map
       const latestQuiz = quizSessionMap.get(lesson.id);
 
       const quizPassed = latestQuiz?.passed || false;
       const latestScore = latestQuiz?.score_percentage;
 
-      // Determine access: first lesson always accessible, others require previous completion
-      let canAccess = false;
-      if (lesson.order_index === 1) {
-        canAccess = true;
-      } else if (index > 0) {
-        // Check if previous lesson is completed
-        const previousLesson = lessonsResult.data[index - 1] as any;
-        const previousQuiz = quizSessionMap.get(previousLesson.id);
-        canAccess = previousQuiz?.passed || false;
-      }
-
+      // All lessons are accessible - users can start from any lesson they prefer
       return {
         ...lesson,
-        can_access: canAccess,
+        can_access: true, // All lessons unlocked
         is_completed: quizPassed,
         quiz_passed: quizPassed,
         latest_score: latestScore,
@@ -197,12 +150,11 @@ export class ProgressService {
 
     const lessonsWithStatus = await Promise.all(
       lessons.map(async (lesson) => {
-        const accessCheck = await this.canAccessLesson(userId, lesson.id);
         const quizScore = await QuizService.getLatestQuizScore(userId, lesson.id);
 
         return {
           ...lesson,
-          can_access: accessCheck.can_access,
+          can_access: true, // All lessons unlocked
           is_completed: quizScore?.passed || false,
           quiz_passed: quizScore?.passed || false,
           latest_score: quizScore?.score_percentage,

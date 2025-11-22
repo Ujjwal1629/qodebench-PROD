@@ -44,15 +44,16 @@ export function OfficeChallengeLayout({ challenge }: OfficeChallengeLayoutProps)
     const tier = challenge.tier?.toLowerCase();
     switch (tier) {
       case 'beginner':
-        return '/dashboard/challenges/software-engineering-essentials';
       case 'intermediate':
+        // Both beginner and intermediate tiers are shown on Practical Coding Challenges page
         return '/dashboard/challenges/practical';
+      case 'software-engineering-essentials':
+        return '/dashboard/challenges/software-engineering-essentials';
       case 'advanced':
         return '/dashboard/challenges/advanced';
       case 'product_planning':
+      case 'product-planning':
         return '/dashboard/challenges/product-planning';
-      case 'office_fundamentals':
-        return '/dashboard/challenges';
       default:
         return '/dashboard/challenges';
     }
@@ -152,9 +153,9 @@ export function OfficeChallengeLayout({ challenge }: OfficeChallengeLayoutProps)
       setShowValidationModal(false);
       setShowCelebration(true);
 
-      // Redirect after celebration
+      // Redirect after celebration to the tier-specific challenges list
       setTimeout(() => {
-        router.push('/dashboard/challenges');
+        router.push(getBackUrl());
       }, 3000);
 
     } catch (error: any) {
@@ -341,7 +342,7 @@ export function OfficeChallengeLayout({ challenge }: OfficeChallengeLayoutProps)
 
                           setShowCelebration(true);
                           setTimeout(() => {
-                            router.push('/dashboard/challenges');
+                            router.push(getBackUrl());
                           }, 3000);
                         } else {
                           setShowValidationModal(true);

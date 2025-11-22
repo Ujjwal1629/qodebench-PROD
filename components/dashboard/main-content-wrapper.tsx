@@ -14,7 +14,7 @@ export function MainContentWrapper({ children }: MainContentWrapperProps) {
   return (
     <main
       className={cn(
-        'min-h-screen pt-16 pb-20 lg:pb-8 transition-all duration-300',
+        'min-h-screen pt-16 pb-8 transition-all duration-300',
         sidebarCollapsed ? 'lg:pl-20' : 'lg:pl-64'
       )}
     >

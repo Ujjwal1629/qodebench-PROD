@@ -34,10 +34,10 @@ export function MultipleChoiceQuestion({
 
   return (
     <Card className="border-2">
-      <CardContent className="pt-6 space-y-4">
-        <div className="flex items-start justify-between gap-4">
-          <p className="text-lg font-medium leading-relaxed">{question.question_text}</p>
-          <Badge className={difficultyColors[question.difficulty]}>{question.difficulty}</Badge>
+      <CardContent className="pt-4 sm:pt-6 space-y-4 p-4 sm:p-6">
+        <div className="flex flex-col sm:flex-row items-start justify-between gap-2 sm:gap-4">
+          <p className="text-base sm:text-lg font-medium leading-relaxed break-words flex-1">{question.question_text}</p>
+          <Badge className={`${difficultyColors[question.difficulty]} text-xs sm:text-sm flex-shrink-0`}>{question.difficulty}</Badge>
         </div>
 
         {question.code_example && (
@@ -56,24 +56,24 @@ export function MultipleChoiceQuestion({
           value={selectedAnswer}
           onValueChange={onAnswerChange}
           disabled={disabled}
-          className="space-y-3"
+          className="space-y-2 sm:space-y-3"
         >
           {question.options && Object.entries(question.options).map(([key, value]) => (
             <div
               key={key}
               onClick={() => !disabled && onAnswerChange(key)}
-              className={`flex items-center space-x-3 p-4 rounded-lg border-2 transition-colors ${
+              className={`flex items-start space-x-2 sm:space-x-3 p-3 sm:p-4 rounded-lg border-2 transition-colors ${
                 selectedAnswer === key
                   ? 'border-sky-500 bg-sky-50'
                   : 'border-border hover:border-sky-200 hover:bg-sky-50/50'
               } ${disabled ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}`}
             >
-              <RadioGroupItem value={key} id={`${question.id}-${key}`} disabled={disabled} />
+              <RadioGroupItem value={key} id={`${question.id}-${key}`} disabled={disabled} className="mt-0.5 flex-shrink-0" />
               <Label
                 htmlFor={`${question.id}-${key}`}
-                className="flex-1 cursor-pointer font-normal"
+                className="flex-1 cursor-pointer font-normal text-sm sm:text-base break-words"
               >
-                <span className="font-semibold text-sky-600 mr-2">{key}.</span>
+                <span className="font-semibold text-sky-600 mr-1 sm:mr-2">{key}.</span>
                 {value}
               </Label>
             </div>

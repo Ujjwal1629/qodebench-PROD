@@ -71,6 +71,7 @@ export const MOBILE_NAV_ITEMS: NavItem[] = [
   NAV_ITEMS[1], // Learning
   NAV_ITEMS[2], // Challenges
   NAV_ITEMS[3], // Interviews
+  NAV_ITEMS[4], // Leaderboard
 ];
 
 // Experience levels and point thresholds

@@ -70,44 +70,44 @@ export function LeaderboardTable({ users, isLoading, onUserClick, currentUserId 
           }`}
           onClick={() => onUserClick(user.id)}
         >
-          <CardContent className="p-4">
-            <div className="flex items-center gap-4">
+          <CardContent className="p-3 sm:p-4">
+            <div className="flex items-center gap-2 sm:gap-4">
               {/* Rank */}
-              <div className="flex items-center justify-center w-12">
-                {user.rank === 1 && <Trophy className="h-8 w-8 text-yellow-500" />}
-                {user.rank === 2 && <Medal className="h-8 w-8 text-gray-400" />}
-                {user.rank === 3 && <Award className="h-8 w-8 text-amber-600" />}
+              <div className="flex items-center justify-center w-8 sm:w-12 flex-shrink-0">
+                {user.rank === 1 && <Trophy className="h-6 w-6 sm:h-8 sm:w-8 text-yellow-500" />}
+                {user.rank === 2 && <Medal className="h-6 w-6 sm:h-8 sm:w-8 text-gray-400" />}
+                {user.rank === 3 && <Award className="h-6 w-6 sm:h-8 sm:w-8 text-amber-600" />}
                 {user.rank > 3 && (
-                  <span className="text-2xl font-bold text-muted-foreground">
+                  <span className="text-lg sm:text-2xl font-bold text-muted-foreground">
                     {user.rank}
                   </span>
                 )}
               </div>
 
               {/* Avatar */}
-              <Avatar className="h-12 w-12">
+              <Avatar className="h-10 w-10 sm:h-12 sm:w-12 flex-shrink-0">
                 <AvatarImage src={user.avatar_url || undefined} alt={user.username} />
-                <AvatarFallback className="bg-blue-600 text-white font-semibold">
+                <AvatarFallback className="bg-blue-600 text-white font-semibold text-sm sm:text-base">
                   {getUserInitials(user.username, user.full_name)}
                 </AvatarFallback>
               </Avatar>
 
               {/* User Info */}
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1">
-                  <p className="font-semibold text-lg truncate">{user.username}</p>
+                <div className="flex items-center gap-1 sm:gap-2 mb-0.5 sm:mb-1">
+                  <p className="font-semibold text-sm sm:text-lg truncate">{user.username}</p>
                   {user.experience_level && (
-                    <Badge variant="outline" className="capitalize">
+                    <Badge variant="outline" className="capitalize text-[10px] sm:text-xs py-0 px-1 sm:px-2">
                       {user.experience_level}
                     </Badge>
                   )}
                 </div>
                 {user.full_name && (
-                  <p className="text-sm text-muted-foreground truncate">{user.full_name}</p>
+                  <p className="text-xs sm:text-sm text-muted-foreground truncate">{user.full_name}</p>
                 )}
               </div>
 
-              {/* Stats */}
+              {/* Stats - Hidden on mobile */}
               <div className="hidden md:flex items-center gap-6 text-center">
                 <div>
                   <p className="text-sm text-muted-foreground">Challenges</p>
@@ -123,9 +123,9 @@ export function LeaderboardTable({ users, isLoading, onUserClick, currentUserId 
               </div>
 
               {/* Points */}
-              <div className="text-right">
-                <p className="text-sm text-muted-foreground">Points</p>
-                <p className="text-2xl font-bold text-blue-600">
+              <div className="text-right flex-shrink-0">
+                <p className="text-xs sm:text-sm text-muted-foreground">Points</p>
+                <p className="text-lg sm:text-2xl font-bold text-blue-600">
                   {user.points.toLocaleString()}
                 </p>
               </div>
@@ -146,40 +146,40 @@ export function LeaderboardTable({ users, isLoading, onUserClick, currentUserId 
             className="cursor-pointer transition-all hover:shadow-md ring-2 ring-brand-500 border-brand-300 bg-brand-50"
             onClick={() => onUserClick(currentUserData.id)}
           >
-            <CardContent className="p-4">
-              <div className="flex items-center gap-4">
+            <CardContent className="p-3 sm:p-4">
+              <div className="flex items-center gap-2 sm:gap-4">
                 {/* Rank */}
-                <div className="flex items-center justify-center w-12">
-                  <span className="text-2xl font-bold text-brand-600">
+                <div className="flex items-center justify-center w-8 sm:w-12 flex-shrink-0">
+                  <span className="text-lg sm:text-2xl font-bold text-brand-600">
                     {currentUserData.rank}
                   </span>
                 </div>
 
                 {/* Avatar */}
-                <Avatar className="h-12 w-12">
+                <Avatar className="h-10 w-10 sm:h-12 sm:w-12 flex-shrink-0">
                   <AvatarImage src={currentUserData.avatar_url || undefined} alt={currentUserData.username} />
-                  <AvatarFallback className="bg-blue-600 text-white font-semibold">
+                  <AvatarFallback className="bg-blue-600 text-white font-semibold text-sm sm:text-base">
                     {getUserInitials(currentUserData.username, currentUserData.full_name)}
                   </AvatarFallback>
                 </Avatar>
 
                 {/* User Info */}
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <p className="font-semibold text-lg truncate">{currentUserData.username}</p>
+                  <div className="flex items-center gap-1 sm:gap-2 mb-0.5 sm:mb-1 flex-wrap">
+                    <p className="font-semibold text-sm sm:text-lg truncate">{currentUserData.username}</p>
                     {currentUserData.experience_level && (
-                      <Badge variant="outline" className="capitalize">
+                      <Badge variant="outline" className="capitalize text-[10px] sm:text-xs py-0 px-1 sm:px-2">
                         {currentUserData.experience_level}
                       </Badge>
                     )}
-                    <Badge className="bg-brand-600 text-white">You</Badge>
+                    <Badge className="bg-brand-600 text-white text-[10px] sm:text-xs py-0 px-1 sm:px-2">You</Badge>
                   </div>
                   {currentUserData.full_name && (
-                    <p className="text-sm text-muted-foreground truncate">{currentUserData.full_name}</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground truncate">{currentUserData.full_name}</p>
                   )}
                 </div>
 
-                {/* Stats */}
+                {/* Stats - Hidden on mobile */}
                 <div className="hidden md:flex items-center gap-6 text-center">
                   <div>
                     <p className="text-sm text-muted-foreground">Challenges</p>
@@ -195,9 +195,9 @@ export function LeaderboardTable({ users, isLoading, onUserClick, currentUserId 
                 </div>
 
                 {/* Points */}
-                <div className="text-right">
-                  <p className="text-sm text-muted-foreground">Points</p>
-                  <p className="text-2xl font-bold text-blue-600">
+                <div className="text-right flex-shrink-0">
+                  <p className="text-xs sm:text-sm text-muted-foreground">Points</p>
+                  <p className="text-lg sm:text-2xl font-bold text-blue-600">
                     {currentUserData.points.toLocaleString()}
                   </p>
                 </div>

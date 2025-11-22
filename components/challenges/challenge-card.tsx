@@ -3,6 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { formatTime, truncate } from '@/lib/utils/format';
+import { cn } from '@/lib/utils';
 import {
   DIFFICULTY_COLORS,
   CATEGORY_LABELS,
@@ -71,17 +72,18 @@ export function ChallengeCard({ challenge, hasActiveSubscription = false }: Chal
           ? 'border-primary/30 bg-gradient-to-br from-background to-primary/5 hover:shadow-lg hover:-translate-y-1'
           : 'hover:shadow-lg hover:-translate-y-1'
     }`}>
-      <CardContent className="p-6 h-full flex flex-col">
-        <div className="space-y-4 flex-1 flex flex-col">
+      <CardContent className="p-4 sm:p-6 h-full flex flex-col">
+        <div className="space-y-3 sm:space-y-4 flex-1 flex flex-col">
           {/* Badges Row */}
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
             <Badge
               variant="outline"
-              className={
+              className={cn(
+                'text-xs',
                 CATEGORY_COLORS[
                   challenge.category as keyof typeof CATEGORY_COLORS
                 ]
-              }
+              )}
             >
               {
                 CATEGORY_LABELS[
@@ -91,23 +93,25 @@ export function ChallengeCard({ challenge, hasActiveSubscription = false }: Chal
             </Badge>
             <Badge
               variant="outline"
-              className={
+              className={cn(
+                'text-xs',
                 DIFFICULTY_COLORS[
                   challenge.difficulty as keyof typeof DIFFICULTY_COLORS
                 ]
-              }
+              )}
             >
               {challenge.difficulty.charAt(0).toUpperCase() +
                 challenge.difficulty.slice(1)}
             </Badge>
             {requiresPremium && (
-              <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20">
+              <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20 text-xs">
                 <Crown className="h-3 w-3 mr-1" />
-                Premium
+                <span className="hidden sm:inline">Premium</span>
+                <span className="sm:hidden">Pro</span>
               </Badge>
             )}
             {isLocked && (
-              <Badge variant="secondary" className="bg-slate-200 text-slate-700 border-slate-300">
+              <Badge variant="secondary" className="bg-slate-200 text-slate-700 border-slate-300 text-xs">
                 <Lock className="h-3 w-3 mr-1" />
                 Locked
               </Badge>
@@ -115,7 +119,7 @@ export function ChallengeCard({ challenge, hasActiveSubscription = false }: Chal
           </div>
 
           {/* Title */}
-          <h3 className="font-semibold text-slate-900 line-clamp-2 text-lg">
+          <h3 className="font-semibold text-slate-900 line-clamp-2 text-base sm:text-lg leading-tight">
             {challenge.title}
           </h3>
 

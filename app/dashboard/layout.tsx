@@ -3,7 +3,6 @@ import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { Sidebar } from '@/components/dashboard/sidebar';
 import { TopBar } from '@/components/dashboard/topbar';
-import { MobileNav } from '@/components/dashboard/mobile-nav';
 import { MainContentWrapper } from '@/components/dashboard/main-content-wrapper';
 import { ScrollToTop } from '@/components/scroll-to-top';
 
@@ -62,9 +61,6 @@ export default async function DashboardLayout({
 
       {/* Main content with dynamic padding based on sidebar state */}
       <MainContentWrapper>{children}</MainContentWrapper>
-
-      {/* Mobile navigation */}
-      <MobileNav />
     </div>
   );
 }

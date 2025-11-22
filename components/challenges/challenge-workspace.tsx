@@ -18,6 +18,26 @@ interface ChallengeWorkspaceProps {
   challenge: any;
 }
 
+// Helper function to get tier-specific back URL
+function getBackUrl(tier: string | null | undefined): string {
+  const tierLower = tier?.toLowerCase();
+  switch (tierLower) {
+    case 'beginner':
+    case 'intermediate':
+      // Both beginner and intermediate tiers are shown on Practical Coding Challenges page
+      return '/dashboard/challenges/practical';
+    case 'software-engineering-essentials':
+      return '/dashboard/challenges/software-engineering-essentials';
+    case 'advanced':
+      return '/dashboard/challenges/advanced';
+    case 'product_planning':
+    case 'product-planning':
+      return '/dashboard/challenges/product-planning';
+    default:
+      return '/dashboard/challenges';
+  }
+}
+
 export function ChallengeWorkspace({ challenge }: ChallengeWorkspaceProps) {
   // Check for office/document challenge and route to appropriate layout
   const isDocumentChallenge =
@@ -370,8 +390,8 @@ function CodeChallengeLayout({ challenge }: ChallengeWorkspaceProps) {
       // If locked, user will see paywall on the challenge page
       router.push(`/dashboard/challenges/${submissionResult.nextChallenge.slug}`);
     } else {
-      // No next challenge, go back to challenges list
-      router.push('/dashboard/challenges');
+      // No next challenge, go back to the tier-specific challenges list
+      router.push(getBackUrl(challenge.tier));
     }
   };
 

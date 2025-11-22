@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { Lock, Unlock, ChevronDown, ChevronUp, CheckCircle2, Circle, PlayCircle } from 'lucide-react';
+import { Lock, Unlock, ChevronDown, ChevronUp, CheckCircle2, Circle, PlayCircle, ChevronRight } from 'lucide-react';
 import { TierProgressStats } from '@/app/actions/challenges';
 import { cn } from '@/lib/utils';
 import { FREE_CHALLENGES_PER_TIER } from '@/lib/constants/subscription';
@@ -39,6 +39,9 @@ export function TierCard({ tierStats, challenges, onUnlock, hasActiveSubscriptio
     (tierStats.isUnlocked && tierStats.percentage < 100) || hasFreeAccessibleChallenges
   );
 
+  // Track which challenge is expanded on mobile
+  const [expandedChallengeId, setExpandedChallengeId] = useState<string | null>(null);
+
   const {
     tier,
     name,
@@ -69,12 +72,12 @@ export function TierCard({ tierStats, challenges, onUnlock, hasActiveSubscriptio
       )}
     >
       <CardHeader className="pb-4">
-        <div className="flex items-start justify-between gap-4">
+        <div className="flex items-start justify-between gap-3 sm:gap-4">
           {/* Tier Icon & Info */}
-          <div className="flex items-start gap-3">
+          <div className="flex items-start gap-2 sm:gap-3 flex-1 min-w-0">
             <div
               className={cn(
-                'text-4xl w-14 h-14 flex items-center justify-center rounded-xl',
+                'text-3xl sm:text-4xl w-12 h-12 sm:w-14 sm:h-14 flex items-center justify-center rounded-xl flex-shrink-0',
                 isUnlocked
                   ? 'bg-white shadow-sm'
                   : hasFreeAccessibleChallenges
@@ -84,34 +87,30 @@ export function TierCard({ tierStats, challenges, onUnlock, hasActiveSubscriptio
             >
               {icon}
             </div>
-            <div className="flex-1">
-              <div className="flex items-center gap-2 mb-1">
-                <h3 className="text-xl font-bold text-slate-900">{name}</h3>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-1 flex-wrap">
+                <h3 className="text-lg sm:text-xl font-bold text-slate-900 truncate">{name}</h3>
                 {isCompleted && (
-                  <Badge variant="outline" className="bg-green-50 text-green-700 border-green-300">
+                  <Badge variant="outline" className="bg-green-50 text-green-700 border-green-300 flex-shrink-0">
                     <CheckCircle2 className="h-3 w-3 mr-1" />
-                    Completed
+                    <span className="hidden sm:inline">Completed</span>
+                    <span className="sm:hidden">Done</span>
                   </Badge>
                 )}
                 {!isUnlocked && !hasFreeAccessibleChallenges && (
-                  <Badge variant="outline" className="bg-slate-50 text-slate-600 border-slate-300">
+                  <Badge variant="outline" className="bg-slate-50 text-slate-600 border-slate-300 flex-shrink-0">
                     <Lock className="h-3 w-3 mr-1" />
                     Locked
                   </Badge>
                 )}
-                {/* {!isUnlocked && hasFreeAccessibleChallenges && (
-                  <Badge variant="outline" className="bg-blue-50 text-blue-600 border-blue-200">
-                    Free Tier
-                  </Badge>
-                )} */}
               </div>
-              <p className="text-sm text-slate-600">{description}</p>
+              <p className="text-xs sm:text-sm text-slate-600 line-clamp-2">{description}</p>
             </div>
           </div>
 
           {/* Lock/Unlock Icon */}
           <div className={cn(
-            'p-2 rounded-lg',
+            'p-1.5 sm:p-2 rounded-lg flex-shrink-0',
             isUnlocked
               ? 'bg-green-50'
               : hasFreeAccessibleChallenges
@@ -119,11 +118,11 @@ export function TierCard({ tierStats, challenges, onUnlock, hasActiveSubscriptio
               : 'bg-slate-100'
           )}>
             {isUnlocked ? (
-              <Unlock className="h-5 w-5 text-green-600" />
+              <Unlock className="h-4 w-4 sm:h-5 sm:w-5 text-green-600" />
             ) : hasFreeAccessibleChallenges ? (
-              <Unlock className="h-5 w-5 text-blue-600" />
+              <Unlock className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
             ) : (
-              <Lock className="h-5 w-5 text-slate-400" />
+              <Lock className="h-4 w-4 sm:h-5 sm:w-5 text-slate-400" />
             )}
           </div>
         </div>
@@ -208,12 +207,13 @@ export function TierCard({ tierStats, challenges, onUnlock, hasActiveSubscriptio
                   const isPremiumPosition = challenge.order_in_tier > freeLimit;
                   const requiresSubscription = isPremiumPosition && !isFreeAccessible;
                   const isSubscriptionLocked = requiresSubscription && !hasActiveSubscription;
+                  const isMobileExpanded = expandedChallengeId === challenge.id;
 
                   return (
                     <div
                       key={challenge.id}
                       className={cn(
-                        'flex items-center gap-3 p-3 rounded-lg border transition-all',
+                        'rounded-lg border transition-all',
                         isCompleted && 'bg-green-50 border-green-200',
                         isInProgress && 'bg-blue-50 border-blue-200',
                         isSubscriptionLocked && 'bg-amber-50 border-amber-200 hover:border-amber-300',
@@ -221,69 +221,125 @@ export function TierCard({ tierStats, challenges, onUnlock, hasActiveSubscriptio
                         !isCompleted && !isInProgress && !isLocked && !isSubscriptionLocked && 'bg-white border-slate-200 hover:border-slate-300'
                       )}
                     >
-                      {/* Challenge Status Icon */}
-                      <div className="flex-shrink-0">
-                        {isSubscriptionLocked ? (
-                          <Lock className="h-4 w-4 text-amber-600" />
-                        ) : isLocked ? (
-                          <Lock className="h-4 w-4 text-slate-400" />
-                        ) : isCompleted ? (
-                          <CheckCircle2 className="h-4 w-4 text-green-600" />
-                        ) : isInProgress ? (
-                          <PlayCircle className="h-4 w-4 text-blue-600" />
-                        ) : (
-                          <Circle className="h-4 w-4 text-slate-400" />
-                        )}
-                      </div>
-
-                      {/* Challenge Title */}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <p className={cn('text-sm font-medium truncate', (isLocked || isSubscriptionLocked) && 'text-slate-500')}>
-                            {index + 1}. {challenge.title}
-                          </p>
-                          {isFreeAccessible && tier !== 'beginner' && challenge.order_in_tier <= freeLimit && (
-                            <Badge variant="outline" className="text-xs py-0 px-1.5 bg-green-50 text-green-700 border-green-200 flex-shrink-0">
-                              Free
-                            </Badge>
-                          )}
-                          {requiresSubscription && (
-                            <Badge variant="outline" className="text-xs py-0 px-1.5 bg-amber-50 text-amber-700 border-amber-200 flex-shrink-0">
-                              Premium
-                            </Badge>
+                      {/* Main Row - Clickable on mobile to expand */}
+                      <div
+                        className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 cursor-pointer sm:cursor-default"
+                        onClick={() => setExpandedChallengeId(isMobileExpanded ? null : challenge.id)}
+                      >
+                        {/* Challenge Status Icon */}
+                        <div className="flex-shrink-0">
+                          {isSubscriptionLocked ? (
+                            <Lock className="h-4 w-4 text-amber-600" />
+                          ) : isLocked ? (
+                            <Lock className="h-4 w-4 text-slate-400" />
+                          ) : isCompleted ? (
+                            <CheckCircle2 className="h-4 w-4 text-green-600" />
+                          ) : isInProgress ? (
+                            <PlayCircle className="h-4 w-4 text-blue-600" />
+                          ) : (
+                            <Circle className="h-4 w-4 text-slate-400" />
                           )}
                         </div>
-                        {/* Show unlock requirement or subscription message */}
-                        {isSubscriptionLocked ? (
-                          <p className="text-xs text-amber-700 mt-0.5">Upgrade to unlock premium challenges</p>
-                        ) : challenge.unlockReason && !isFreeAccessible && (
-                          <p className="text-xs text-slate-500 mt-0.5">{challenge.unlockReason}</p>
-                        )}
+
+                        {/* Challenge Title */}
+                        <div className="flex-1 min-w-0 overflow-hidden">
+                          <div className="flex items-center gap-1 sm:gap-2">
+                            <p className={cn(
+                              'text-xs sm:text-sm font-medium flex-1',
+                              isMobileExpanded ? '' : 'truncate',
+                              (isLocked || isSubscriptionLocked) && 'text-slate-500'
+                            )}>
+                              {index + 1}. {challenge.title}
+                            </p>
+                            <div className="flex items-center gap-1 flex-shrink-0">
+                              {isFreeAccessible && tier !== 'beginner' && challenge.order_in_tier <= freeLimit && (
+                                <Badge variant="outline" className="text-[10px] sm:text-xs py-0 px-1 sm:px-1.5 bg-green-50 text-green-700 border-green-200">
+                                  Free
+                                </Badge>
+                              )}
+                              {requiresSubscription && (
+                                <Badge variant="outline" className="text-[10px] sm:text-xs py-0 px-1 sm:px-1.5 bg-amber-50 text-amber-700 border-amber-200">
+                                  Pro
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Desktop Action Button - Hidden on mobile */}
+                        <div className="hidden sm:block">
+                          {isSubscriptionLocked ? (
+                            <Button
+                              asChild
+                              variant="outline"
+                              size="sm"
+                              className="flex-shrink-0 border-amber-600 text-amber-700 hover:bg-amber-600 hover:text-white"
+                            >
+                              <Link href={`/dashboard/challenges/${challenge.slug}`}>
+                                Upgrade
+                              </Link>
+                            </Button>
+                          ) : !isLocked && (
+                            <Button
+                              asChild
+                              variant={isCompleted ? 'outline' : 'default'}
+                              size="sm"
+                              className="flex-shrink-0"
+                            >
+                              <Link href={`/dashboard/challenges/${challenge.slug}`}>
+                                {isCompleted ? 'Review' : isInProgress ? 'Continue' : 'Start'}
+                              </Link>
+                            </Button>
+                          )}
+                        </div>
+
+                        {/* Mobile expand indicator */}
+                        <div className="sm:hidden flex-shrink-0">
+                          <ChevronRight className={cn(
+                            'h-4 w-4 text-slate-400 transition-transform',
+                            isMobileExpanded && 'rotate-90'
+                          )} />
+                        </div>
                       </div>
 
-                      {/* Action Button */}
-                      {isSubscriptionLocked ? (
-                        <Button
-                          asChild
-                          variant="outline"
-                          size="sm"
-                          className="flex-shrink-0 border-amber-600 text-amber-700 hover:bg-amber-600 hover:text-white"
-                        >
-                          <Link href={`/dashboard/challenges/${challenge.slug}`}>
-                            Upgrade
-                          </Link>
-                        </Button>
-                      ) : !isLocked && (
-                        <Button
-                          asChild
-                          variant={isCompleted ? 'outline' : 'default'}
-                          size="sm"
-                          className="flex-shrink-0"
-                        >
-                          <Link href={`/dashboard/challenges/${challenge.slug}`}>
-                            {isCompleted ? 'Review' : isInProgress ? 'Continue' : 'Start'}
-                          </Link>
-                        </Button>
+                      {/* Mobile Expanded Section */}
+                      {isMobileExpanded && (
+                        <div className="sm:hidden px-2 pb-2 pt-0 border-t border-slate-100">
+                          <div className="pt-2 flex flex-col gap-2">
+                            {/* Show unlock requirement or subscription message */}
+                            {isSubscriptionLocked ? (
+                              <p className="text-xs text-amber-700">Upgrade to unlock premium challenges</p>
+                            ) : challenge.unlockReason && !isFreeAccessible && (
+                              <p className="text-xs text-slate-500">{challenge.unlockReason}</p>
+                            )}
+                            {/* Mobile Action Button */}
+                            {isSubscriptionLocked ? (
+                              <Button
+                                asChild
+                                variant="outline"
+                                size="sm"
+                                className="w-full border-amber-600 text-amber-700 hover:bg-amber-600 hover:text-white"
+                              >
+                                <Link href={`/dashboard/challenges/${challenge.slug}`}>
+                                  Upgrade to Premium
+                                </Link>
+                              </Button>
+                            ) : !isLocked ? (
+                              <Button
+                                asChild
+                                variant={isCompleted ? 'outline' : 'default'}
+                                size="sm"
+                                className="w-full"
+                              >
+                                <Link href={`/dashboard/challenges/${challenge.slug}`}>
+                                  {isCompleted ? 'Review Challenge' : isInProgress ? 'Continue Challenge' : 'Start Challenge'}
+                                </Link>
+                              </Button>
+                            ) : (
+                              <p className="text-xs text-slate-500 italic">Complete previous challenges to unlock</p>
+                            )}
+                          </div>
+                        </div>
                       )}
                     </div>
                   );

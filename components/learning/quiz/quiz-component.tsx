@@ -103,15 +103,15 @@ export function QuizComponent({ lessonId, questions, nextLessonUrl }: QuizCompon
   return (
     <div className="space-y-6 pb-8">
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center justify-between">
+        <CardHeader className="p-4 sm:p-6">
+          <CardTitle className="flex items-center justify-between text-lg sm:text-xl">
             <span>Quiz Time!</span>
-            <span className="text-sm font-normal text-muted-foreground">
+            <span className="text-xs sm:text-sm font-normal text-muted-foreground">
               {questions.length} questions
             </span>
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-6">
+        <CardContent className="space-y-4 sm:space-y-6 p-4 sm:p-6">
           <QuizProgress
             currentQuestion={currentQuestionIndex + 1}
             totalQuestions={questions.length}
@@ -142,7 +142,7 @@ export function QuizComponent({ lessonId, questions, nextLessonUrl }: QuizCompon
 
           {!allQuestionsAnswered && (
             <Alert>
-              <AlertDescription className="text-sm">
+              <AlertDescription className="text-xs sm:text-sm break-words">
                 You need to answer all {questions.length} questions before submitting the quiz.
                 Progress: {answeredCount}/{questions.length}
               </AlertDescription>

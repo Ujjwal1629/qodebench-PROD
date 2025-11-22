@@ -87,8 +87,8 @@ export default function LearningPage() {
 
       {/* Welcome Message */}
       <div>
-        <h1 className="text-3xl font-bold text-slate-900">Start Your Learning Journey</h1>
-        <p className="mt-2 text-slate-600">
+        <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Start Your Learning Journey</h1>
+        <p className="mt-2 text-sm sm:text-base text-slate-600">
           Based on your skill assessment, we've identified the perfect learning path for you.
           Our structured curriculum will help you build a strong foundation in full-stack web development.
         </p>
@@ -96,7 +96,7 @@ export default function LearningPage() {
 
       {/* Learning Paths */}
       <div>
-        <h2 className="text-2xl font-semibold text-slate-900 mb-4">Learning Paths</h2>
+        <h2 className="text-xl sm:text-2xl font-semibold text-slate-900 mb-4">Learning Paths</h2>
         <div className="grid gap-6 md:grid-cols-2">
           {learningPaths.map((path) => {
             const Icon = path.icon;

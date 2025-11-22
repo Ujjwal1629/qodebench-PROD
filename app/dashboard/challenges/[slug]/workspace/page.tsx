@@ -10,6 +10,26 @@ import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import type { AdvancedChallengeMetadata, ProductPlanningMetadata } from '@/types/challenges';
 
+// Helper function to get tier-specific back URL
+function getBackUrl(tier: string | null): string {
+  const tierLower = tier?.toLowerCase();
+  switch (tierLower) {
+    case 'beginner':
+    case 'intermediate':
+      // Both beginner and intermediate tiers are shown on Practical Coding Challenges page
+      return '/dashboard/challenges/practical';
+    case 'software-engineering-essentials':
+      return '/dashboard/challenges/software-engineering-essentials';
+    case 'advanced':
+      return '/dashboard/challenges/advanced';
+    case 'product_planning':
+    case 'product-planning':
+      return '/dashboard/challenges/product-planning';
+    default:
+      return '/dashboard/challenges';
+  }
+}
+
 interface WorkspacePageProps {
   params: Promise<{
     slug: string;
@@ -96,19 +116,20 @@ export default async function WorkspacePage({ params }: WorkspacePageProps) {
   const accessCheck = await canAccessChallenge(challenge.id);
 
   if (!accessCheck.canAccess && accessCheck.requiresUpgrade) {
+    const backUrl = getBackUrl(challenge.tier);
     return (
       <div className="max-w-2xl mx-auto py-12 px-4">
         <div className="mb-6">
           <Button asChild variant="ghost" size="sm">
-            <Link href="/dashboard/challenges/advanced">
+            <Link href={backUrl}>
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Advanced Challenges
+              Back to Challenges
             </Link>
           </Button>
         </div>
         <UpgradeRequired
           title="Premium Challenge"
-          description="This advanced challenge requires a premium subscription to unlock"
+          description="This challenge requires a premium subscription to unlock"
           feature={challenge.title}
           reason={accessCheck.reason}
         />

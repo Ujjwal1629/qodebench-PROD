@@ -12,6 +12,26 @@ import { canAccessChallenge } from '@/lib/utils/subscription-check';
 import { UpgradeRequired } from '@/components/paywall/upgrade-required';
 import type { ChallengeTier } from '@/lib/constants/dashboard';
 
+// Helper function to get tier-specific back URL
+function getBackUrl(tier: string | null): string {
+  const tierLower = tier?.toLowerCase();
+  switch (tierLower) {
+    case 'beginner':
+    case 'intermediate':
+      // Both beginner and intermediate tiers are shown on Practical Coding Challenges page
+      return '/dashboard/challenges/practical';
+    case 'software-engineering-essentials':
+      return '/dashboard/challenges/software-engineering-essentials';
+    case 'advanced':
+      return '/dashboard/challenges/advanced';
+    case 'product_planning':
+    case 'product-planning':
+      return '/dashboard/challenges/product-planning';
+    default:
+      return '/dashboard/challenges';
+  }
+}
+
 interface ChallengePageProps {
   params: Promise<{
     slug: string;
@@ -48,11 +68,12 @@ export default async function ChallengePage({ params }: ChallengePageProps) {
   const accessCheck = await canAccessChallenge(challenge.id);
 
   if (!accessCheck.canAccess && accessCheck.requiresUpgrade) {
+    const backUrl = getBackUrl(challenge.tier);
     return (
       <div className="max-w-2xl mx-auto py-12 px-4">
         <div className="mb-6">
           <Button asChild variant="ghost" size="sm">
-            <Link href="/dashboard/challenges">
+            <Link href={backUrl}>
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Challenges
             </Link>
@@ -73,6 +94,7 @@ export default async function ChallengePage({ params }: ChallengePageProps) {
 
   // If locked, show unlock requirement
   if (!unlockStatus.isUnlocked) {
+    const backUrl = getBackUrl(challenge.tier);
     return (
       <div className="max-w-2xl mx-auto py-12 px-4">
         <Card className="border-2 border-amber-200 bg-amber-50">
@@ -105,7 +127,7 @@ export default async function ChallengePage({ params }: ChallengePageProps) {
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-3 justify-center pt-4">
               <Button asChild variant="outline">
-                <Link href="/dashboard/challenges">
+                <Link href={backUrl}>
                   <ArrowLeft className="h-4 w-4 mr-2" />
                   Back to Challenges
                 </Link>
