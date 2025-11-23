@@ -94,7 +94,7 @@ export async function POST(req: NextRequest) {
     if (challengeFetchError) {
       console.error('Challenge fetch error:', challengeFetchError);
       return NextResponse.json(
-        { error: 'Failed to fetch challenge details', details: challengeFetchError.message },
+        { error: 'Failed to fetch challenge details' },
         { status: 500 }
       );
     }
@@ -161,7 +161,7 @@ export async function POST(req: NextRequest) {
     if (submissionError) {
       console.error('Submission error:', submissionError);
       return NextResponse.json(
-        { error: 'Failed to save submission', details: submissionError.message },
+        { error: 'Failed to save submission' },
         { status: 500 }
       );
     }
@@ -263,7 +263,7 @@ export async function POST(req: NextRequest) {
     trackApiRequest(req, 500, startTime, userId);
 
     return NextResponse.json(
-      { error: 'Failed to submit challenge', details: error instanceof Error ? error.message : 'Unknown error' },
+      { error: 'Failed to submit challenge' },
       { status: 500 }
     );
   }

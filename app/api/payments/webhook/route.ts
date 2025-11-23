@@ -6,29 +6,6 @@ import { logger } from '@/lib/utils/logger';
 // Maximum age for webhook timestamps (5 minutes)
 const WEBHOOK_TIMESTAMP_TOLERANCE_MS = 5 * 60 * 1000;
 
-// In-memory set to track processed webhook IDs (prevents replays within server lifetime)
-// For production at scale, use Redis or database
-const processedWebhookIds = new Set<string>();
-const MAX_PROCESSED_IDS = 10000;
-
-/**
- * Clean up old webhook IDs to prevent memory leak
- */
-function trackWebhookId(webhookId: string): boolean {
-  if (processedWebhookIds.has(webhookId)) {
-    return false; // Already processed
-  }
-
-  // Cleanup if too many entries
-  if (processedWebhookIds.size >= MAX_PROCESSED_IDS) {
-    const toDelete = [...processedWebhookIds].slice(0, MAX_PROCESSED_IDS / 2);
-    toDelete.forEach((id) => processedWebhookIds.delete(id));
-  }
-
-  processedWebhookIds.add(webhookId);
-  return true;
-}
-
 /**
  * Validate webhook timestamp to prevent replay attacks
  */
@@ -78,7 +55,6 @@ export async function POST(request: NextRequest) {
     const payload = JSON.parse(rawBody);
     const event = payload.event;
     const createdAt = payload.created_at;
-    const webhookId = payload.id || `${event}_${createdAt}`;
     const paymentEntity = payload.payload.payment?.entity;
     const subscriptionEntity = payload.payload.subscription?.entity;
 
@@ -86,25 +62,13 @@ export async function POST(request: NextRequest) {
     if (createdAt && !validateWebhookTimestamp(createdAt)) {
       logger.security('Webhook timestamp too old (possible replay attack)', {
         action: 'webhook_rejected',
-        webhookId,
         createdAt,
         event,
       }, 'error');
       return NextResponse.json({ error: 'Webhook expired' }, { status: 400 });
     }
 
-    // SECURITY: Check for duplicate webhook (prevents replay within server lifetime)
-    if (!trackWebhookId(webhookId)) {
-      logger.security('Duplicate webhook detected (possible replay attack)', {
-        action: 'webhook_duplicate',
-        webhookId,
-        event,
-      }, 'warn');
-      // Return success to prevent Razorpay from retrying
-      return NextResponse.json({ success: true, message: 'Already processed' });
-    }
-
-    logger.payment('Razorpay webhook received', { event, webhookId });
+    logger.payment('Razorpay webhook received', { event });
 
     // Use service role client for webhook operations
     const supabase = await createClient();
@@ -114,16 +78,26 @@ export async function POST(request: NextRequest) {
       case 'payment.captured': {
         // Payment successful - already handled in verify-payment
         // This is backup in case verify-payment fails
+        // Database unique constraint on razorpay_payment_id prevents duplicates
         if (paymentEntity) {
-          const { data: transaction } = await supabase
+          const { data: transaction, error: fetchError } = await supabase
             .from('payment_transactions')
             .select('*')
             .eq('razorpay_payment_id', paymentEntity.id)
             .single();
 
-          if (transaction && transaction.status !== 'success') {
-            // Update transaction status
-            await supabase
+          // If no transaction found, this webhook arrived before verify-payment
+          // Skip processing to avoid race condition - verify-payment will handle it
+          if (fetchError || !transaction) {
+            logger.payment('Payment not found, skipping webhook (will be handled by verify-payment)', {
+              paymentId: paymentEntity.id
+            });
+            break;
+          }
+
+          if (transaction.status !== 'success') {
+            // Update transaction status only if not already successful
+            const { error: updateError } = await supabase
               .from('payment_transactions')
               .update({
                 status: 'success',
@@ -132,7 +106,9 @@ export async function POST(request: NextRequest) {
               })
               .eq('id', transaction.id);
 
-            logger.payment('Payment captured via webhook', { paymentId: paymentEntity.id });
+            if (!updateError) {
+              logger.payment('Payment captured via webhook', { paymentId: paymentEntity.id });
+            }
           }
         }
         break;

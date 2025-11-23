@@ -46,84 +46,132 @@ const BLOCKED_PATTERNS = [
   /\.constructor/i,
 ];
 
-// Safe globals to allow in sandbox
-const SAFE_GLOBALS = {
-  // Math and numbers
-  Math,
-  Number,
-  parseInt,
-  parseFloat,
-  isNaN,
-  isFinite,
-  Infinity,
-  NaN,
+/**
+ * Deep freeze an object to prevent modification at runtime
+ */
+function deepFreeze<T>(obj: T): T {
+  Object.freeze(obj);
+  Object.getOwnPropertyNames(obj).forEach((prop) => {
+    const value = (obj as any)[prop];
+    if (value && typeof value === 'object' && !Object.isFrozen(value)) {
+      deepFreeze(value);
+    }
+  });
+  return obj;
+}
 
-  // Strings
-  String,
-  encodeURI,
-  encodeURIComponent,
-  decodeURI,
-  decodeURIComponent,
+/**
+ * Create safe globals with prototype pollution protection
+ */
+function createSafeGlobals() {
+  // Use Object.create(null) for truly isolated objects without prototype chain
+  const safeConsole = Object.create(null);
+  safeConsole.log = () => {};
+  safeConsole.warn = () => {};
+  safeConsole.error = () => {};
+  safeConsole.info = () => {};
+  deepFreeze(safeConsole);
 
-  // Arrays and objects
-  Array,
-  Object,
-  JSON,
+  // Create safe Math object without prototype
+  const safeMath = Object.create(null);
+  Object.getOwnPropertyNames(Math).forEach((key) => {
+    safeMath[key] = (Math as any)[key];
+  });
+  deepFreeze(safeMath);
 
-  // Data structures
-  Map,
-  Set,
-  WeakMap,
-  WeakSet,
+  // Create safe JSON object
+  const safeJSON = Object.create(null);
+  safeJSON.parse = JSON.parse.bind(JSON);
+  safeJSON.stringify = JSON.stringify.bind(JSON);
+  deepFreeze(safeJSON);
 
-  // Typed arrays (safe)
-  Int8Array,
-  Uint8Array,
-  Int16Array,
-  Uint16Array,
-  Int32Array,
-  Uint32Array,
-  Float32Array,
-  Float64Array,
+  // Create safe Object with limited methods
+  const safeObject = Object.create(null);
+  safeObject.keys = Object.keys;
+  safeObject.values = Object.values;
+  safeObject.entries = Object.entries;
+  safeObject.assign = Object.assign;
+  safeObject.freeze = Object.freeze;
+  // Explicitly block dangerous methods
+  safeObject.defineProperty = undefined;
+  safeObject.getOwnPropertyDescriptor = undefined;
+  safeObject.setPrototypeOf = undefined;
+  safeObject.getPrototypeOf = undefined;
+  deepFreeze(safeObject);
 
-  // Other safe built-ins
-  Boolean,
-  Symbol,
-  BigInt,
-  Date,
-  RegExp,
-  Error,
-  TypeError,
-  RangeError,
-  SyntaxError,
-  ReferenceError,
+  return {
+    // Math and numbers (frozen)
+    Math: safeMath,
+    Number,
+    parseInt,
+    parseFloat,
+    isNaN,
+    isFinite,
+    Infinity,
+    NaN,
 
-  // Console (limited)
-  console: {
-    log: () => {},
-    warn: () => {},
-    error: () => {},
-    info: () => {},
-  },
+    // Strings
+    String,
+    encodeURI,
+    encodeURIComponent,
+    decodeURI,
+    decodeURIComponent,
 
-  // Undefined for dangerous globals
-  process: undefined,
-  require: undefined,
-  module: undefined,
-  exports: undefined,
-  __dirname: undefined,
-  __filename: undefined,
-  global: undefined,
-  globalThis: undefined,
-  fetch: undefined,
-  XMLHttpRequest: undefined,
-  WebSocket: undefined,
-  Worker: undefined,
-  SharedArrayBuffer: undefined,
-  Atomics: undefined,
-  eval: undefined,
-  Function: undefined,
-};
+    // Arrays and safe Object
+    Array,
+    Object: safeObject,
+    JSON: safeJSON,
+
+    // Data structures
+    Map,
+    Set,
+    WeakMap,
+    WeakSet,
+
+    // Typed arrays (safe)
+    Int8Array,
+    Uint8Array,
+    Int16Array,
+    Uint16Array,
+    Int32Array,
+    Uint32Array,
+    Float32Array,
+    Float64Array,
+
+    // Other safe built-ins
+    Boolean,
+    Symbol,
+    BigInt,
+    Date,
+    RegExp,
+    Error,
+    TypeError,
+    RangeError,
+    SyntaxError,
+    ReferenceError,
+
+    // Console (limited, frozen)
+    console: safeConsole,
+
+    // Undefined for dangerous globals
+    process: undefined,
+    require: undefined,
+    module: undefined,
+    exports: undefined,
+    __dirname: undefined,
+    __filename: undefined,
+    global: undefined,
+    globalThis: undefined,
+    fetch: undefined,
+    XMLHttpRequest: undefined,
+    WebSocket: undefined,
+    Worker: undefined,
+    SharedArrayBuffer: undefined,
+    Atomics: undefined,
+    eval: undefined,
+    Function: undefined,
+  };
+}
 
 /**
  * Check code for dangerous patterns
@@ -219,8 +267,8 @@ export function safeSandboxExecute<T = any>(
       };
     }
 
-    // Step 4: Create VM context with safe globals
-    const context = vm.createContext({ ...SAFE_GLOBALS });
+    // Step 4: Create VM context with safe, isolated globals (prototype pollution protected)
+    const context = vm.createContext(createSafeGlobals());
 
     // Step 5: Wrap user code to return the function
     const wrappedCode = `
@@ -253,8 +301,9 @@ export function safeSandboxExecute<T = any>(
     }
 
     // Step 7: Create execution context for running the function
+    const execGlobals = createSafeGlobals();
     const execContext = vm.createContext({
-      ...SAFE_GLOBALS,
+      ...execGlobals,
       __userFunction__: userFunction,
       __args__: args,
       __result__: undefined,

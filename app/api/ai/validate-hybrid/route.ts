@@ -232,6 +232,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json(result);
       } catch (error: any) {
         console.error('Error validating merge conflict challenge:', error);
+        // SECURITY: Don't expose internal error details to client
         return NextResponse.json(
           { error: 'Failed to validate merge conflict responses' },
           { status: 500 }
@@ -512,6 +513,7 @@ Return JSON only.`;
     return NextResponse.json(result);
   } catch (error) {
     console.error('Validation error:', error);
+    // SECURITY: Don't expose internal error details to client
     return NextResponse.json(
       { error: 'Validation failed. Please try again.' },
       { status: 500 }

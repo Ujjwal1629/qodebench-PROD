@@ -36,6 +36,10 @@ interface TimeSeriesPoint {
   activeUsers: number;
 }
 
+// SECURITY: Memory limits to prevent DoS via metrics accumulation
+const MAX_ENDPOINT_METRICS = 1000;
+const MAX_FEATURE_METRICS = 500;
+
 class MetricsCollector {
   // API endpoint metrics
   private apiMetrics: Map<string, RequestMetric> = new Map();
@@ -76,6 +80,11 @@ class MetricsCollector {
     const key = `${method}:${endpoint}`;
     const isError = statusCode >= 400;
 
+    // SECURITY: Enforce memory limit for endpoint metrics
+    if (this.apiMetrics.size >= MAX_ENDPOINT_METRICS && !this.apiMetrics.has(key)) {
+      this.evictOldestEndpointMetrics();
+    }
+
     // Update endpoint metrics
     const metric = this.apiMetrics.get(key) || {
       count: 0,
@@ -109,6 +118,11 @@ class MetricsCollector {
     userId?: string,
     metadata?: Record<string, any>
   ): void {
+    // SECURITY: Enforce memory limit for feature metrics
+    if (this.featureMetrics.size >= MAX_FEATURE_METRICS && !this.featureMetrics.has(feature)) {
+      this.evictOldestFeatureMetrics();
+    }
+
     const metric = this.featureMetrics.get(feature) || {
       count: 0,
       uniqueUsers: new Set<string>(),
@@ -302,6 +316,36 @@ class MetricsCollector {
     }
 
     return totalCount > 0 ? totalLatency / totalCount : 0;
+  }
+
+  /**
+   * Evict oldest endpoint metrics (LRU)
+   */
+  private evictOldestEndpointMetrics(): void {
+    // Remove oldest 10% of entries
+    const toRemove = Math.floor(MAX_ENDPOINT_METRICS * 0.1);
+    const entries = [...this.apiMetrics.entries()]
+      .sort((a, b) => a[1].lastUpdated - b[1].lastUpdated)
+      .slice(0, toRemove);
+
+    for (const [key] of entries) {
+      this.apiMetrics.delete(key);
+    }
+  }
+
+  /**
+   * Evict oldest feature metrics (LRU)
+   */
+  private evictOldestFeatureMetrics(): void {
+    // Remove oldest 10% of entries
+    const toRemove = Math.floor(MAX_FEATURE_METRICS * 0.1);
+    const entries = [...this.featureMetrics.entries()]
+      .sort((a, b) => a[1].lastUsed - b[1].lastUsed)
+      .slice(0, toRemove);
+
+    for (const [key] of entries) {
+      this.featureMetrics.delete(key);
+    }
   }
 
   /**
