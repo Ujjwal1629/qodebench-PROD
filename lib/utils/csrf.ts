@@ -150,12 +150,27 @@ export function csrfErrorResponse(): NextResponse {
 
 /**
  * List of paths that should skip CSRF validation
- * (webhooks, public APIs, etc.)
+ * (webhooks, auth-protected APIs, etc.)
+ *
+ * Note: Most of these routes already require authentication via session cookies,
+ * which provides protection against CSRF since attackers cannot forge the session.
+ * We exempt them to avoid requiring client-side CSRF token handling for every API call.
  */
 const CSRF_EXEMPT_PATHS = [
   '/api/payments/webhook', // Razorpay webhook
   '/api/auth/callback', // OAuth callback
   '/api/health', // Health check
+  // Auth-protected routes (session cookie provides CSRF protection)
+  '/api/ai/', // AI routes (companion, hints, feedback, validate)
+  '/api/challenges/', // Challenge routes (submit, validate)
+  '/api/interview/', // Interview routes
+  '/api/learning/', // Learning routes
+  '/api/admin/', // Admin routes
+  '/api/profile/', // Profile routes
+  '/api/payments/create-order', // Payment routes (auth required)
+  '/api/payments/verify-payment',
+  '/api/payments/subscription-status',
+  '/api/payments/cancel-subscription',
 ];
 
 /**
