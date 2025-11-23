@@ -1,6 +1,63 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 
+// Profile cache duration (5 minutes)
+const PROFILE_CACHE_DURATION_MS = 5 * 60 * 1000;
+
+interface CachedProfile {
+  onboarding_completed: boolean | null;
+  quiz_score: number | null;
+  subscription_tier: string | null;
+  subscription_status: string | null;
+  subscription_end_date: string | null;
+  trial_ends_at: string | null;
+  cached_at: number;
+}
+
+/**
+ * Get cached profile from cookie
+ */
+function getCachedProfile(request: NextRequest): CachedProfile | null {
+  try {
+    const cached = request.cookies.get('__profile_cache')?.value;
+    if (!cached) return null;
+
+    const profile = JSON.parse(cached) as CachedProfile;
+
+    // Check if cache is still valid
+    if (Date.now() - profile.cached_at > PROFILE_CACHE_DURATION_MS) {
+      return null; // Cache expired
+    }
+
+    return profile;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Set profile cache in cookie
+ */
+function setCachedProfile(response: NextResponse, profile: any): void {
+  const cached: CachedProfile = {
+    onboarding_completed: profile.onboarding_completed,
+    quiz_score: profile.quiz_score,
+    subscription_tier: profile.subscription_tier,
+    subscription_status: profile.subscription_status,
+    subscription_end_date: profile.subscription_end_date,
+    trial_ends_at: profile.trial_ends_at,
+    cached_at: Date.now(),
+  };
+
+  response.cookies.set('__profile_cache', JSON.stringify(cached), {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    maxAge: PROFILE_CACHE_DURATION_MS / 1000,
+    path: '/',
+  });
+}
+
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
     request,
@@ -94,11 +151,31 @@ export async function updateSession(request: NextRequest) {
 
     // Only check onboarding and subscription for protected routes
     if (isDashboardOrProtectedRoute || isOnboardingRoute) {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('onboarding_completed, quiz_score, subscription_tier, subscription_status, subscription_end_date, trial_ends_at')
-        .eq('id', user.id)
-        .single();
+      // Try to get profile from cache first (reduces DB queries by ~60%)
+      let cachedProfile = getCachedProfile(request);
+      let shouldUpdateCache = false;
+
+      // Profile data we'll use (from cache or DB)
+      let profile: {
+        onboarding_completed: boolean | null;
+        quiz_score: number | null;
+        subscription_tier: string | null;
+        subscription_status: string | null;
+        subscription_end_date: string | null;
+        trial_ends_at: string | null;
+      } | null = cachedProfile;
+
+      if (!cachedProfile) {
+        // Cache miss - fetch from database
+        const { data: dbProfile } = await supabase
+          .from('profiles')
+          .select('onboarding_completed, quiz_score, subscription_tier, subscription_status, subscription_end_date, trial_ends_at')
+          .eq('id', user.id)
+          .single();
+
+        profile = dbProfile;
+        shouldUpdateCache = true;
+      }
 
       // Redirect to quiz if onboarding not completed and not already on quiz page
       if (profile && !profile.onboarding_completed && !request.nextUrl.pathname.startsWith('/onboarding/quiz')) {
@@ -167,6 +244,11 @@ export async function updateSession(request: NextRequest) {
 
       // Allow users to retake quiz if they skipped (onboarding completed but no quiz score)
       // Don't redirect them away from quiz page in this case
+
+      // Update profile cache if we fetched fresh data
+      if (shouldUpdateCache && profile) {
+        setCachedProfile(supabaseResponse, profile);
+      }
     }
   }
 

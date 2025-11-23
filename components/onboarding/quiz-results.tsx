@@ -19,13 +19,14 @@ export function QuizResults({ score, totalQuestions, correctAnswers, experienceL
   const router = useRouter();
 
   const handleGoToDashboard = () => {
-    router.push('/dashboard');
-    router.refresh(); // Trigger server-side redirect via middleware
+    // Use full page navigation to ensure middleware gets fresh profile data
+    // This clears the profile cache cookie and fetches fresh from DB
+    window.location.href = '/dashboard';
   };
 
   const handleContinueLearning = () => {
-    router.push('/dashboard/learning');
-    router.refresh(); // Trigger server-side redirect via middleware
+    // Use full page navigation to ensure middleware gets fresh profile data
+    window.location.href = '/dashboard/learning';
   };
 
   return (

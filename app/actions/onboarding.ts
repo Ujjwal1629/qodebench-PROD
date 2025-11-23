@@ -1,6 +1,7 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
+import { cookies } from 'next/headers';
 
 export async function submitQuizResults(
   score: number,
@@ -33,6 +34,10 @@ export async function submitQuizResults(
       return { error: 'Failed to save quiz results' };
     }
 
+    // Clear profile cache so middleware fetches fresh data on next request
+    const cookieStore = await cookies();
+    cookieStore.delete('__profile_cache');
+
     return { success: true };
   } catch (error) {
     console.error('Unexpected error in submitQuizResults:', error);
@@ -64,6 +69,10 @@ export async function skipOnboarding() {
       console.error('Error updating profile:', updateError);
       return { error: 'Failed to skip onboarding' };
     }
+
+    // Clear profile cache so middleware fetches fresh data on next request
+    const cookieStore = await cookies();
+    cookieStore.delete('__profile_cache');
 
     return { success: true };
   } catch (error) {
