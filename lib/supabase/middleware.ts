@@ -66,6 +66,7 @@ export async function updateSession(request: NextRequest) {
     '/privacy',
     '/terms',
     '/cookies',
+    '/refund-policy',
     '/documentation',
     '/blog',
     '/ai-tools-guide',
