@@ -4,10 +4,10 @@ import { Github, Linkedin, Twitter } from "lucide-react";
 
 const footerLinks = {
   product: [
-    { name: "Challenges", href: "/signup" },
-    { name: "Mock Interviews", href: "/signup" },
-    { name: "Leaderboard", href: "/signup" },
-    { name: "AI Tools Guide", href: "/signup" },
+    { name: "Challenges", href: "/dashboard/challenges" },
+    { name: "Learning", href: "/dashboard/learning" },
+    { name: "Mock Interviews", href: "/dashboard/interviews" },
+    { name: "Code Fridays", href: "/dashboard/challenges" },
   ],
   resources: [
     { name: "Documentation", href: "/documentation" },
@@ -21,15 +21,15 @@ const footerLinks = {
   ],
   legal: [
     { name: "Privacy Policy", href: "/privacy" },
-    { name: "Terms of Service", href: "/terms" },
-    { name: "Cookie Policy", href: "/cookies" },
+    { name: "Refund & Cancellation Policy", href: "/refund-policy" },
+    { name: "Terms & Conditions", href: "/terms" },
   ],
 };
 
 const socialLinks = [
   { name: "Twitter", href: "https://twitter.com/qodebench", icon: Twitter },
-  { name: "GitHub", href: "https://github.com/qodebench", icon: Github },
-  { name: "LinkedIn", href: "https://linkedin.com/company/qodebench", icon: Linkedin },
+  { name: "GitHub", href: "https://github.com/Qodebench-Technologies", icon: Github },
+  { name: "LinkedIn", href: "https://www.linkedin.com/company/qodebench-technologies/", icon: Linkedin },
 ];
 
 export function Footer() {
@@ -124,7 +124,7 @@ export function Footer() {
                 </div>
               </Link>
               <span className="text-sm text-slate-500">
-                © {new Date().getFullYear()} QodeBench. All rights reserved.
+                © {new Date().getFullYear()} Qodebench Technologies Pvt. Ltd. All rights reserved.
               </span>
             </div>
 

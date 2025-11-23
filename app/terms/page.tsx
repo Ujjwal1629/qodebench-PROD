@@ -75,12 +75,19 @@ export default function TermsPage() {
               and are protected by copyright, trademark, and other intellectual property laws.
             </p>
 
-            <h2 className="text-2xl font-bold text-slate-900 mt-8">5. AI-Powered Features</h2>
+            <h2 className="text-2xl font-bold text-slate-900 mt-8">5. AI-Powered Features & Platform Purpose</h2>
             <p className="text-slate-600">
               Our Platform includes AI-powered features for learning assistance, code validation, and
-              interview preparation. While we strive for accuracy, AI-generated content may contain
-              errors or inaccuracies. You should verify important information independently.
+              interview preparation. By using these features, you acknowledge and agree that:
             </p>
+            <ul className="text-slate-600">
+              <li><strong>Learning & Testing Only:</strong> The platform is intended for learning, practice, and testing purposes only</li>
+              <li><strong>No Production Use:</strong> Code, solutions, and content should not be used directly in production environments without thorough review</li>
+              <li><strong>AI Limitations:</strong> AI-generated content may contain errors, inaccuracies, or incomplete information</li>
+              <li><strong>No Liability for Errors:</strong> Qodebench is not responsible for any code errors, bugs, or output issues resulting from AI-generated content</li>
+              <li><strong>Independent Verification:</strong> You are responsible for verifying and testing all code and solutions before use</li>
+              <li><strong>Educational Purpose:</strong> All feedback, hints, and evaluations are provided for educational purposes only</li>
+            </ul>
 
             <h2 className="text-2xl font-bold text-slate-900 mt-8">6. Payment and Subscriptions</h2>
             <p className="text-slate-600">
@@ -88,9 +95,10 @@ export default function TermsPage() {
             </p>
             <ul className="text-slate-600">
               <li>You agree to pay all applicable fees</li>
-              <li>Payments are non-refundable except as required by law</li>
-              <li>Subscriptions automatically renew unless canceled</li>
-              <li>We may change pricing with notice to existing subscribers</li>
+              <li>Refunds are subject to our <Link href="/refund-policy" className="text-brand-600 hover:text-brand-700">Refund & Cancellation Policy</Link></li>
+              <li>Subscriptions do not automatically renew - you must manually renew after expiry</li>
+              <li>You can cancel your subscription at any time from your account settings</li>
+              <li>We may change pricing with 30 days notice to existing subscribers</li>
             </ul>
 
             <h2 className="text-2xl font-bold text-slate-900 mt-8">7. Disclaimers and Limitations</h2>
@@ -130,7 +138,9 @@ export default function TermsPage() {
               For questions about these Terms, please contact us at:
             </p>
             <p className="text-slate-600">
-              Email: <a href="mailto:support@qodebench.com" className="text-brand-600 hover:text-brand-700">support@qodebench.com</a>
+              Email: <a href="mailto:team@qodebench.com" className="text-brand-600 hover:text-brand-700">team@qodebench.com</a>
+              <br />
+              Company: Qodebench Technologies Pvt. Ltd.
             </p>
           </CardContent>
         </Card>

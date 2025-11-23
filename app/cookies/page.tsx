@@ -128,7 +128,7 @@ export default function CookiesPage() {
               If you have questions about our use of cookies, please contact us at:
             </p>
             <p className="text-slate-600">
-              Email: <a href="mailto:support@qodebench.com" className="text-brand-600 hover:text-brand-700">support@qodebench.com</a>
+              Email: <a href="mailto:team@qodebench.com" className="text-brand-600 hover:text-brand-700">team@qodebench.com</a>
             </p>
           </CardContent>
         </Card>
