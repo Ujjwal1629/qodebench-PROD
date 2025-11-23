@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
 import { createClient } from '@/lib/supabase/server';
 import { verifyInterviewAPIAccess } from '@/lib/utils/api-access-checks';
+import { verifyResponseOwnership } from '@/lib/utils/interview-auth';
 
 interface EvaluationResult {
   quality_score: number; // 0-10
@@ -26,6 +27,12 @@ export async function POST(request: NextRequest) {
 
     if (!responseId) {
       return NextResponse.json({ error: 'Response ID required' }, { status: 400 });
+    }
+
+    // CRITICAL SECURITY: Verify user owns this interview response
+    const ownership = await verifyResponseOwnership(responseId, user.id);
+    if (!ownership.authorized) {
+      return ownership.error!;
     }
 
     const supabase = await createClient();
