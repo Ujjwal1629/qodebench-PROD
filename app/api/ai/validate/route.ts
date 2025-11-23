@@ -3,8 +3,12 @@ import OpenAI from 'openai';
 import { createClient } from '@/lib/supabase/server';
 import { validationCache } from '@/lib/utils/validation-cache';
 import { runTestCases, type TestCase } from '@/lib/utils/test-runner';
+import { trackApiRequest, FEATURES } from '@/lib/utils/api-metrics-wrapper';
 
 export async function POST(req: NextRequest) {
+  const startTime = Date.now();
+  let userId: string | undefined;
+
   try {
     const supabase = await createClient();
 
@@ -14,8 +18,11 @@ export async function POST(req: NextRequest) {
     } = await supabase.auth.getUser();
 
     if (!user) {
+      trackApiRequest(req, 401, startTime);
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    userId = user.id;
 
     const { challengeId, code, language, previousAttempt } = await req.json();
 
@@ -26,10 +33,11 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Check cache first - instant response if found
-    const cachedResult = validationCache.get(challengeId, code);
+    // Check cache first - instant response if found (includes userId for security)
+    const cachedResult = validationCache.get(user.id, challengeId, code);
     if (cachedResult) {
       console.log('✅ Cache hit for challenge:', challengeId);
+      trackApiRequest(req, 200, startTime, userId, FEATURES.CHALLENGE_VALIDATE);
       return NextResponse.json(cachedResult);
     }
 
@@ -231,7 +239,7 @@ Return JSON:
       };
 
       // Cache result
-      validationCache.set(challengeId, code, response);
+      validationCache.set(user.id, challengeId, code, response);
 
       return NextResponse.json(response);
     }
@@ -474,11 +482,18 @@ Return valid JSON only.`;
     };
 
     // Store in cache for future identical submissions
-    validationCache.set(challengeId, code, response);
+    validationCache.set(user.id, challengeId, code, response);
+
+    // Track successful validation
+    trackApiRequest(req, 200, startTime, userId, FEATURES.CHALLENGE_VALIDATE);
 
     return NextResponse.json(response);
   } catch (error) {
     console.error('Error validating code:', error);
+
+    // Track error
+    trackApiRequest(req, 500, startTime, userId);
+
     return NextResponse.json(
       { error: 'Failed to validate code' },
       { status: 500 }

@@ -1,5 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
-import OpenAI from 'openai';
+import { createClient } from '@/lib/supabase/server';
+import {
+  createChatCompletion,
+  handleOpenAIError,
+  AI_FALLBACK_RESPONSES,
+} from '@/lib/openai-client';
+import { rateLimiter, getRateLimitIdentifier } from '@/lib/utils/rate-limiter';
+import {
+  safeJsonParse,
+  aiCompanionSchema,
+  INPUT_LIMITS,
+  truncate,
+} from '@/lib/utils/input-validation';
+import { canUseAIFeedback, incrementDailyUsage } from '@/lib/utils/subscription-check';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -9,13 +22,42 @@ interface Message {
 
 export async function POST(request: NextRequest) {
   try {
-    // Initialize OpenAI client only when needed
-    const openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY || '',
-    });
+    // Authenticate user
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Rate limiting
+    const rateLimitResult = rateLimiter.checkAndRespond(
+      getRateLimitIdentifier(user.id),
+      'ai'
+    );
+    if (rateLimitResult) return rateLimitResult.response;
+
+    // Check AI usage limits for free users
+    const usageCheck = await canUseAIFeedback(user.id);
+    if (!usageCheck.allowed) {
+      return NextResponse.json(
+        { error: usageCheck.reason, requiresUpgrade: true },
+        { status: 429 }
+      );
+    }
+
+    // Parse and validate input
+    const parseResult = await safeJsonParse(request, aiCompanionSchema);
+    if (!parseResult.success) {
+      return NextResponse.json(
+        { error: parseResult.error },
+        { status: parseResult.status }
+      );
+    }
 
     const {
-      challengeId,
       challengeTitle,
       challengeDescription,
       currentCode,
@@ -23,7 +65,7 @@ export async function POST(request: NextRequest) {
       mode,
       message,
       conversationHistory,
-    } = await request.json();
+    } = parseResult.data;
 
     // Build context based on mode
     const systemPrompts: Record<string, string> = {
@@ -40,7 +82,7 @@ YOUR PERSONALITY:
 COMMUNICATION STYLE:
 - NO "Great question!", "Let's break this down!", "I'm here to help!"
 - NO bullet points unless listing specific things
-- NO emojis (except occasional 🤦 when really warranted)
+- NO emojis (except occasional when really warranted)
 - YES to brief answers: "Add a null check at the top."
 - YES to pushback: "That won't work because..."
 - YES to war stories: "I debugged this exact thing for 6 hours once..."
@@ -62,13 +104,6 @@ GIVING HINTS:
 When they're wrong: "That'll break if someone passes null. Trust me, I've seen this in production."
 When they're right: "Yep. Now handle the edge case where..."
 When they're stuck: Show code immediately, explain why
-
-Example response:
-"Alright, loop approach works. But you're missing the edge case - what if the array is empty? This crashes. Add:
-
-if (!arr?.length) return [];
-
-at the very top. Learned this one the hard way debugging a production issue at 2am. That optional chaining (?.) handles both null and undefined."
 
 BOUNDARIES (when to scold vs when to help):
 
@@ -111,48 +146,7 @@ CRITICAL: NO MARKDOWN FORMATTING
 - Just indent code snippets, don't wrap in backticks
 - Natural chat-style text only
 
-WHEN REVIEWING:
-- Call out missing null checks immediately
-- Point out performance issues (O(n²), memory leaks)
-- Flag antipatterns ("Don't use var", "Magic numbers need constants")
-- Reference real consequences: "This fails if the API returns an error"
-- Show better patterns when you see issues
-
-Example review:
-"Okay, variable naming is solid. But problems:
-
-1. No null check - this explodes if someone passes undefined. Add: if (!data) return []; at the top.
-
-2. That nested loop is O(n²). For 10k items this freezes the browser. Use a Set instead:
-
-const seen = new Set();
-for (const item of data) {
-  if (!seen.has(item.id)) {
-    seen.add(item.id);
-    // your logic
-  }
-}
-
-3. Magic number 100 on line 12 - make it a constant. const MAX_ITEMS = 100;
-
-Fix those and resubmit. I've debugged all three of these in production, trust me."
-
-BOUNDARIES (be reasonable):
-
-IF they ask programming questions before showing code:
-- Answer the question first, then say "Now show me your code once you've tried."
-- Don't shut them down for asking "What is X?" if X is a programming concept
-
-IF they ask truly off-topic stuff (poems, life advice):
-- "That's not code review. Show me your actual code for this challenge."
-
-IF no code to review yet:
-- "Nothing to review yet. Write some code, then come back."
-
-IF they want you to write it:
-- "I review code, not write it for you. Show me what you've got so far."
-
-Be helpful with programming questions. Only push back on true nonsense or laziness.`,
+Keep responses concise and actionable.`,
 
       explain: `You're a senior dev who's tired of reading textbook explanations. Teach practically.
 
@@ -177,49 +171,7 @@ CRITICAL: NO MARKDOWN AT ALL
 - Don't use backticks for code - just write it with spacing
 - Plain text chat style only
 
-TEACHING APPROACH:
-- Start: "Closures. Okay, here's the thing..."
-- Show minimal working code immediately
-- Explain what's actually happening
-- Point out the "aha moment"
-- Connect to when they'll actually use this
-
-Example explanation:
-"Closures. Textbooks overcomplicate this.
-
-Simple version: inner function remembers outer function's variables, even after outer function returns.
-
-function makeCounter() {
-  let count = 0;  // This sticks around
-  return () => count++;  // This remembers 'count'
-}
-
-const counter = makeCounter();
-counter(); // 1
-counter(); // 2
-
-That 'count' variable doesn't disappear when makeCounter finishes. The inner function keeps a reference to it. That's a closure.
-
-Why care? State without globals. Private variables. Event handlers that need context. I use this pattern for API clients and React hooks all the time.
-
-I spent weeks not getting this. Then it clicked when I realized it's just "inner function remembers stuff from outer function." That's it.
-
-Make sense? This is useful for your challenge because..."
-
-BOUNDARIES (be smart about what's relevant):
-
-GOOD questions to answer:
-- "What is [concept]?" - If it could be related to the challenge, explain it
-- "How does [technology] work?" - Explain in context of solving problems
-- Questions about programming concepts, syntax, patterns - ALL VALID
-
-BAD questions (truly off-topic):
-- Non-programming stuff: poems, life advice, random chat
-  * "That's not programming. What coding concept do you need?"
-- Philosophy or general discussion not about code
-  * "We're solving a code problem. What programming concept are you stuck on?"
-
-If unsure whether it's relevant, assume it IS and explain it. Only scold truly random non-coding stuff.`,
+Keep explanations focused and practical.`,
 
       breakdown: `You're a senior dev breaking down a problem the way you'd plan it before coding.
 
@@ -243,47 +195,7 @@ CRITICAL: PLAIN TEXT ONLY - NO MARKDOWN
 - No backticks for code blocks
 - Just plain chat text with natural spacing
 
-BREAKING DOWN:
-- Always start with input validation/edge cases
-- Then the main algorithm/logic
-- Then output formatting if needed
-- Show actual code for each, not pseudocode
-
-Example breakdown:
-"Okay, three main pieces here.
-
-First, validate the input. Can't trust what you get:
-
-if (!arr || !arr.length) return [];
-
-Handles null, undefined, and empty arrays. I've debugged this at 3am too many times to skip it.
-
-Second, the core logic. For this you want to:
-
-const result = arr.filter(x => x > 0).map(x => x * 2);
-
-Filter removes negatives, map doubles what's left. Chain them - cleaner than a loop.
-
-Third, watch the edge case where all values are negative:
-
-if (!result.length) return [0];  // or whatever default makes sense
-
-That's it. Three pieces. Validate, transform, handle edge cases. Which one you want to code first?"
-
-BOUNDARIES (stay focused but be reasonable):
-
-GOOD to help with:
-- Questions about concepts used in the challenge - explain them
-- General programming questions if they help understanding - answer them
-- Requests to break down the current challenge - that's the job
-
-REJECT these:
-- Truly unrelated topics (poems, life advice, random stuff)
-  * "That's not the challenge. What do you need help with for THIS problem?"
-- Asking to solve completely different problems
-  * "We're solving this challenge. Focus on this one."
-
-If they ask "What is X?" and X is a programming concept, explain it briefly then guide back to breaking down the actual challenge.`,
+Keep breakdowns practical and concise.`,
 
       chat: `You're a senior dev pair programming. Real conversation, not a help desk.
 
@@ -306,83 +218,53 @@ ABSOLUTELY NO MARKDOWN FORMATTING:
 - If showing code, just indent it with spaces
 - Natural conversational text - that's it
 
-ANSWERING QUESTIONS:
-User: "Should I use map or forEach?"
-You: "Map. You're transforming data, so you want a new array back. ForEach is for side effects only. Mixing them up causes bugs - seen it a hundred times."
-
-User: "Why isn't this working?"
-You: "Console.log the value right before that line. What does it print? Bet it's undefined."
-
-User: "Is this the right approach?"
-You: "It'll work but it's O(n²). Fine for small data but I've seen this freeze with 10k items. Use a Set for O(n)."
-
-WHEN THEY'RE RIGHT:
-"Yep, that's it. Now handle the case where..."
-"Correct. Here's the code for that:
-[show code]
-That's exactly right."
-
-WHEN THEY'RE WRONG:
-"Nope. That breaks if the array is empty. Add a guard clause first."
-"That's a common mistake. You're modifying the array while looping - indices shift. Use filter instead."
-
-WHEN THEY'RE STUCK:
-Show code immediately:
-"Alright, here's what you need:
-
-const result = data.map(x => x * 2).filter(x => x > 0);
-
-Map transforms, filter removes negatives. Try that."
-
-GENERAL VIBE:
-- Like sitting next to them debugging
-- Share war stories: "Spent 3 hours on this once - turns out..."
-- Reference real tools: debugger, console.log, ESLint
-- Admit when things are confusing: "This concept took me weeks to get"
-- Push back on bad ideas: "Don't do that in production"
-
 BOUNDARIES (be helpful for coding, scold for nonsense):
 
 WELCOME these questions:
 - "What is [concept/library/API]?" - Explain if it could help solve the challenge
 - "How does [programming thing] work?" - Explain it
 - Questions about code, syntax, patterns, debugging - ALL GOOD
-- Even general programming questions - if they're learning, help them
 
 SHUT DOWN these:
 - Poems, relationship advice, life questions, random non-coding chat
   * "A poem for your girlfriend? Wrong chat. I'm here for CODING. What's the coding question?"
 - Asking you to write the entire solution without trying
   * "You haven't written any code yet. Try something first, then ask specific questions."
-- Truly irrelevant topics not about programming
-  * "That's not about code. What programming question do you have?"
 
-Key rule: If it's about programming/coding/tech, answer it. If it's random life stuff, shut it down. Don't be overly strict - programming questions are welcome even if conceptual.`,
+Key rule: If it's about programming/coding/tech, answer it. If it's random life stuff, shut it down.`,
     };
 
     const systemPrompt = systemPrompts[mode as keyof typeof systemPrompts] || systemPrompts.chat;
 
-    // Build the conversation context
-    const messages: OpenAI.Chat.ChatCompletionMessageParam[] = [
+    // Build the conversation context with truncated inputs
+    const contextDescription = challengeDescription
+      ? truncate(challengeDescription, 500)
+      : '';
+    const contextCode = currentCode
+      ? truncate(currentCode, INPUT_LIMITS.code)
+      : '';
+
+    const messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [
       {
         role: 'system',
         content: `${systemPrompt}
 
 Challenge Context:
-- Title: ${challengeTitle}
-- Difficulty: ${difficulty}
-- Description: ${challengeDescription}
+- Title: ${challengeTitle || 'Unknown'}
+- Difficulty: ${difficulty || 'Unknown'}
+${contextDescription ? `- Description: ${contextDescription}` : ''}
 
-${currentCode ? `Current Code:\n\`\`\`javascript\n${currentCode}\n\`\`\`\n` : 'User hasn\'t written any code yet.'}`,
+${contextCode ? `Current Code:\n${contextCode}\n` : "User hasn't written any code yet."}`,
       },
     ];
 
-    // Add conversation history for context
+    // Add conversation history for context (limit to last 10 messages)
     if (conversationHistory && conversationHistory.length > 0) {
-      conversationHistory.forEach((msg: Message) => {
+      const recentHistory = conversationHistory.slice(-10);
+      recentHistory.forEach((msg: Message) => {
         messages.push({
           role: msg.role,
-          content: msg.content,
+          content: truncate(msg.content, INPUT_LIMITS.message),
         });
       });
     }
@@ -390,20 +272,53 @@ ${currentCode ? `Current Code:\n\`\`\`javascript\n${currentCode}\n\`\`\`\n` : 'U
     // Add the current user message
     messages.push({
       role: 'user',
-      content: message,
+      content: truncate(message, INPUT_LIMITS.message),
     });
 
-    // Call OpenAI
-    const completion = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
-      messages,
-      temperature: 0.85, // Higher for more personality variation and natural responses
-      max_tokens: mode === 'breakdown' || mode === 'explain' ? 700 : 500, // Increased for richer responses
-    });
+    // Call OpenAI with timeout handling
+    try {
+      const completion = await createChatCompletion(
+        {
+          model: 'gpt-4o-mini',
+          messages,
+          temperature: 0.85,
+          max_tokens: mode === 'breakdown' || mode === 'explain' ? 700 : 500,
+        },
+        30000 // 30 second timeout
+      );
 
-    const response = completion.choices[0]?.message?.content || 'Sorry, I couldn\'t generate a response.';
+      const response =
+        completion.choices[0]?.message?.content ||
+        "Sorry, I couldn't generate a response.";
 
-    return NextResponse.json({ message: response, mode }, { status: 200 });
+      // Track usage for free users
+      await incrementDailyUsage('ai_feedback', user.id);
+
+      return NextResponse.json({ message: response, mode }, { status: 200 });
+    } catch (apiError: any) {
+      // Handle OpenAI specific errors
+      const errorResponse = handleOpenAIError(apiError);
+
+      // Return fallback response if available
+      if (errorResponse.status >= 500) {
+        const fallback = AI_FALLBACK_RESPONSES[mode as keyof typeof AI_FALLBACK_RESPONSES]
+          || AI_FALLBACK_RESPONSES.chat;
+        return NextResponse.json(
+          { message: fallback, mode, fallback: true },
+          { status: 200 }
+        );
+      }
+
+      return NextResponse.json(
+        { error: errorResponse.message },
+        {
+          status: errorResponse.status,
+          headers: errorResponse.retryAfter
+            ? { 'Retry-After': String(errorResponse.retryAfter) }
+            : undefined,
+        }
+      );
+    }
   } catch (error) {
     console.error('Error in AI companion:', error);
     return NextResponse.json(

@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import OpenAI from 'openai';
 import { verifyInterviewAPIAccess } from '@/lib/utils/api-access-checks';
+import {
+  safeSandboxExecuteAsync,
+  getDetectedFunctionName,
+} from '@/lib/utils/safe-sandbox';
 
 interface TestCase {
   input: any;
@@ -15,40 +19,6 @@ interface TestResult {
   expected: any;
   actual: any;
   error?: string;
-}
-
-// Safe code execution with timeout
-function executeCode(code: string, input: any, timeout = 5000): Promise<any> {
-  return new Promise((resolve, reject) => {
-    const timeoutId = setTimeout(() => {
-      reject(new Error('Execution timeout'));
-    }, timeout);
-
-    try {
-      const wrappedCode = `
-        'use strict';
-        ${code}
-
-        const functionMatch = ${JSON.stringify(code)}.match(/function\\s+(\\w+)/);
-        const funcName = functionMatch ? functionMatch[1] : null;
-
-        if (funcName && typeof eval(funcName) === 'function') {
-          return eval(funcName)(${JSON.stringify(input)});
-        }
-
-        throw new Error('No valid function found in code');
-      `;
-
-      const func = new Function(wrappedCode);
-      const result = func();
-
-      clearTimeout(timeoutId);
-      resolve(result);
-    } catch (error) {
-      clearTimeout(timeoutId);
-      reject(error);
-    }
-  });
 }
 
 // Deep equality check
@@ -249,36 +219,54 @@ export async function POST(request: NextRequest) {
     }
 
     // Run ALL test cases (visible + hidden)
-    // OPTIMIZED: Execute test cases in parallel for faster results
+    // OPTIMIZED: Execute test cases in parallel using safe sandbox
     const testCases = challenge.test_cases as TestCase[];
 
-    // Create promises for all test cases to run simultaneously
-    const testPromises = testCases.map(async (testCase) => {
-      try {
-        const actual = await Promise.race([
-          executeCode(code, testCase.input, 2000), // Reduced timeout from 5000ms to 2000ms
-          new Promise((_, reject) =>
-            setTimeout(() => reject(new Error('Test execution timeout')), 3000) // Max 3s per test
-          )
-        ]);
-        const passed = deepEqual(actual, testCase.expected_output);
+    // Detect function name once for all tests
+    const detectedFunction = getDetectedFunctionName(code);
 
-        return {
-          passed,
-          input: testCase.input,
-          expected: testCase.expected_output,
-          actual,
-        };
-      } catch (error: any) {
-        console.error('Test case execution error:', error);
+    if (!detectedFunction) {
+      return NextResponse.json({
+        finalScore: 0,
+        testCaseScore: 0,
+        qualityScore: 0,
+        passedCount: 0,
+        totalTests: testCases.length,
+        qualityFeedback: 'No function found in code. Please define a function named "solution" or any named function.',
+        error: 'No function found in code',
+      });
+    }
+
+    // Create promises for all test cases to run simultaneously using safe sandbox
+    const testPromises = testCases.map(async (testCase) => {
+      const args = Array.isArray(testCase.input)
+        ? testCase.input
+        : [testCase.input];
+
+      // Use safe sandbox execution (VM-based isolation)
+      const execution = await safeSandboxExecuteAsync(code, args, {
+        timeout: 3000,
+        functionName: detectedFunction,
+      });
+
+      if (!execution.success) {
         return {
           passed: false,
           input: testCase.input,
           expected: testCase.expected_output,
           actual: null,
-          error: error.message || 'Execution error',
+          error: execution.error || 'Execution error',
         };
       }
+
+      const passed = deepEqual(execution.result, testCase.expected_output);
+
+      return {
+        passed,
+        input: testCase.input,
+        expected: testCase.expected_output,
+        actual: execution.result,
+      };
     });
 
     // Wait for all tests to complete in parallel (using allSettled to capture all results)

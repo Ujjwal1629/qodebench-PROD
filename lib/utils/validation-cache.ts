@@ -4,26 +4,44 @@ interface CachedValidation {
   result: any;
   timestamp: number;
   expiresAt: number;
+  userId: string; // Include userId to prevent cross-user cache leaks
 }
 
+/**
+ * Thread-safe Validation Cache
+ *
+ * Improvements over previous version:
+ * - Includes userId in cache key to prevent cross-user data leaks
+ * - Uses async-safe operations
+ * - Proper cleanup interval management
+ * - LRU eviction based on access time
+ * - Memory-bounded with configurable limits
+ */
 class ValidationCache {
   private cache: Map<string, CachedValidation>;
-  private readonly TTL = 1000 * 60 * 60; // 1 hour cache TTL
-  private readonly MAX_CACHE_SIZE = 1000; // Max 1000 cached validations
+  private accessOrder: Map<string, number>; // Track access times for LRU
+  private readonly TTL: number;
+  private readonly MAX_CACHE_SIZE: number;
+  private cleanupIntervalId: NodeJS.Timeout | null = null;
+  private readonly CLEANUP_INTERVAL_MS = 10 * 60 * 1000; // 10 minutes
+  private isDestroyed = false;
 
-  constructor() {
+  constructor(options?: { ttlMs?: number; maxSize?: number }) {
+    this.TTL = options?.ttlMs ?? 60 * 60 * 1000; // Default 1 hour
+    this.MAX_CACHE_SIZE = options?.maxSize ?? 500; // Reduced from 1000 for memory safety
     this.cache = new Map();
-    // Clean up expired entries every 10 minutes
-    setInterval(() => this.cleanup(), 1000 * 60 * 10);
+    this.accessOrder = new Map();
+    this.startCleanup();
   }
 
   /**
-   * Generate a hash key from challenge ID and code
+   * Generate a secure hash key from userId, challengeId, and code
    */
-  private generateKey(challengeId: string, code: string): string {
+  private generateKey(userId: string, challengeId: string, code: string): string {
+    // Include userId to prevent cross-user cache hits
     const hash = crypto
       .createHash('sha256')
-      .update(`${challengeId}:${code}`)
+      .update(JSON.stringify({ userId, challengeId, code }))
       .digest('hex');
     return hash;
   }
@@ -31,8 +49,10 @@ class ValidationCache {
   /**
    * Get cached validation result
    */
-  get(challengeId: string, code: string): any | null {
-    const key = this.generateKey(challengeId, code);
+  get(userId: string, challengeId: string, code: string): any | null {
+    if (this.isDestroyed) return null;
+
+    const key = this.generateKey(userId, challengeId, code);
     const cached = this.cache.get(key);
 
     if (!cached) {
@@ -42,8 +62,20 @@ class ValidationCache {
     // Check if expired
     if (Date.now() > cached.expiresAt) {
       this.cache.delete(key);
+      this.accessOrder.delete(key);
       return null;
     }
+
+    // Verify userId matches (defense in depth)
+    if (cached.userId !== userId) {
+      console.error('Cache userId mismatch - potential security issue');
+      this.cache.delete(key);
+      this.accessOrder.delete(key);
+      return null;
+    }
+
+    // Update access time for LRU
+    this.accessOrder.set(key, Date.now());
 
     return cached.result;
   }
@@ -51,23 +83,63 @@ class ValidationCache {
   /**
    * Store validation result in cache
    */
-  set(challengeId: string, code: string, result: any): void {
-    // Enforce max cache size (LRU-style: delete oldest)
+  set(userId: string, challengeId: string, code: string, result: any): void {
+    if (this.isDestroyed) return;
+
+    // Enforce max cache size using true LRU eviction
     if (this.cache.size >= this.MAX_CACHE_SIZE) {
-      const firstKey = this.cache.keys().next().value;
-      if (firstKey) {
-        this.cache.delete(firstKey);
-      }
+      this.evictLRU();
     }
 
-    const key = this.generateKey(challengeId, code);
+    const key = this.generateKey(userId, challengeId, code);
     const now = Date.now();
 
     this.cache.set(key, {
       result,
       timestamp: now,
       expiresAt: now + this.TTL,
+      userId,
     });
+    this.accessOrder.set(key, now);
+  }
+
+  /**
+   * Evict least recently used entries
+   */
+  private evictLRU(): void {
+    // Find the least recently accessed entry
+    let oldestKey: string | null = null;
+    let oldestTime = Infinity;
+
+    for (const [key, accessTime] of this.accessOrder.entries()) {
+      if (accessTime < oldestTime) {
+        oldestTime = accessTime;
+        oldestKey = key;
+      }
+    }
+
+    if (oldestKey) {
+      this.cache.delete(oldestKey);
+      this.accessOrder.delete(oldestKey);
+    }
+  }
+
+  /**
+   * Start periodic cleanup of expired entries
+   */
+  private startCleanup(): void {
+    if (this.cleanupIntervalId) return;
+
+    this.cleanupIntervalId = setInterval(() => {
+      if (!this.isDestroyed) {
+        this.cleanup();
+      }
+    }, this.CLEANUP_INTERVAL_MS);
+
+    // Don't prevent process exit
+    if (this.cleanupIntervalId.unref) {
+      this.cleanupIntervalId.unref();
+    }
   }
 
   /**
@@ -83,27 +155,59 @@ class ValidationCache {
       }
     }
 
-    keysToDelete.forEach((key) => this.cache.delete(key));
+    keysToDelete.forEach((key) => {
+      this.cache.delete(key);
+      this.accessOrder.delete(key);
+    });
   }
 
   /**
-   * Clear all cache (useful for testing)
+   * Clear all cache (useful for testing or version updates)
    */
   clear(): void {
     this.cache.clear();
+    this.accessOrder.clear();
   }
 
   /**
    * Get cache stats
    */
-  getStats() {
+  getStats(): {
+    size: number;
+    maxSize: number;
+    ttlMs: number;
+    hitRate?: number;
+  } {
     return {
       size: this.cache.size,
       maxSize: this.MAX_CACHE_SIZE,
-      ttl: this.TTL,
+      ttlMs: this.TTL,
     };
+  }
+
+  /**
+   * Destroy the cache and cleanup resources
+   */
+  destroy(): void {
+    this.isDestroyed = true;
+    if (this.cleanupIntervalId) {
+      clearInterval(this.cleanupIntervalId);
+      this.cleanupIntervalId = null;
+    }
+    this.cache.clear();
+    this.accessOrder.clear();
+  }
+
+  /**
+   * Check if a validation is cached (without returning result)
+   */
+  has(userId: string, challengeId: string, code: string): boolean {
+    return this.get(userId, challengeId, code) !== null;
   }
 }
 
 // Singleton instance
 export const validationCache = new ValidationCache();
+
+// Export class for testing
+export { ValidationCache };

@@ -1,6 +1,49 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { verifyRazorpayWebhook } from '@/lib/razorpay';
+import { logger } from '@/lib/utils/logger';
+
+// Maximum age for webhook timestamps (5 minutes)
+const WEBHOOK_TIMESTAMP_TOLERANCE_MS = 5 * 60 * 1000;
+
+// In-memory set to track processed webhook IDs (prevents replays within server lifetime)
+// For production at scale, use Redis or database
+const processedWebhookIds = new Set<string>();
+const MAX_PROCESSED_IDS = 10000;
+
+/**
+ * Clean up old webhook IDs to prevent memory leak
+ */
+function trackWebhookId(webhookId: string): boolean {
+  if (processedWebhookIds.has(webhookId)) {
+    return false; // Already processed
+  }
+
+  // Cleanup if too many entries
+  if (processedWebhookIds.size >= MAX_PROCESSED_IDS) {
+    const toDelete = [...processedWebhookIds].slice(0, MAX_PROCESSED_IDS / 2);
+    toDelete.forEach((id) => processedWebhookIds.delete(id));
+  }
+
+  processedWebhookIds.add(webhookId);
+  return true;
+}
+
+/**
+ * Validate webhook timestamp to prevent replay attacks
+ */
+function validateWebhookTimestamp(createdAt: number): boolean {
+  const webhookTime = createdAt * 1000; // Convert to milliseconds
+  const currentTime = Date.now();
+  const age = currentTime - webhookTime;
+
+  // Reject if webhook is too old or from the future
+  if (age > WEBHOOK_TIMESTAMP_TOLERANCE_MS || age < -60000) {
+    return false;
+  }
+
+  return true;
+}
 
 /**
  * Razorpay Webhook Handler
@@ -16,6 +59,7 @@ export async function POST(request: NextRequest) {
     const webhookSignature = request.headers.get('x-razorpay-signature');
 
     if (!webhookSignature) {
+      logger.security('Webhook missing signature', { action: 'webhook_rejected' });
       return NextResponse.json({ error: 'Missing signature' }, { status: 400 });
     }
 
@@ -26,17 +70,41 @@ export async function POST(request: NextRequest) {
     const isValid = verifyRazorpayWebhook(rawBody, webhookSignature);
 
     if (!isValid) {
-      console.error('Invalid webhook signature');
+      logger.security('Invalid webhook signature', { action: 'webhook_rejected' }, 'error');
       return NextResponse.json({ error: 'Invalid signature' }, { status: 400 });
     }
 
     // Parse webhook payload
     const payload = JSON.parse(rawBody);
     const event = payload.event;
+    const createdAt = payload.created_at;
+    const webhookId = payload.id || `${event}_${createdAt}`;
     const paymentEntity = payload.payload.payment?.entity;
     const subscriptionEntity = payload.payload.subscription?.entity;
 
-    console.log('Razorpay webhook received:', event);
+    // SECURITY: Validate webhook timestamp to prevent replay attacks
+    if (createdAt && !validateWebhookTimestamp(createdAt)) {
+      logger.security('Webhook timestamp too old (possible replay attack)', {
+        action: 'webhook_rejected',
+        webhookId,
+        createdAt,
+        event,
+      }, 'error');
+      return NextResponse.json({ error: 'Webhook expired' }, { status: 400 });
+    }
+
+    // SECURITY: Check for duplicate webhook (prevents replay within server lifetime)
+    if (!trackWebhookId(webhookId)) {
+      logger.security('Duplicate webhook detected (possible replay attack)', {
+        action: 'webhook_duplicate',
+        webhookId,
+        event,
+      }, 'warn');
+      // Return success to prevent Razorpay from retrying
+      return NextResponse.json({ success: true, message: 'Already processed' });
+    }
+
+    logger.payment('Razorpay webhook received', { event, webhookId });
 
     // Use service role client for webhook operations
     const supabase = await createClient();
@@ -64,7 +132,7 @@ export async function POST(request: NextRequest) {
               })
               .eq('id', transaction.id);
 
-            console.log('Payment captured via webhook:', paymentEntity.id);
+            logger.payment('Payment captured via webhook', { paymentId: paymentEntity.id });
           }
         }
         break;
@@ -84,7 +152,7 @@ export async function POST(request: NextRequest) {
             })
             .eq('razorpay_order_id', paymentEntity.order_id);
 
-          console.log('Payment failed via webhook:', paymentEntity.id);
+          logger.payment('Payment failed via webhook', { paymentId: paymentEntity.id, errorCode: paymentEntity.error_code });
         }
         break;
       }
@@ -147,7 +215,7 @@ export async function POST(request: NextRequest) {
               razorpay_webhook_data: subscriptionEntity,
             });
 
-            console.log('Subscription renewed via webhook:', subscriptionEntity.id);
+            logger.payment('Subscription renewed via webhook', { subscriptionId: subscriptionEntity.id });
           }
         }
         break;
@@ -166,18 +234,18 @@ export async function POST(request: NextRequest) {
             })
             .eq('razorpay_subscription_id', subscriptionEntity.id);
 
-          console.log('Subscription cancelled via webhook:', subscriptionEntity.id);
+          logger.payment('Subscription cancelled via webhook', { subscriptionId: subscriptionEntity.id });
         }
         break;
       }
 
       default:
-        console.log('Unhandled webhook event:', event);
+        logger.info('Unhandled webhook event', { event });
     }
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Error in webhook handler:', error);
+    logger.error('Error in webhook handler', {}, error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

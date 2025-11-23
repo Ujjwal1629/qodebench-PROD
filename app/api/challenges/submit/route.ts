@@ -1,7 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { rateLimiter, getRateLimitIdentifier } from '@/lib/utils/rate-limiter';
+import { INPUT_LIMITS } from '@/lib/utils/input-validation';
+import { trackApiRequest, FEATURES } from '@/lib/utils/api-metrics-wrapper';
 
 export async function POST(req: NextRequest) {
+  const startTime = Date.now();
+  let userId: string | undefined;
+
   try {
     const supabase = await createClient();
 
@@ -11,8 +17,18 @@ export async function POST(req: NextRequest) {
     } = await supabase.auth.getUser();
 
     if (!user) {
+      trackApiRequest(req, 401, startTime);
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    userId = user.id;
+
+    // Rate limiting
+    const rateLimitResult = rateLimiter.checkAndRespond(
+      getRateLimitIdentifier(user.id),
+      'submission'
+    );
+    if (rateLimitResult) return rateLimitResult.response;
 
     const {
       challengeId,
@@ -21,7 +37,13 @@ export async function POST(req: NextRequest) {
       validationResult,
     } = await req.json();
 
-    console.log('Submit request:', { challengeId, hasCode: !!code, hasValidation: !!validationResult });
+    // Validate code size
+    if (code && code.length > INPUT_LIMITS.code) {
+      return NextResponse.json(
+        { error: `Code too large. Maximum ${INPUT_LIMITS.code} characters allowed` },
+        { status: 413 }
+      );
+    }
 
     if (!challengeId || !code || !validationResult) {
       return NextResponse.json(
@@ -124,8 +146,9 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Update roadmap progress (non-blocking - fire and forget)
-    supabase
+    // Update roadmap progress (awaited for reliability)
+    // Using await ensures data consistency and proper error handling
+    const { error: progressError } = await supabase
       .from('roadmap_progress')
       .upsert(
         {
@@ -139,10 +162,12 @@ export async function POST(req: NextRequest) {
         {
           onConflict: 'user_id,challenge_id',
         }
-      )
-      .then(({ error }) => {
-        if (error) console.error('Progress update error:', error);
-      });
+      );
+
+    if (progressError) {
+      // Log but don't fail the submission - progress is secondary
+      console.error('Progress update error:', progressError);
+    }
 
     // Check if this completion unlocks a new tier (simplified and faster)
     let tierUnlocked = null;
@@ -198,6 +223,10 @@ export async function POST(req: NextRequest) {
     }
 
     console.log('Submission successful! Returning response...');
+
+    // Track successful submission
+    trackApiRequest(req, 200, startTime, userId, FEATURES.CHALLENGE_SUBMIT);
+
     return NextResponse.json({
       success: true,
       submission,
@@ -209,6 +238,10 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     console.error('Error submitting challenge:', error);
     console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
+
+    // Track error
+    trackApiRequest(req, 500, startTime, userId);
+
     return NextResponse.json(
       { error: 'Failed to submit challenge', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }

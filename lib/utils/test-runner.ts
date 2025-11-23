@@ -12,10 +12,10 @@
  */
 
 import {
-  sandboxExecute,
+  safeSandboxExecute,
   getDetectedFunctionName,
   type SandboxOptions,
-} from './sandbox-executor';
+} from './safe-sandbox';
 
 export type TestCase = {
   input: any; // Can be array of args or object with named params
@@ -141,8 +141,8 @@ export function runTestCases(
         ? testCase.input
         : [testCase.input];
 
-      // Execute using sandbox
-      const execution = sandboxExecute(userCode, args, execOptions);
+      // Execute using safe sandbox (VM-based isolation)
+      const execution = safeSandboxExecute(userCode, args, execOptions);
 
       if (!execution.success) {
         results.push({

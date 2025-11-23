@@ -66,8 +66,8 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Check cache first - instant response if found
-    const cachedResult = validationCache.get(challengeId, code);
+    // Check cache first - instant response if found (includes userId for security)
+    const cachedResult = validationCache.get(user.id, challengeId, code);
     if (cachedResult) {
       console.log('✅ Hybrid cache hit for challenge:', challengeId);
       return NextResponse.json(cachedResult);
@@ -218,7 +218,7 @@ export async function POST(req: NextRequest) {
         };
 
         // Cache the result
-        validationCache.set(challengeId, code, result);
+        validationCache.set(user.id, challengeId, code, result);
 
         return NextResponse.json(result);
       } catch (error: any) {
@@ -498,7 +498,7 @@ Return JSON only.`;
     };
 
     // Store in cache for future identical submissions
-    validationCache.set(challengeId, code, result);
+    validationCache.set(user.id, challengeId, code, result);
 
     return NextResponse.json(result);
   } catch (error) {

@@ -1,16 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { verifyInterviewAPIAccess } from '@/lib/utils/api-access-checks';
+import { rateLimiter, getRateLimitIdentifier } from '@/lib/utils/rate-limiter';
+import { INPUT_LIMITS } from '@/lib/utils/input-validation';
 
 /**
  * Auto-save endpoint for interview progress
  * Supports saving drafts for all stage types
+ *
+ * OPTIMIZATIONS:
+ * - Batch upsert operations instead of N+1 queries
+ * - Rate limiting to prevent abuse
+ * - Input validation
  */
 export async function POST(request: NextRequest) {
   try {
     // SECURITY CHECK: Verify user has access to interview prep
     const { user, error: accessError } = await verifyInterviewAPIAccess();
     if (accessError) return accessError;
+
+    // Rate limiting
+    const rateLimitResult = rateLimiter.checkAndRespond(
+      getRateLimitIdentifier(user.id),
+      'interview'
+    );
+    if (rateLimitResult) return rateLimitResult.response;
 
     const supabase = await createClient();
 
@@ -51,10 +65,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Handle different stage types
+    // Handle different stage types with batch operations
     switch (stage) {
       case 'stage_1_mcq':
-        await saveMCQDraft(supabase, sessionId, data);
+        await saveMCQDraftBatch(supabase, sessionId, data);
         break;
 
       case 'stage_2_voice_qa':
@@ -66,11 +80,11 @@ export async function POST(request: NextRequest) {
         break;
 
       case 'stage_4_text_qa':
-        await saveTextQADraft(supabase, sessionId, data);
+        await saveTextQADraftBatch(supabase, sessionId, data);
         break;
 
       case 'stage_5_discussion':
-        await saveDiscussionDraft(supabase, sessionId, data);
+        await saveDiscussionDraftBatch(supabase, sessionId, data);
         break;
 
       default:
@@ -116,58 +130,58 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     console.error('Auto-save error:', error);
     return NextResponse.json(
-      { error: error.message || 'Auto-save failed' },
+      { error: 'Auto-save failed' },
       { status: 500 }
     );
   }
 }
 
 /**
- * Helper functions for saving drafts by stage type
+ * OPTIMIZED: Save MCQ answers using batch upsert
+ * Reduces N+1 queries to 1 batch operation
  */
-
-async function saveMCQDraft(supabase: any, sessionId: string, data: any) {
-  const { answers } = data; // { questionId: selectedOption, ... }
+async function saveMCQDraftBatch(supabase: any, sessionId: string, data: any) {
+  const { answers } = data;
 
   if (!answers || typeof answers !== 'object') {
     throw new Error('Invalid MCQ data format');
   }
 
-  // Save or update each answer as draft
-  for (const [questionId, selectedOption] of Object.entries(answers)) {
-    if (!selectedOption) continue;
+  const entries = Object.entries(answers);
 
-    // Check if draft exists
-    const { data: existing } = await supabase
-      .from('interview_mcq_answers')
-      .select('id')
-      .eq('session_id', sessionId)
-      .eq('question_id', questionId)
-      .eq('is_draft', true)
-      .maybeSingle();
+  // Validate input size
+  if (entries.length > INPUT_LIMITS.answers) {
+    throw new Error(`Too many answers. Maximum ${INPUT_LIMITS.answers} allowed`);
+  }
 
-    if (existing) {
-      // Update existing draft
-      await supabase
-        .from('interview_mcq_answers')
-        .update({
-          selected_option: selectedOption,
-          last_saved_at: new Date().toISOString(),
-        })
-        .eq('id', existing.id);
-    } else {
-      // Create new draft
-      await supabase
-        .from('interview_mcq_answers')
-        .insert({
-          session_id: sessionId,
-          question_id: questionId,
-          selected_option: selectedOption,
-          is_draft: true,
-          is_correct: false, // Will be determined on final submit
-          last_saved_at: new Date().toISOString(),
-        });
-    }
+  // Filter out empty answers
+  const validEntries = entries.filter(([_, selectedOption]) => selectedOption);
+
+  if (validEntries.length === 0) return;
+
+  const now = new Date().toISOString();
+
+  // Prepare batch upsert data
+  const upsertData = validEntries.map(([questionId, selectedOption]) => ({
+    session_id: sessionId,
+    question_id: questionId,
+    selected_option: selectedOption,
+    is_draft: true,
+    is_correct: false,
+    last_saved_at: now,
+  }));
+
+  // Single batch upsert instead of N queries
+  const { error } = await supabase
+    .from('interview_mcq_answers')
+    .upsert(upsertData, {
+      onConflict: 'session_id,question_id,is_draft',
+      ignoreDuplicates: false,
+    });
+
+  if (error) {
+    console.error('MCQ batch upsert error:', error);
+    throw new Error('Failed to save MCQ answers');
   }
 }
 
@@ -178,37 +192,29 @@ async function saveVoiceQADraft(supabase: any, sessionId: string, data: any) {
     throw new Error('Invalid Voice QA data format');
   }
 
-  // Check if draft exists
-  const { data: existing } = await supabase
-    .from('interview_stage_responses')
-    .select('id')
-    .eq('session_id', sessionId)
-    .eq('stage', 'stage_2_voice_qa')
-    .eq('question_id', questionId)
-    .eq('is_draft', true)
-    .maybeSingle();
+  const now = new Date().toISOString();
 
-  if (existing) {
-    // Update existing draft
-    await supabase
-      .from('interview_stage_responses')
-      .update({
-        response_text: response,
-        last_saved_at: new Date().toISOString(),
-      })
-      .eq('id', existing.id);
-  } else {
-    // Create new draft
-    await supabase
-      .from('interview_stage_responses')
-      .insert({
+  // Single upsert instead of select + insert/update
+  const { error } = await supabase
+    .from('interview_stage_responses')
+    .upsert(
+      {
         session_id: sessionId,
         stage: 'stage_2_voice_qa',
         question_id: questionId,
         response_text: response,
         is_draft: true,
-        last_saved_at: new Date().toISOString(),
-      });
+        last_saved_at: now,
+      },
+      {
+        onConflict: 'session_id,stage,question_id,is_draft',
+        ignoreDuplicates: false,
+      }
+    );
+
+  if (error) {
+    console.error('Voice QA upsert error:', error);
+    throw new Error('Failed to save voice QA response');
   }
 }
 
@@ -219,128 +225,128 @@ async function saveCodingDraft(supabase: any, sessionId: string, data: any) {
     throw new Error('Invalid coding data format');
   }
 
-  // Check if draft exists
-  const { data: existing } = await supabase
-    .from('interview_coding_submissions')
-    .select('id')
-    .eq('session_id', sessionId)
-    .eq('challenge_id', challengeId)
-    .eq('is_draft', true)
-    .maybeSingle();
+  // Validate code size
+  if (code.length > INPUT_LIMITS.code) {
+    throw new Error(`Code too large. Maximum ${INPUT_LIMITS.code} characters allowed`);
+  }
 
-  if (existing) {
-    // Update existing draft
-    await supabase
-      .from('interview_coding_submissions')
-      .update({
-        draft_code: code,
-        last_saved_at: new Date().toISOString(),
-      })
-      .eq('id', existing.id);
-  } else {
-    // Create new draft
-    await supabase
-      .from('interview_coding_submissions')
-      .insert({
+  const now = new Date().toISOString();
+
+  // Single upsert instead of select + insert/update
+  const { error } = await supabase
+    .from('interview_coding_submissions')
+    .upsert(
+      {
         session_id: sessionId,
         challenge_id: challengeId,
-        submitted_code: '', // Empty until final submit
+        submitted_code: '',
         draft_code: code,
         tests_total: 0,
         is_draft: true,
-        last_saved_at: new Date().toISOString(),
-      });
+        last_saved_at: now,
+      },
+      {
+        onConflict: 'session_id,challenge_id,is_draft',
+        ignoreDuplicates: false,
+      }
+    );
+
+  if (error) {
+    console.error('Coding upsert error:', error);
+    throw new Error('Failed to save coding draft');
   }
 }
 
-async function saveTextQADraft(supabase: any, sessionId: string, data: any) {
-  const { responses } = data; // Array of { questionId, response }
+/**
+ * OPTIMIZED: Save Text QA responses using batch upsert
+ */
+async function saveTextQADraftBatch(supabase: any, sessionId: string, data: any) {
+  const { responses } = data;
 
   if (!Array.isArray(responses)) {
     throw new Error('Invalid Text QA data format');
   }
 
-  for (const item of responses) {
-    const { questionId, response } = item;
-    if (!questionId || !response) continue;
+  // Validate input size
+  if (responses.length > INPUT_LIMITS.answers) {
+    throw new Error(`Too many responses. Maximum ${INPUT_LIMITS.answers} allowed`);
+  }
 
-    // Check if draft exists
-    const { data: existing } = await supabase
-      .from('interview_stage_responses')
-      .select('id')
-      .eq('session_id', sessionId)
-      .eq('stage', 'stage_4_text_qa')
-      .eq('question_id', questionId)
-      .eq('is_draft', true)
-      .maybeSingle();
+  const validResponses = responses.filter(
+    (item: any) => item.questionId && item.response
+  );
 
-    if (existing) {
-      // Update existing draft
-      await supabase
-        .from('interview_stage_responses')
-        .update({
-          response_text: response,
-          last_saved_at: new Date().toISOString(),
-        })
-        .eq('id', existing.id);
-    } else {
-      // Create new draft
-      await supabase
-        .from('interview_stage_responses')
-        .insert({
-          session_id: sessionId,
-          stage: 'stage_4_text_qa',
-          question_id: questionId,
-          response_text: response,
-          is_draft: true,
-          last_saved_at: new Date().toISOString(),
-        });
-    }
+  if (validResponses.length === 0) return;
+
+  const now = new Date().toISOString();
+
+  // Prepare batch upsert data
+  const upsertData = validResponses.map((item: any) => ({
+    session_id: sessionId,
+    stage: 'stage_4_text_qa',
+    question_id: item.questionId,
+    response_text: item.response,
+    is_draft: true,
+    last_saved_at: now,
+  }));
+
+  // Single batch upsert
+  const { error } = await supabase
+    .from('interview_stage_responses')
+    .upsert(upsertData, {
+      onConflict: 'session_id,stage,question_id,is_draft',
+      ignoreDuplicates: false,
+    });
+
+  if (error) {
+    console.error('Text QA batch upsert error:', error);
+    throw new Error('Failed to save Text QA responses');
   }
 }
 
-async function saveDiscussionDraft(supabase: any, sessionId: string, data: any) {
-  const { responses } = data; // Array of { questionId, response }
+/**
+ * OPTIMIZED: Save Discussion responses using batch upsert
+ */
+async function saveDiscussionDraftBatch(supabase: any, sessionId: string, data: any) {
+  const { responses } = data;
 
   if (!Array.isArray(responses)) {
     throw new Error('Invalid Discussion data format');
   }
 
-  for (const item of responses) {
-    const { questionId, response } = item;
-    if (!questionId || !response) continue;
+  // Validate input size
+  if (responses.length > INPUT_LIMITS.answers) {
+    throw new Error(`Too many responses. Maximum ${INPUT_LIMITS.answers} allowed`);
+  }
 
-    // Check if draft exists
-    const { data: existing } = await supabase
-      .from('interview_stage_responses')
-      .select('id')
-      .eq('session_id', sessionId)
-      .eq('stage', 'stage_5_discussion')
-      .eq('question_id', questionId)
-      .eq('is_draft', true)
-      .maybeSingle();
+  const validResponses = responses.filter(
+    (item: any) => item.questionId && item.response
+  );
 
-    if (existing) {
-      // Update existing draft
-      await supabase
-        .from('interview_stage_responses')
-        .update({
-          response_text: response,
-          last_saved_at: new Date().toISOString(),
-        })
-        .eq('id', existing.id);
-    } else {
-      // Create new draft
-      await supabase
-        .from('interview_stage_responses')
-        .insert({
-          session_id: sessionId,
-          stage: 'stage_5_discussion',
-          question_id: questionId,
-          response_text: response,
-          is_draft: true,
-          last_saved_at: new Date().toISOString(),
-        });
-    }
+  if (validResponses.length === 0) return;
+
+  const now = new Date().toISOString();
+
+  // Prepare batch upsert data
+  const upsertData = validResponses.map((item: any) => ({
+    session_id: sessionId,
+    stage: 'stage_5_discussion',
+    question_id: item.questionId,
+    response_text: item.response,
+    is_draft: true,
+    last_saved_at: now,
+  }));
+
+  // Single batch upsert
+  const { error } = await supabase
+    .from('interview_stage_responses')
+    .upsert(upsertData, {
+      onConflict: 'session_id,stage,question_id,is_draft',
+      ignoreDuplicates: false,
+    });
+
+  if (error) {
+    console.error('Discussion batch upsert error:', error);
+    throw new Error('Failed to save discussion responses');
   }
 }

@@ -2,9 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { verifyInterviewAPIAccess } from '@/lib/utils/api-access-checks';
 import {
-  sandboxExecuteAsync,
+  safeSandboxExecuteAsync,
   getDetectedFunctionName,
-} from '@/lib/utils/sandbox-executor';
+} from '@/lib/utils/safe-sandbox';
 
 interface TestCase {
   input: any;
@@ -118,8 +118,8 @@ export async function POST(request: NextRequest) {
         ? testCase.input
         : [testCase.input];
 
-      // Execute using sandbox with async timeout support
-      const execution = await sandboxExecuteAsync(code, args, {
+      // Execute using safe sandbox (VM-based isolation) with async timeout support
+      const execution = await safeSandboxExecuteAsync(code, args, {
         timeout: 5000,
         functionName: detectedFunction,
       });

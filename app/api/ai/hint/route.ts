@@ -1,14 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
-import OpenAI from 'openai';
 import { createClient } from '@/lib/supabase/server';
+import {
+  createChatCompletion,
+  handleOpenAIError,
+  AI_FALLBACK_RESPONSES,
+} from '@/lib/openai-client';
+import { rateLimiter, getRateLimitIdentifier } from '@/lib/utils/rate-limiter';
+import { INPUT_LIMITS, truncate } from '@/lib/utils/input-validation';
+import { canUseAIFeedback, incrementDailyUsage } from '@/lib/utils/subscription-check';
 
 export async function POST(req: NextRequest) {
   try {
-    // Initialize OpenAI client only when needed
-    const openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY || '',
-    });
-
     const supabase = await createClient();
 
     // Check auth
@@ -18,6 +20,22 @@ export async function POST(req: NextRequest) {
 
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Rate limiting - stricter for hints
+    const rateLimitResult = rateLimiter.checkAndRespond(
+      getRateLimitIdentifier(user.id),
+      'aiHint'
+    );
+    if (rateLimitResult) return rateLimitResult.response;
+
+    // Check AI usage limits for free users
+    const usageCheck = await canUseAIFeedback(user.id);
+    if (!usageCheck.allowed) {
+      return NextResponse.json(
+        { error: usageCheck.reason, requiresUpgrade: true },
+        { status: 429 }
+      );
     }
 
     const { challengeId, currentCode, hintsUsed } = await req.json();
@@ -32,7 +50,7 @@ export async function POST(req: NextRequest) {
     // Get challenge details
     const { data: challenge } = await supabase
       .from('challenges')
-      .select('*')
+      .select('title, description')
       .eq('id', challengeId)
       .single();
 
@@ -46,13 +64,21 @@ export async function POST(req: NextRequest) {
     // Determine hint level (progressive hints)
     const hintLevel = (hintsUsed || 0) + 1;
 
-    // Generate hint using OpenAI
-    const completion = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
-      messages: [
+    // Truncate inputs to prevent excessive token usage
+    const truncatedCode = currentCode
+      ? truncate(currentCode, INPUT_LIMITS.code)
+      : 'No code written yet';
+    const truncatedDescription = truncate(challenge.description || '', 500);
+
+    // Generate hint using OpenAI with timeout
+    try {
+      const completion = await createChatCompletion(
         {
-          role: 'system',
-          content: `You're a senior dev giving progressive hints. Be direct and practical.
+          model: 'gpt-4o-mini',
+          messages: [
+            {
+              role: 'system',
+              content: `You're a senior dev giving progressive hints. Be direct and practical.
 
 HINT PROGRESSION:
 Level 1: Point to what they're missing
@@ -85,39 +111,52 @@ CRITICAL: NO MARKDOWN FORMATTING
 - Don't wrap code in backticks - just indent it
 - Plain text only like normal chat
 
-Example Level 1: "You're not checking if the input is null. That crashes. Add validation first."
-Example Level 3: "Guard clause: if (!data) return []; - Put that at the very top."
-Example Level 4: "Here's the validation and main logic:
-
-if (!arr?.length) return [];
-return arr.filter(x => x > 0).map(x => x * 2);
-
-Filter removes negatives, map transforms. That's it."
-
 Be direct. Skip encouragement. Just help them solve it.`,
-        },
-        {
-          role: 'user',
-          content: `Challenge: ${challenge.title}
+            },
+            {
+              role: 'user',
+              content: `Challenge: ${challenge.title}
 
-Description: ${challenge.description}
+Description: ${truncatedDescription}
 
 Current Code:
-${currentCode || 'No code written yet'}
+${truncatedCode}
 
 This is hint level ${hintLevel}. Provide an appropriate progressive hint.`,
+            },
+          ],
+          temperature: 0.85,
+          max_tokens: 350,
         },
-      ],
-      temperature: 0.85, // Higher for more natural, varied responses
-      max_tokens: 350, // Slightly more for code examples
-    });
+        20000 // 20 second timeout
+      );
 
-    const hint = completion.choices[0].message.content;
+      const hint = completion.choices[0].message.content;
 
-    return NextResponse.json({
-      hint,
-      hintLevel,
-    });
+      // Track usage for free users
+      await incrementDailyUsage('ai_feedback', user.id);
+
+      return NextResponse.json({
+        hint,
+        hintLevel,
+      });
+    } catch (apiError: any) {
+      const errorResponse = handleOpenAIError(apiError);
+
+      // Return fallback for server errors
+      if (errorResponse.status >= 500) {
+        return NextResponse.json({
+          hint: AI_FALLBACK_RESPONSES.hint,
+          hintLevel,
+          fallback: true,
+        });
+      }
+
+      return NextResponse.json(
+        { error: errorResponse.message },
+        { status: errorResponse.status }
+      );
+    }
   } catch (error) {
     console.error('Error generating hint:', error);
     return NextResponse.json(
