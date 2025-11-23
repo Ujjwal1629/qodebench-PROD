@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
 import { createClient } from '@/lib/supabase/server';
 import { validationCache } from '@/lib/utils/validation-cache';
+import { isValidUUID } from '@/lib/utils/input-validation';
 
 interface StructureValidation {
   weight: number;
@@ -59,9 +60,17 @@ export async function POST(req: NextRequest) {
 
     const { challengeId, code, language } = await req.json();
 
-    if (!challengeId || !code) {
+    // SECURITY: Validate UUID format to prevent SQL injection
+    if (!challengeId || !isValidUUID(challengeId)) {
       return NextResponse.json(
-        { error: 'Challenge ID and code are required' },
+        { error: 'Invalid challenge ID format' },
+        { status: 400 }
+      );
+    }
+
+    if (!code) {
+      return NextResponse.json(
+        { error: 'Code is required' },
         { status: 400 }
       );
     }

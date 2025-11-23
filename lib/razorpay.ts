@@ -64,10 +64,18 @@ export function verifyRazorpaySignature(verification: RazorpayPaymentVerificatio
     .digest('hex');
 
   // Compare signatures using timing-safe comparison
-  return crypto.timingSafeEqual(
-    Buffer.from(generatedSignature),
-    Buffer.from(razorpaySignature)
-  );
+  // SECURITY: Wrap in try-catch to handle length mismatches gracefully
+  try {
+    return crypto.timingSafeEqual(
+      Buffer.from(generatedSignature),
+      Buffer.from(razorpaySignature)
+    );
+  } catch (error) {
+    // timingSafeEqual throws if buffer lengths don't match
+    // This indicates signature tampering
+    console.error('Payment signature verification failed:', error);
+    return false;
+  }
 }
 
 /**
@@ -86,10 +94,17 @@ export function verifyRazorpayWebhook(webhookBody: string, webhookSignature: str
     .update(webhookBody)
     .digest('hex');
 
-  return crypto.timingSafeEqual(
-    Buffer.from(expectedSignature),
-    Buffer.from(webhookSignature)
-  );
+  // SECURITY: Wrap in try-catch to handle length mismatches gracefully
+  try {
+    return crypto.timingSafeEqual(
+      Buffer.from(expectedSignature),
+      Buffer.from(webhookSignature)
+    );
+  } catch (error) {
+    // timingSafeEqual throws if buffer lengths don't match
+    console.error('Webhook signature verification failed:', error);
+    return false;
+  }
 }
 
 /**

@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { rateLimiter, getRateLimitIdentifier } from '@/lib/utils/rate-limiter';
-import { INPUT_LIMITS } from '@/lib/utils/input-validation';
+import { INPUT_LIMITS, isValidUUID } from '@/lib/utils/input-validation';
 import { trackApiRequest, FEATURES } from '@/lib/utils/api-metrics-wrapper';
+import { canAccessChallenge } from '@/lib/utils/subscription-check';
 
 export async function POST(req: NextRequest) {
   const startTime = Date.now();
@@ -37,6 +38,14 @@ export async function POST(req: NextRequest) {
       validationResult,
     } = await req.json();
 
+    // SECURITY: Validate UUID format to prevent SQL injection
+    if (!challengeId || !isValidUUID(challengeId)) {
+      return NextResponse.json(
+        { error: 'Invalid challenge ID format' },
+        { status: 400 }
+      );
+    }
+
     // Validate code size
     if (code && code.length > INPUT_LIMITS.code) {
       return NextResponse.json(
@@ -45,10 +54,20 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    if (!challengeId || !code || !validationResult) {
+    if (!code || !validationResult) {
       return NextResponse.json(
         { error: 'Missing required fields' },
         { status: 400 }
+      );
+    }
+
+    // SECURITY: Check if user has access to this challenge tier
+    const accessCheck = await canAccessChallenge(challengeId, user.id);
+    if (!accessCheck.canAccess) {
+      trackApiRequest(req, 403, startTime, userId);
+      return NextResponse.json(
+        { error: accessCheck.reason || 'Access denied', requiresUpgrade: accessCheck.requiresUpgrade },
+        { status: 403 }
       );
     }
 
@@ -59,12 +78,42 @@ export async function POST(req: NextRequest) {
     const passedTests = testResults?.passed || (passed ? 1 : 0);
     const totalTests = testResults?.total || 1;
 
+    // Parallelize independent database operations
+    console.log('Executing parallel database operations...');
+    const [
+      { data: challenge, error: challengeFetchError }
+    ] = await Promise.all([
+      // Fetch challenge details
+      supabase
+        .from('challenges')
+        .select('points, tier, order_in_tier')
+        .eq('id', challengeId)
+        .single()
+    ]);
+
+    if (challengeFetchError) {
+      console.error('Challenge fetch error:', challengeFetchError);
+      return NextResponse.json(
+        { error: 'Failed to fetch challenge details', details: challengeFetchError.message },
+        { status: 500 }
+      );
+    }
+
+    if (!challenge) {
+      return NextResponse.json(
+        { error: 'Challenge not found' },
+        { status: 404 }
+      );
+    }
+
+    // SECURITY FIX: Atomic points award using database logic
     // Check if user already has a passing submission (prevent point farming)
     // This implements the LeetCode/HackerRank pattern: points awarded only on FIRST pass
     let actualPointsEarned = validationResult.pointsEarned || 0;
     let isFirstPass = true;
 
     if (passed) {
+      // Check if this is the first passing submission (race-condition safe)
       const { data: previousPassingSubmission } = await supabase
         .from('submissions')
         .select('id, submitted_at')
@@ -85,58 +134,29 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Parallelize independent database operations
-    console.log('Executing parallel database operations...');
-    const [
-      { data: challenge, error: challengeFetchError },
-      { data: submission, error: submissionError }
-    ] = await Promise.all([
-      // Fetch challenge details
-      supabase
-        .from('challenges')
-        .select('points, tier, order_in_tier')
-        .eq('id', challengeId)
-        .single(),
-
-      // Create submission
-      supabase
-        .from('submissions')
-        .insert({
-          user_id: user.id,
-          challenge_id: challengeId,
-          code,
-          language: language || 'javascript',
-          status: passed ? 'passed' : 'failed',
-          ai_feedback: JSON.stringify({
-            codeQuality,
-            improvements,
-            ...(suggestions && { suggestions }),
-            ...(strengths && { strengths }),
-            ...(testResults && { testResults }),
-          }),
-          score,
-          passed_tests: passedTests,
-          total_tests: totalTests,
-          points_earned: actualPointsEarned, // Will be 0 if not first pass
-        })
-        .select()
-        .single()
-    ]);
-
-    if (challengeFetchError) {
-      console.error('Challenge fetch error:', challengeFetchError);
-      return NextResponse.json(
-        { error: 'Failed to fetch challenge details', details: challengeFetchError.message },
-        { status: 500 }
-      );
-    }
-
-    if (!challenge) {
-      return NextResponse.json(
-        { error: 'Challenge not found' },
-        { status: 404 }
-      );
-    }
+    // Create submission
+    const { data: submission, error: submissionError } = await supabase
+      .from('submissions')
+      .insert({
+        user_id: user.id,
+        challenge_id: challengeId,
+        code,
+        language: language || 'javascript',
+        status: passed ? 'passed' : 'failed',
+        ai_feedback: JSON.stringify({
+          codeQuality,
+          improvements,
+          ...(suggestions && { suggestions }),
+          ...(strengths && { strengths }),
+          ...(testResults && { testResults }),
+        }),
+        score,
+        passed_tests: passedTests,
+        total_tests: totalTests,
+        points_earned: actualPointsEarned, // Will be 0 if not first pass
+      })
+      .select()
+      .single();
 
     if (submissionError) {
       console.error('Submission error:', submissionError);
