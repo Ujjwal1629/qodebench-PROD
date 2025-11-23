@@ -161,12 +161,12 @@ const CSRF_EXEMPT_PATHS = [
   '/api/auth/callback', // OAuth callback
   '/api/health', // Health check
   // Auth-protected routes (session cookie provides CSRF protection)
-  '/api/ai/', // AI routes (companion, hints, feedback, validate)
-  '/api/challenges/', // Challenge routes (submit, validate)
-  '/api/interview/', // Interview routes
-  '/api/learning/', // Learning routes
-  '/api/admin/', // Admin routes
-  '/api/profile/', // Profile routes
+  '/api/ai', // AI routes (companion, hints, feedback, validate)
+  '/api/challenges', // Challenge routes (submit, validate)
+  '/api/interview', // Interview routes
+  '/api/learning', // Learning routes
+  '/api/admin', // Admin routes
+  '/api/profile', // Profile routes
   '/api/payments/create-order', // Payment routes (auth required)
   '/api/payments/verify-payment',
   '/api/payments/subscription-status',
