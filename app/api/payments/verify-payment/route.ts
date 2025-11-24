@@ -4,6 +4,7 @@ import { verifyRazorpaySignature, calculateSubscriptionEndDate } from '@/lib/raz
 import { SUBSCRIPTION_PLANS, SubscriptionTier } from '@/types/subscription';
 import { updateUserSubscription } from '@/lib/utils/subscription-check';
 import { rateLimiter, getRateLimitIdentifier } from '@/lib/utils/rate-limiter';
+import { logger } from '@/lib/utils/logger';
 
 export async function POST(request: NextRequest) {
   try {
@@ -60,7 +61,11 @@ export async function POST(request: NextRequest) {
 
     if (existingSubscription) {
       // Payment already processed - return success (idempotent)
-      console.log('Payment already processed:', razorpay_payment_id);
+      logger.payment('Payment already processed (idempotent)', {
+        tier: existingSubscription.tier,
+        status: existingSubscription.status,
+        // Don't log payment IDs for security
+      });
       return NextResponse.json({
         success: true,
         message: 'Payment already verified',
@@ -83,10 +88,13 @@ export async function POST(request: NextRequest) {
     });
 
     if (!isValid) {
-      // Don't log sensitive payment IDs in production
-      if (process.env.NODE_ENV !== 'production') {
-        console.error('Invalid payment signature for order:', razorpay_order_id);
-      }
+      // SECURITY: Log signature verification failure without sensitive payment IDs
+      logger.security('Payment signature verification failed', {
+        action: 'payment_verification_failed',
+        userId: user.id,
+        tier,
+        // Don't log payment IDs or signature for security
+      }, 'error');
 
       // Update transaction as failed
       await supabase
@@ -155,7 +163,12 @@ export async function POST(request: NextRequest) {
         }
       }
 
-      console.error('Error creating subscription:', subscriptionError);
+      logger.error('Error creating subscription', {
+        userId: user.id,
+        tier,
+        errorCode: subscriptionError.code,
+        // Don't log payment IDs for security
+      }, subscriptionError as Error);
       return NextResponse.json(
         { error: 'Failed to create subscription. Please contact support.' },
         { status: 500 }
@@ -185,8 +198,18 @@ export async function POST(request: NextRequest) {
     );
 
     if (!updateSuccess) {
-      console.error('Failed to update user profile with subscription');
+      logger.error('Failed to update user profile with subscription', {
+        userId: user.id,
+        tier,
+        subscriptionId: subscription.id,
+      });
       // Don't fail the payment, log for manual review
+    } else {
+      logger.payment('Payment verified and subscription created successfully', {
+        userId: user.id,
+        tier,
+        status: tier === 'beta' ? 'trial' : 'active',
+      });
     }
 
     // Return success
@@ -202,13 +225,12 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error: any) {
-    console.error('Error in verify-payment API:', error);
-    console.error('Error details:', {
-      message: error.message,
-      code: error.code,
-      details: error.details,
-      hint: error.hint,
-    });
+    logger.error('Error in verify-payment API', {
+      // Don't log payment IDs or sensitive data
+      errorCode: error?.code,
+      errorMessage: error?.message,
+    }, error instanceof Error ? error : new Error(String(error)));
+
     return NextResponse.json(
       {
         error: 'Internal server error',

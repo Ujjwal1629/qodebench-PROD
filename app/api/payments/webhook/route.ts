@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { createServiceRoleClient } from '@/lib/supabase/server';
 import { verifyRazorpayWebhook } from '@/lib/razorpay';
 import { logger } from '@/lib/utils/logger';
 
@@ -70,8 +70,57 @@ export async function POST(request: NextRequest) {
 
     logger.payment('Razorpay webhook received', { event });
 
-    // Use service role client for webhook operations
-    const supabase = await createClient();
+    // Use service role client for webhook operations (bypasses RLS)
+    const supabase = await createServiceRoleClient();
+
+    // DEDUPLICATION: Check if webhook already processed
+    // Use Razorpay event ID (payload.id) as unique identifier
+    const razorpayEventId = payload.id;
+    const webhookId = `${razorpayEventId}-${createdAt}`; // Composite key for extra safety
+
+    if (razorpayEventId) {
+      const { data: existingWebhook } = await supabase
+        .from('webhook_events')
+        .select('id')
+        .eq('webhook_id', webhookId)
+        .single();
+
+      if (existingWebhook) {
+        logger.payment('Webhook already processed (duplicate)', {
+          event,
+          webhookId,
+          razorpayEventId,
+        });
+        return NextResponse.json({ success: true, message: 'Already processed' });
+      }
+
+      // Record webhook event for deduplication and audit trail
+      const { error: webhookRecordError } = await supabase
+        .from('webhook_events')
+        .insert({
+          webhook_id: webhookId,
+          event_type: event,
+          razorpay_event_id: razorpayEventId,
+          payload: payload,
+          processed_at: new Date().toISOString(),
+        });
+
+      if (webhookRecordError) {
+        // If insert fails due to unique constraint, webhook already processed by concurrent request
+        if (webhookRecordError.code === '23505') { // Postgres unique violation
+          logger.payment('Webhook duplicate detected via database constraint', {
+            event,
+            webhookId,
+          });
+          return NextResponse.json({ success: true, message: 'Already processed' });
+        }
+
+        // Other errors are unexpected but shouldn't block webhook processing
+        logger.error('Failed to record webhook event', { event, webhookId }, webhookRecordError as Error);
+      }
+    } else {
+      logger.warning('Webhook missing Razorpay event ID', { event });
+    }
 
     // Handle different webhook events
     switch (event) {

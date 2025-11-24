@@ -2,9 +2,27 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { createRazorpayOrder, generateReceiptId } from '@/lib/razorpay';
 import { SUBSCRIPTION_PLANS, SubscriptionTier } from '@/types/subscription';
+import { logger } from '@/lib/utils/logger';
 
 export async function POST(request: NextRequest) {
   try {
+    // Check if Razorpay credentials are configured
+    if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
+      logger.error('Razorpay credentials not configured', {
+        hasKeyId: !!process.env.RAZORPAY_KEY_ID,
+        hasKeySecret: !!process.env.RAZORPAY_KEY_SECRET,
+      });
+      return NextResponse.json(
+        {
+          error: 'Payment system not configured. Please contact support.',
+          details: process.env.NODE_ENV === 'development'
+            ? 'Missing RAZORPAY_KEY_ID or RAZORPAY_KEY_SECRET environment variables'
+            : undefined,
+        },
+        { status: 500 }
+      );
+    }
+
     // Authenticate user
     const supabase = await createClient();
     const {
@@ -29,6 +47,12 @@ export async function POST(request: NextRequest) {
     // Generate receipt ID
     const receiptId = generateReceiptId(user.id, tier);
 
+    logger.payment('Creating Razorpay order', {
+      userId: user.id,
+      tier,
+      amount: plan.priceInPaise,
+    });
+
     // Create Razorpay order
     const result = await createRazorpayOrder({
       amount: plan.priceInPaise,
@@ -42,9 +66,16 @@ export async function POST(request: NextRequest) {
     });
 
     if (!result.success || !result.order) {
-      console.error('Failed to create Razorpay order:', result.error);
+      logger.error('Failed to create Razorpay order', {
+        userId: user.id,
+        tier,
+        error: result.error,
+      });
       return NextResponse.json(
-        { error: 'Failed to create order. Please try again.' },
+        {
+          error: 'Failed to create order. Please try again.',
+          details: process.env.NODE_ENV === 'development' ? result.error : undefined,
+        },
         { status: 500 }
       );
     }
@@ -62,8 +93,17 @@ export async function POST(request: NextRequest) {
       });
 
     if (transactionError) {
-      console.error('Error creating transaction record:', transactionError);
+      logger.error('Error creating transaction record', {
+        userId: user.id,
+        orderId: result.order.id,
+      }, transactionError as Error);
       // Continue anyway - order is created
+    } else {
+      logger.payment('Order created successfully', {
+        userId: user.id,
+        tier,
+        orderId: result.order.id,
+      });
     }
 
     // Return order details to client
@@ -80,9 +120,14 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('Error in create-order API:', error);
+    logger.error('Error in create-order API', {}, error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
-      { error: 'Internal server error' },
+      {
+        error: 'Internal server error',
+        details: process.env.NODE_ENV === 'development' && error instanceof Error
+          ? error.message
+          : undefined,
+      },
       { status: 500 }
     );
   }
