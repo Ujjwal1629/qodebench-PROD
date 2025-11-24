@@ -119,7 +119,7 @@ export async function POST(request: NextRequest) {
         logger.error('Failed to record webhook event', { event, webhookId }, webhookRecordError as Error);
       }
     } else {
-      logger.warning('Webhook missing Razorpay event ID', { event });
+      logger.warn('Webhook missing Razorpay event ID', { event });
     }
 
     // Handle different webhook events

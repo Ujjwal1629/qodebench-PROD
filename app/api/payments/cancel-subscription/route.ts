@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
     // However, beta trials might not have subscription records if they never completed payment
     // So we allow cancellation but log it for monitoring
     if (!subscription) {
-      logger.warning('Cancellation for profile with subscription but no subscription record', {
+      logger.warn('Cancellation for profile with subscription but no subscription record', {
         userId: user.id,
         tier: profile.subscription_tier,
         status: profile.subscription_status,
