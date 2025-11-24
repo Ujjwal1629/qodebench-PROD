@@ -8,12 +8,13 @@ import { Check } from "lucide-react";
 const pricingTiers = [
   {
     name: "Free",
-    monthlyPrice: "$0",
-    yearlyPrice: "$0",
+    monthlyPrice: "₹0",
+    yearlyPrice: "₹0",
     description: "Perfect for getting started",
     features: [
-      "5 challenges per month",
-      "Basic AI feedback",
+      "Beginner challenges only",
+      "All learning modules (Free forever)",
+      "5 AI feedbacks per day",
       "Community access",
       "Progress tracking",
     ],
@@ -21,37 +22,39 @@ const pricingTiers = [
     ctaLink: "/signup",
   },
   {
-    name: "Pro",
-    monthlyPrice: "$19",
-    yearlyPrice: "$15",
-    description: "For serious developers",
+    name: "Beta Trial",
+    monthlyPrice: "₹199",
+    yearlyPrice: "₹199",
+    originalPrice: "₹999",
+    description: "21-day beta offer",
     features: [
-      "Unlimited challenges",
-      "Advanced AI feedback",
-      "Mock interviews",
-      "Weekly Code Friday challenges",
-      "Leaderboard participation",
-      "Priority support",
-      "Career roadmap",
+      "All challenges (beginner to advanced)",
+      "Interview prep mode (6 stages)",
+      "Unlimited attempts",
+      "Unlimited AI hints & feedback",
+      "System design discussions",
+      "Professional interview reports",
     ],
-    cta: "Get Pro",
-    ctaLink: "/signup",
+    cta: "Start Beta Trial",
+    ctaLink: "/pricing",
     popular: true,
+    badge: "Limited Time",
   },
   {
-    name: "Team",
-    monthlyPrice: "$49",
-    yearlyPrice: "$40",
-    description: "For growing teams",
+    name: "Premium Plans",
+    monthlyPrice: "₹1,999",
+    yearlyPrice: "₹4,999",
+    description: "Choose your commitment",
     features: [
-      "Everything in Pro",
-      "Custom challenges",
-      "Team analytics",
-      "Admin dashboard",
-      "Onboarding assistance",
+      "Everything in Beta Trial",
+      "3-Month Offer: ₹1,999 (Introductory)",
+      "6-Month Plan: ₹4,999 (Best value)",
+      "Cancel anytime",
+      "Priority support",
+      "Exclusive premium badge",
     ],
-    cta: "Contact Sales",
-    ctaLink: "/contact",
+    cta: "View All Plans",
+    ctaLink: "/pricing",
   },
 ];
 
@@ -70,18 +73,18 @@ export function Pricing() {
           </div>
 
           <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 tracking-tight">
-            <span className="text-slate-900">Start Learning </span>
-            <span className="bg-gradient-to-r from-brand-500 to-purple-600 bg-clip-text text-transparent">Completely Free</span>
+            <span className="text-slate-900">Transparent </span>
+            <span className="bg-gradient-to-r from-brand-500 to-purple-600 bg-clip-text text-transparent">Pricing</span>
           </h2>
 
           <p className="text-xl text-slate-600 mb-8">
-            All beta users get <strong className="text-brand-600">1 month of free access</strong> to all Pro features. No credit card required.
+            Start with <strong className="text-brand-600">free beginner challenges</strong> or try our beta trial for just ₹199 for 21 days.
           </p>
 
           {/* Toggle */}
           <div className="flex items-center justify-center gap-4">
             <span className={`text-sm ${!isYearly ? 'text-slate-900 font-medium' : 'text-slate-500'}`}>
-              Monthly
+              3 Months
             </span>
             <button
               onClick={() => setIsYearly(!isYearly)}
@@ -95,17 +98,17 @@ export function Pricing() {
               />
             </button>
             <span className={`text-sm ${isYearly ? 'text-slate-900 font-medium' : 'text-slate-500'}`}>
-              Yearly
+              6 Months
             </span>
             {isYearly && (
               <span className="inline-flex items-center rounded-full bg-gradient-to-r from-brand-500 to-purple-500 text-white px-3 py-1 text-xs font-semibold shadow-lg">
-                Save 17%
+                Best Value
               </span>
             )}
           </div>
 
           <p className="text-sm text-slate-500 mt-4">
-            Pricing shown below takes effect after your free month
+            All prices in Indian Rupees (INR). International pricing available on request.
           </p>
         </div>
 
@@ -124,7 +127,7 @@ export function Pricing() {
               {tier.popular && (
                 <div className="absolute -top-4 left-1/2 -translate-x-1/2">
                   <span className="bg-gradient-to-r from-brand-500 to-purple-500 text-white px-5 py-1.5 rounded-full text-sm font-semibold shadow-xl shadow-brand-500/30">
-                    Most Popular
+                    {tier.badge || "Most Popular"}
                   </span>
                 </div>
               )}
@@ -139,12 +142,19 @@ export function Pricing() {
 
               {/* Price */}
               <div className="mb-6">
+                {tier.originalPrice && (
+                  <div className="mb-1">
+                    <span className="text-2xl text-slate-400 line-through">
+                      {tier.originalPrice}
+                    </span>
+                  </div>
+                )}
                 <div className="flex items-baseline gap-1">
                   <span className="text-5xl font-bold text-slate-900">
                     {isYearly ? tier.yearlyPrice : tier.monthlyPrice}
                   </span>
                   <span className="text-slate-600">
-                    {tier.monthlyPrice !== "$0" ? (isYearly ? "/user/year" : "/user/month") : ""}
+                    {tier.monthlyPrice !== "₹0" ? (tier.name === "Beta Trial" ? "/21 days" : isYearly ? "/6 months" : "/3 months") : ""}
                   </span>
                 </div>
               </div>
@@ -178,13 +188,14 @@ export function Pricing() {
         <div className="mt-12 text-center space-y-4">
           <div className="bg-gradient-to-r from-green-50 to-brand-50 border border-green-200 rounded-2xl p-6 max-w-3xl mx-auto">
             <p className="text-lg font-semibold text-slate-900 mb-2">
-              🎁 Beta Launch Benefits
+              💎 What's Included
             </p>
             <ul className="text-sm text-slate-700 space-y-2">
-              <li>✅ 1 month free access to all Pro features</li>
-              <li>✅ No credit card required to start</li>
-              <li>✅ Help shape the future of QodeBench with your feedback</li>
-              <li>✅ Priority access to new features as we launch them</li>
+              <li>✅ All challenges (beginner to advanced)</li>
+              <li>✅ Full interview prep mode with AI evaluation</li>
+              <li>✅ Unlimited attempts and AI feedback</li>
+              <li>✅ Professional interview reports (PDF download)</li>
+              <li>✅ Cancel anytime, no questions asked</li>
             </ul>
           </div>
           <p className="text-sm text-slate-500">
