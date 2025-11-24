@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
 import { searchUsers } from '@/app/actions/leaderboard';
 import { useDebounce } from '@/hooks/use-debounce';
+import { createClient } from '@/lib/supabase/client';
 
 type LeaderboardType = 'all-time' | 'weekly';
 
@@ -29,6 +30,19 @@ export function LeaderboardClient({
   const [searchResults, setSearchResults] = useState<LeaderboardUser[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+
+  // Get current user ID
+  useEffect(() => {
+    const getCurrentUser = async () => {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setCurrentUserId(user.id);
+      }
+    };
+    getCurrentUser();
+  }, []);
 
   const debouncedSearch = useDebounce(searchQuery, 300);
 
@@ -67,6 +81,7 @@ export function LeaderboardClient({
           rank={initialUserRank.rank}
           totalUsers={initialUserRank.total_users}
           percentile={initialUserRank.percentile}
+          points={initialUserRank.points}
         />
       )}
 
@@ -87,6 +102,7 @@ export function LeaderboardClient({
         users={displayData}
         isLoading={isSearching}
         onUserClick={(userId) => setSelectedUserId(userId)}
+        currentUserId={currentUserId || undefined}
       />
 
       {/* User Profile Modal */}

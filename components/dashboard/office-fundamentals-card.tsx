@@ -52,22 +52,22 @@ export function OfficeFundamentalsCard({
         <Briefcase className="w-full h-full text-orange-600" />
       </div>
 
-      <CardHeader className="relative">
-        <div className="flex items-start justify-between">
-          <div className="flex items-center gap-3">
-            <div className="rounded-lg bg-orange-100 p-2.5">
-              <Briefcase className="h-6 w-6 text-orange-600" />
+      <CardHeader className="relative px-4 py-4 sm:px-5 sm:py-5 md:px-6 md:py-6">
+        <div className="flex items-start justify-between flex-wrap gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="rounded-lg bg-orange-100 p-2 sm:p-2.5">
+              <Briefcase className="h-5 w-5 sm:h-6 sm:w-6 text-orange-600" />
             </div>
             <div>
-              <CardTitle className="text-xl">Office Fundamentals</CardTitle>
-              <p className="text-sm text-slate-600 mt-1">
+              <CardTitle className="text-lg sm:text-xl">Office Fundamentals</CardTitle>
+              <p className="text-xs sm:text-sm text-slate-600 mt-1">
                 Master professional development skills
               </p>
             </div>
           </div>
           <Badge
             variant="outline"
-            className="text-orange-600 bg-orange-50 border-orange-200"
+            className="text-orange-600 bg-orange-50 border-orange-200 text-xs sm:text-sm"
           >
             {totalChallenges} Challenges
           </Badge>
@@ -92,7 +92,7 @@ export function OfficeFundamentalsCard({
         </div>
       </CardHeader>
 
-      <CardContent className="relative space-y-3">
+      <CardContent className="relative space-y-3 px-4 pb-4 sm:px-5 sm:pb-5 md:px-6 md:pb-6">
         {/* Challenge List */}
         {displayChallenges.map((challenge, index) => (
           <Link
@@ -100,7 +100,7 @@ export function OfficeFundamentalsCard({
             href={`/dashboard/challenges/${challenge.slug}`}
             className="block group"
           >
-            <div className="flex items-center justify-between p-3 rounded-lg border border-slate-200 bg-white hover:border-orange-300 hover:shadow-sm transition-all">
+            <div className="flex items-center justify-between p-2.5 sm:p-3 rounded-lg border border-slate-200 bg-white hover:border-orange-300 hover:shadow-sm transition-all">
               <div className="flex-1 space-y-1">
                 <div className="flex items-center gap-2">
                   {challenge.is_completed ? (

@@ -48,11 +48,11 @@ export function CodeFridayBanner({ weeklyChallenge }: CodeFridayBannerProps) {
     const daysUntil = getDaysUntilFriday();
     return (
       <Card className="bg-gradient-to-r from-brand-500 to-brand-600">
-        <CardContent className="p-6">
+        <CardContent className="p-4 sm:p-5 md:p-6">
           <div className="flex flex-col items-center gap-4 text-center text-white sm:flex-row sm:justify-between sm:text-left">
             <div>
-              <h3 className="text-xl font-bold">Code Friday is Coming!</h3>
-              <p className="mt-1 text-brand-50">
+              <h3 className="text-lg sm:text-xl font-bold">Code Friday is Coming!</h3>
+              <p className="mt-1 text-sm sm:text-base text-brand-50">
                 {daysUntil === 0
                   ? 'Tomorrow!'
                   : `${daysUntil} ${daysUntil === 1 ? 'day' : 'days'} until the next challenge`}
@@ -60,7 +60,7 @@ export function CodeFridayBanner({ weeklyChallenge }: CodeFridayBannerProps) {
             </div>
             <div className="flex items-center gap-2">
               <Calendar className="h-5 w-5" />
-              <span className="text-sm font-medium">Check back Friday!</span>
+              <span className="text-xs sm:text-sm font-medium">Check back Friday!</span>
             </div>
           </div>
         </CardContent>
@@ -74,27 +74,27 @@ export function CodeFridayBanner({ weeklyChallenge }: CodeFridayBannerProps) {
 
   return (
     <Card className="overflow-hidden bg-gradient-to-r from-brand-500 to-brand-600">
-      <CardContent className="p-6">
+      <CardContent className="p-4 sm:p-5 md:p-6">
         <div className="space-y-4">
           {/* Header */}
-          <div className="flex items-start justify-between">
+          <div className="flex items-start justify-between flex-wrap gap-3">
             <div>
-              <div className="flex items-center gap-2">
-                <Badge className="bg-white text-brand-600 hover:bg-white">
+              <div className="flex items-center gap-2 flex-wrap">
+                <Badge className="bg-white text-brand-600 hover:bg-white text-xs sm:text-sm">
                   Code Friday
                 </Badge>
-                <Badge variant="outline" className="border-white text-white">
+                <Badge variant="outline" className="border-white text-white text-xs sm:text-sm">
                   Live Now
                 </Badge>
               </div>
-              <h3 className="mt-2 text-2xl font-bold text-white">
+              <h3 className="mt-2 text-xl sm:text-2xl font-bold text-white">
                 {challenge?.title}
               </h3>
             </div>
             {timeRemaining && (
-              <div className="flex items-center gap-2 rounded-lg bg-white/20 px-3 py-2 text-white">
-                <Timer className="h-4 w-4" />
-                <span className="text-sm font-medium">{timeRemaining}</span>
+              <div className="flex items-center gap-2 rounded-lg bg-white/20 px-2.5 sm:px-3 py-1.5 sm:py-2 text-white">
+                <Timer className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                <span className="text-xs sm:text-sm font-medium">{timeRemaining}</span>
               </div>
             )}
           </div>
@@ -132,7 +132,7 @@ export function CodeFridayBanner({ weeklyChallenge }: CodeFridayBannerProps) {
               variant="outline"
               className="border-white text-white hover:bg-white/10"
             >
-              <Link href="/leaderboard?filter=weekly">View Leaderboard</Link>
+              <Link href="/dashboard/leaderboard?filter=weekly">View Leaderboard</Link>
             </Button>
           </div>
         </div>

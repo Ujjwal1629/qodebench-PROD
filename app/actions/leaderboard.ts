@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server';
 import { cache } from 'react';
+import { getExperienceLevelByPoints } from '@/lib/constants/dashboard';
 
 export type LeaderboardType = 'all-time' | 'weekly';
 
@@ -22,6 +23,7 @@ export type UserRank = {
   rank: number;
   total_users: number;
   percentile: number;
+  points: number;
 };
 
 /**
@@ -56,18 +58,24 @@ export const getLeaderboard = cache(
       if (!data) return [];
 
       // Map to leaderboard users with rank
-      return data.map((user, index) => ({
-        id: user.id,
-        username: user.username,
-        full_name: user.full_name,
-        avatar_url: user.avatar_url,
-        experience_level: user.experience_level,
-        points: type === 'weekly' ? user.weekly_points : user.total_points,
-        challenges_completed: user.challenges_completed,
-        current_streak: user.current_streak,
-        longest_streak: user.longest_streak,
-        rank: index + 1,
-      }));
+      return data.map((user, index) => {
+        const points = type === 'weekly' ? user.weekly_points : user.total_points;
+        // Calculate experience level from points to ensure accuracy
+        const calculatedLevel = getExperienceLevelByPoints(points);
+
+        return {
+          id: user.id,
+          username: user.username,
+          full_name: user.full_name,
+          avatar_url: user.avatar_url,
+          experience_level: calculatedLevel.level,
+          points,
+          challenges_completed: user.challenges_completed,
+          current_streak: user.current_streak,
+          longest_streak: user.longest_streak,
+          rank: index + 1,
+        };
+      });
     } catch (error) {
       console.error('Error in getLeaderboard:', error);
       return [];
@@ -122,6 +130,7 @@ export const getUserRank = cache(
         rank,
         total_users: total,
         percentile,
+        points: userPoints,
       };
     } catch (error) {
       console.error('Error in getUserRank:', error);
@@ -161,18 +170,24 @@ export const searchUsers = cache(
       if (!data) return [];
 
       // Calculate rank for each user (this is approximate, not exact global rank)
-      return data.map((user, index) => ({
-        id: user.id,
-        username: user.username,
-        full_name: user.full_name,
-        avatar_url: user.avatar_url,
-        experience_level: user.experience_level,
-        points: type === 'weekly' ? user.weekly_points : user.total_points,
-        challenges_completed: user.challenges_completed,
-        current_streak: user.current_streak,
-        longest_streak: user.longest_streak,
-        rank: index + 1, // This is relative to search results, not global
-      }));
+      return data.map((user, index) => {
+        const points = type === 'weekly' ? user.weekly_points : user.total_points;
+        // Calculate experience level from points to ensure accuracy
+        const calculatedLevel = getExperienceLevelByPoints(points);
+
+        return {
+          id: user.id,
+          username: user.username,
+          full_name: user.full_name,
+          avatar_url: user.avatar_url,
+          experience_level: calculatedLevel.level,
+          points,
+          challenges_completed: user.challenges_completed,
+          current_streak: user.current_streak,
+          longest_streak: user.longest_streak,
+          rank: index + 1, // This is relative to search results, not global
+        };
+      });
     } catch (error) {
       console.error('Error in searchUsers:', error);
       return [];

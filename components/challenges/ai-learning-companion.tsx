@@ -61,10 +61,9 @@ export function AILearningCompanion({
 
     if (!userMessage.trim() && mode === 'chat') return;
 
-    setIsLoading(true);
-
-    // Add user message to chat (only for chat mode)
-    if (mode === 'chat' && userMessage.trim()) {
+    // ALWAYS add user message to chat for consistent UI
+    // This shows what the user requested (hint, review, etc.) as a message bubble
+    if (userMessage.trim()) {
       const userMsg: Message = {
         id: Date.now().toString(),
         role: 'user',
@@ -75,6 +74,8 @@ export function AILearningCompanion({
       setMessages(prev => [...prev, userMsg]);
       setInputMessage('');
     }
+
+    setIsLoading(true);
 
     try {
       const response = await fetch('/api/ai/companion', {

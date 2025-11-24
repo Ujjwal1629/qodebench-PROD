@@ -13,6 +13,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Trophy, Target, Flame, Calendar } from 'lucide-react';
+import { getUserInitials } from '@/lib/utils/format';
 
 interface UserProfileModalProps {
   userId: string;
@@ -44,7 +45,7 @@ export function UserProfileModal({ userId, isOpen, onClose }: UserProfileModalPr
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="sr-only">User Profile</DialogTitle>
         </DialogHeader>
@@ -72,7 +73,7 @@ function ProfileContent({ data, badges }: { data: any; badges: BadgeType[] }) {
           <Avatar className="h-20 w-20">
             <AvatarImage src={profile.avatar_url || undefined} alt={profile.username} />
             <AvatarFallback className="bg-blue-600 text-white text-2xl font-semibold">
-              {profile.username.slice(0, 2).toUpperCase()}
+              {getUserInitials(profile.username, profile.full_name)}
             </AvatarFallback>
           </Avatar>
           <div className="flex-1">
@@ -130,8 +131,8 @@ function ProfileContent({ data, badges }: { data: any; badges: BadgeType[] }) {
           </div>
         )}
 
-        {/* Badges */}
-        {badges.length > 0 && (
+        {/* Hidden for beta - Badges/Achievements */}
+        {/* {badges.length > 0 && (
           <div>
             <h3 className="font-semibold mb-3">Achievements ({badges.length})</h3>
             <div className="grid grid-cols-3 gap-2">
@@ -154,7 +155,7 @@ function ProfileContent({ data, badges }: { data: any; badges: BadgeType[] }) {
               </p>
             )}
           </div>
-        )}
+        )} */}
 
         {/* Recent Activity */}
         {recentActivity.length > 0 && (

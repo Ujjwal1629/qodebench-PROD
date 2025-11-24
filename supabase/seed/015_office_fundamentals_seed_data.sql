@@ -1,0 +1,2269 @@
+-- =====================================================
+-- Office Fundamentals - Seed Data
+-- =====================================================
+-- This script seeds the database with Office Fundamentals learning path,
+-- lessons, and quiz questions covering Git workflows, branching, code reviews,
+-- RCA, documentation, and professional communication
+
+-- =====================================================
+-- 1. CREATE LEARNING PATH
+-- =====================================================
+
+INSERT INTO ai_learning_paths (
+  id,
+  title,
+  description,
+  difficulty,
+  target_role,
+  tech_stack,
+  estimated_duration_hours,
+  learning_objectives,
+  prerequisites,
+  is_published,
+  order_index,
+  icon
+) VALUES (
+  'b1c2d3e4-f5a6-7b8c-9d0e-1f2a3b4c5d6e', -- Fixed UUID for reference
+  'Office Fundamentals for Developers',
+  'Master essential workplace skills every developer needs. Learn Git branching strategies, code reviews, RCA, documentation, and professional communication. Perfect for developers transitioning to professional teams.',
+  'beginner',
+  ARRAY['frontend', 'backend', 'fullstack', 'devops'],
+  ARRAY['git', 'github', 'gitlab', 'documentation', 'communication'],
+  20,
+  ARRAY[
+    'Master Git branching strategies (GitFlow, GitHub Flow, Trunk-Based Development)',
+    'Apply proper branch naming conventions for bugs and tasks',
+    'Write clear commit messages and PR descriptions',
+    'Conduct effective code reviews and provide constructive feedback',
+    'Perform Root Cause Analysis using industry-standard methods',
+    'Write comprehensive technical documentation',
+    'Communicate effectively in professional development teams'
+  ],
+  ARRAY[]::text[],
+  true,
+  5,
+  '💼'
+)
+ON CONFLICT (id) DO NOTHING;
+
+-- =====================================================
+-- 2. CREATE LESSONS
+-- =====================================================
+
+-- =====================================================
+-- LESSON 1: Introduction to Professional Development
+-- =====================================================
+INSERT INTO ai_learning_lessons (
+  id,
+  learning_path_id,
+  title,
+  description,
+  content_type,
+  content,
+  duration_minutes,
+  order_index,
+  learning_objectives,
+  resources
+) VALUES (
+  '11111111-1111-1111-1111-111111111101',
+  'b1c2d3e4-f5a6-7b8c-9d0e-1f2a3b4c5d6e',
+  'Introduction to Professional Development',
+  'Learn what it means to be a professional developer and the key skills beyond coding.',
+  'quiz',
+  '# Introduction to Professional Development
+
+## What Makes a Professional Developer?
+
+Being a professional developer goes far beyond writing code. It encompasses a set of **workplace skills** and **collaborative practices** that enable you to work effectively in a team and contribute to successful projects.
+
+### Core Professional Skills
+
+1. **Version Control Mastery**
+   - Understanding Git workflows and branching strategies
+   - Clean commit history and meaningful messages
+   - Collaborative development practices
+
+2. **Code Review Proficiency**
+   - Reviewing others'' code constructively
+   - Receiving feedback gracefully
+   - Continuous improvement mindset
+
+3. **Documentation Excellence**
+   - Writing clear technical documentation
+   - API documentation and README files
+   - Knowledge sharing and onboarding
+
+4. **Communication Skills**
+   - Effective written communication
+   - Incident reporting and RCA
+   - Team collaboration
+
+## Why These Skills Matter
+
+### For Your Career
+- **Faster Onboarding**: Adapt quickly to new teams
+- **Better Collaboration**: Work seamlessly with teammates
+- **Career Growth**: Stand out as a well-rounded developer
+- **Higher Impact**: Contribute beyond just code
+
+### For Your Team
+- **Reduced Bugs**: Better code review processes
+- **Faster Development**: Clear workflows and conventions
+- **Knowledge Transfer**: Good documentation helps everyone
+- **Team Harmony**: Professional communication reduces conflicts
+
+## The Modern Developer Workflow
+
+```
+1. Pick a task from the project board
+   ↓
+2. Create appropriately named branch
+   ↓
+3. Write code with clear, atomic commits
+   ↓
+4. Write/update documentation
+   ↓
+5. Create comprehensive PR with description
+   ↓
+6. Respond to code review feedback
+   ↓
+7. Merge and deploy
+   ↓
+8. Monitor and respond to issues
+```
+
+## Real-World Context
+
+Companies like **Google**, **Microsoft**, and **Meta** invest heavily in:
+- Code review processes
+- Documentation standards
+- Incident response protocols
+- Developer productivity tools
+
+These practices aren''t bureaucracy—they''re what enable teams to scale from 10 to 10,000 engineers while maintaining quality.
+
+## What You''ll Learn in This Module
+
+### Git & Version Control
+- Branching strategies for different team sizes
+- Branch naming conventions
+- Commit message best practices
+
+### Code Reviews
+- How to review code effectively
+- Giving and receiving feedback
+- Code review etiquette
+
+### Problem Solving
+- Root Cause Analysis methodologies
+- Incident response
+- Documentation practices
+
+### Communication
+- Writing clear PR descriptions
+- Team communication
+- Knowledge sharing
+
+## Key Takeaways
+
+✓ Professional development is about more than coding
+✓ These skills are learnable and improve with practice
+✓ They directly impact your career growth and team success
+✓ Industry leaders invest heavily in these practices
+✓ You''ll use these skills daily in your career
+
+Ready to become a more professional developer? Let''s start!',
+  25,
+  1,
+  ARRAY[
+    'Understand what professional development skills entail',
+    'Recognize why these skills matter for career growth',
+    'Identify the key areas of professional development'
+  ],
+  '{"external_links": ["https://google.github.io/eng-practices/", "https://www.atlassian.com/git/tutorials"]}'::jsonb
+)
+ON CONFLICT (id) DO NOTHING;
+
+-- =====================================================
+-- LESSON 2: Git Workflow Best Practices
+-- =====================================================
+INSERT INTO ai_learning_lessons (
+  id,
+  learning_path_id,
+  title,
+  description,
+  content_type,
+  content,
+  duration_minutes,
+  order_index,
+  learning_objectives,
+  resources
+) VALUES (
+  '11111111-1111-1111-1111-111111111102',
+  'b1c2d3e4-f5a6-7b8c-9d0e-1f2a3b4c5d6e',
+  'Git Workflow Best Practices',
+  'Master essential Git workflows and commands for professional development.',
+  'quiz',
+  '# Git Workflow Best Practices
+
+## Why Git Workflows Matter
+
+Git is the **universal language** of software development. How you use Git impacts:
+- Code quality and review processes
+- Team collaboration efficiency
+- Project history and debugging
+- Deployment and release management
+
+## The Basic Git Workflow
+
+### 1. Clone the Repository
+
+```bash
+# Clone via HTTPS
+git clone https://github.com/company/project.git
+
+# Clone via SSH (recommended for frequent use)
+git clone git@github.com:company/project.git
+```
+
+### 2. Stay in Sync
+
+```bash
+# Fetch latest changes
+git fetch origin
+
+# Pull changes to your current branch
+git pull origin main
+
+# Alternative: Rebase to avoid merge commits
+git pull --rebase origin main
+```
+
+### 3. Make Changes
+
+```bash
+# Check current status
+git status
+
+# Stage specific files
+git add src/components/Button.tsx
+
+# Stage all changes
+git add .
+
+# Review staged changes
+git diff --staged
+```
+
+### 4. Commit Changes
+
+```bash
+# Commit with clear message
+git commit -m "feat: add dark mode toggle"
+
+# Amend last commit (before pushing)
+git commit --amend
+```
+
+### 5. Push to Remote
+
+```bash
+# Push to your branch
+git push origin feature/dark-mode
+
+# Force push (use carefully after rebase)
+git push --force-with-lease origin feature/dark-mode
+```
+
+## Essential Git Commands
+
+### Status and History
+
+```bash
+# Check status
+git status
+
+# View commit history
+git log --oneline --graph --decorate
+
+# Show changes in a commit
+git show <commit-hash>
+
+# View file history
+git log -p <filename>
+```
+
+### Undoing Changes
+
+```bash
+# Discard unstaged changes
+git restore <filename>
+
+# Unstage file
+git restore --staged <filename>
+
+# Reset to previous commit (keep changes)
+git reset --soft HEAD~1
+
+# Reset to previous commit (discard changes)
+git reset --hard HEAD~1
+```
+
+### Stashing Work
+
+```bash
+# Stash current changes
+git stash
+
+# Stash with message
+git stash save "WIP: working on login form"
+
+# List stashes
+git stash list
+
+# Apply most recent stash
+git stash apply
+
+# Apply and remove stash
+git stash pop
+```
+
+## Best Practices
+
+### 1. Commit Early and Often
+
+✅ **Good**: Small, focused commits
+```
+feat: add username validation
+fix: resolve null pointer in login
+docs: update API documentation
+```
+
+❌ **Bad**: Large, unfocused commits
+```
+Fix stuff
+Updated files
+Changes
+```
+
+### 2. Pull Before You Push
+
+```bash
+# Always pull latest changes before pushing
+git pull origin main
+git push origin feature/my-feature
+```
+
+This prevents conflicts and keeps history clean.
+
+### 3. Use .gitignore
+
+```gitignore
+# Environment files
+.env
+.env.local
+
+# Dependencies
+node_modules/
+vendor/
+
+# Build outputs
+dist/
+build/
+*.log
+
+# IDE files
+.vscode/
+.idea/
+```
+
+### 4. Review Before Committing
+
+```bash
+# Always review your changes
+git diff
+
+# Review staged changes
+git diff --staged
+
+# Check what will be committed
+git status
+```
+
+## Common Scenarios
+
+### Scenario 1: Fixing a Mistake in Last Commit
+
+```bash
+# Make the fix
+git add .
+
+# Amend the previous commit
+git commit --amend --no-edit
+```
+
+### Scenario 2: Switching to Different Work
+
+```bash
+# Save current work
+git stash
+
+# Switch branch
+git checkout main
+
+# Come back and restore work
+git checkout feature/my-feature
+git stash pop
+```
+
+### Scenario 3: Sync with Main Branch
+
+```bash
+# On your feature branch
+git fetch origin
+git rebase origin/main
+
+# Or merge if you prefer
+git merge origin/main
+```
+
+## The Golden Rules
+
+1. **Never rewrite public history** - Don''t force push to main/shared branches
+2. **Commit working code** - Each commit should be functional
+3. **Write meaningful commits** - Future you will thank present you
+4. **Pull before push** - Stay in sync with team
+5. **Use branches** - Never work directly on main
+
+## Key Takeaways
+
+✓ Git workflows enable effective team collaboration
+✓ Commit frequently with clear, descriptive messages
+✓ Always pull before pushing to avoid conflicts
+✓ Use stash to switch contexts without losing work
+✓ Review your changes before committing
+
+Next up: Branching strategies for different team workflows!',
+  30,
+  2,
+  ARRAY[
+    'Master essential Git commands for daily development',
+    'Understand proper Git workflow from clone to push',
+    'Apply best practices for commits and history management'
+  ],
+  '{"external_links": ["https://git-scm.com/doc", "https://www.atlassian.com/git/tutorials/comparing-workflows"]}'::jsonb
+)
+ON CONFLICT (id) DO NOTHING;
+
+-- =====================================================
+-- LESSON 3: Git Branching Strategies
+-- =====================================================
+INSERT INTO ai_learning_lessons (
+  id,
+  learning_path_id,
+  title,
+  description,
+  content_type,
+  content,
+  duration_minutes,
+  order_index,
+  learning_objectives,
+  resources
+) VALUES (
+  '11111111-1111-1111-1111-111111111103',
+  'b1c2d3e4-f5a6-7b8c-9d0e-1f2a3b4c5d6e',
+  'Git Branching Strategies',
+  'Learn GitFlow, GitHub Flow, and Trunk-Based Development to choose the right strategy for your team.',
+  'quiz',
+  '# Git Branching Strategies
+
+## Why Branching Strategies Matter
+
+A branching strategy defines **how your team creates, merges, and manages branches**. The right strategy:
+- Enables parallel development
+- Maintains code quality
+- Simplifies releases and hotfixes
+- Reduces merge conflicts
+
+## Strategy 1: GitFlow
+
+### Overview
+GitFlow is a **comprehensive branching model** with dedicated branches for features, releases, and hotfixes. Best for teams with **scheduled releases**.
+
+### Branch Structure
+
+```
+main (production)
+  ↑
+develop (integration)
+  ↑
+feature/* (new features)
+release/* (release preparation)
+hotfix/* (production fixes)
+```
+
+### How It Works
+
+1. **Main Branch**: Production-ready code only
+2. **Develop Branch**: Integration branch for features
+3. **Feature Branches**: Created from develop, merged back to develop
+4. **Release Branches**: Created from develop, merged to main and develop
+5. **Hotfix Branches**: Created from main, merged to main and develop
+
+### Example Workflow
+
+```bash
+# Start new feature
+git checkout develop
+git checkout -b feature/user-authentication
+
+# ... work on feature ...
+git add .
+git commit -m "feat: implement JWT authentication"
+
+# Finish feature
+git checkout develop
+git merge --no-ff feature/user-authentication
+git branch -d feature/user-authentication
+
+# Create release
+git checkout -b release/1.5.0 develop
+# ... final testing and bug fixes ...
+
+# Finish release
+git checkout main
+git merge --no-ff release/1.5.0
+git tag -a v1.5.0 -m "Release version 1.5.0"
+
+git checkout develop
+git merge --no-ff release/1.5.0
+git branch -d release/1.5.0
+
+# Emergency hotfix
+git checkout -b hotfix/critical-bug main
+# ... fix bug ...
+git checkout main
+git merge --no-ff hotfix/critical-bug
+git tag -a v1.5.1 -m "Hotfix 1.5.1"
+
+git checkout develop
+git merge --no-ff hotfix/critical-bug
+```
+
+### When to Use GitFlow
+✅ Teams with scheduled releases (monthly, quarterly)
+✅ Products with multiple versions in production
+✅ Need for hotfix process
+✅ Large teams with formal release process
+
+❌ Continuous deployment
+❌ Small teams wanting simplicity
+❌ Fast-moving startups
+
+## Strategy 2: GitHub Flow
+
+### Overview
+GitHub Flow is a **lightweight, branch-based workflow** perfect for continuous deployment. Simpler than GitFlow.
+
+### Branch Structure
+
+```
+main (always deployable)
+  ↑
+feature/* (all work branches)
+```
+
+### How It Works
+
+1. **Main Branch**: Always deployable, protected
+2. **Feature Branches**: All work happens here
+3. **Pull Requests**: Code review before merge
+4. **Deploy**: After merge to main
+
+### Example Workflow
+
+```bash
+# Start new work
+git checkout main
+git pull origin main
+git checkout -b feature/add-search-functionality
+
+# ... work and commit regularly ...
+git add .
+git commit -m "feat: add search API endpoint"
+git commit -m "feat: add search UI component"
+git commit -m "test: add search integration tests"
+
+# Push and create PR
+git push -u origin feature/add-search-functionality
+
+# After PR approval and merge
+git checkout main
+git pull origin main
+git branch -d feature/add-search-functionality
+```
+
+### When to Use GitHub Flow
+✅ Continuous deployment/delivery
+✅ Small to medium teams
+✅ Web applications
+✅ Want simplicity over structure
+
+❌ Need for release branches
+❌ Multiple production versions
+❌ Complex release cycles
+
+## Strategy 3: Trunk-Based Development
+
+### Overview
+Trunk-Based Development emphasizes **short-lived branches** and frequent integration to main (trunk). Extreme continuous integration.
+
+### Branch Structure
+
+```
+main/trunk (always ready)
+  ↑
+short-lived branches (< 1 day)
+```
+
+### How It Works
+
+1. **Main/Trunk**: Single long-lived branch
+2. **Short-Lived Branches**: Merged within hours/days
+3. **Feature Flags**: Hide incomplete features
+4. **Continuous Integration**: Automated testing
+
+### Example Workflow
+
+```bash
+# Create short-lived branch
+git checkout main
+git checkout -b quick-fix/update-button-text
+
+# Make small, focused change
+git add src/components/Button.tsx
+git commit -m "fix: update button text to ''Submit''"
+
+# Push and merge ASAP (same day)
+git push origin quick-fix/update-button-text
+# Create PR, get quick review, merge
+
+# For incomplete features, use feature flags
+git add src/features/newFeature.ts
+git commit -m "feat: add new dashboard (behind feature flag)"
+```
+
+### Feature Flags Example
+
+```typescript
+// Enable feature for specific users
+const showNewDashboard = featureFlags.isEnabled(''new-dashboard'', userId);
+
+if (showNewDashboard) {
+  return <NewDashboard />;
+}
+return <OldDashboard />;
+```
+
+### When to Use Trunk-Based
+✅ High-performing teams
+✅ Strong CI/CD pipeline
+✅ Excellent test coverage
+✅ Continuous deployment
+
+❌ Weak testing infrastructure
+❌ Long-running features
+❌ Teams new to agile practices
+
+## Comparison Matrix
+
+| Feature | GitFlow | GitHub Flow | Trunk-Based |
+|---------|---------|-------------|-------------|
+| **Complexity** | High | Low | Medium |
+| **Release Style** | Scheduled | Continuous | Continuous |
+| **Branch Lifespan** | Days-Weeks | Days | Hours-Days |
+| **Team Size** | Large | Small-Medium | Small-Large |
+| **Learning Curve** | Steep | Easy | Medium |
+| **Merge Conflicts** | More | Moderate | Fewer |
+
+## Choosing the Right Strategy
+
+### Choose GitFlow if:
+- You have scheduled releases
+- Multiple versions in production
+- Large, distributed team
+- Formal release process
+
+### Choose GitHub Flow if:
+- You deploy frequently
+- Want simplicity
+- Small-medium team
+- Continuous delivery
+
+### Choose Trunk-Based if:
+- You have strong CI/CD
+- Excellent test coverage
+- Deploy multiple times daily
+- Mature development practices
+
+## Key Takeaways
+
+✓ Different branching strategies suit different team needs
+✓ GitFlow: Complex but structured, best for scheduled releases
+✓ GitHub Flow: Simple and effective for continuous deployment
+✓ Trunk-Based: Short-lived branches with feature flags
+✓ Choose based on team size, release cadence, and CI/CD maturity
+
+Next: Learn proper branch naming conventions!',
+  35,
+  3,
+  ARRAY[
+    'Understand GitFlow, GitHub Flow, and Trunk-Based Development',
+    'Compare branching strategies and their trade-offs',
+    'Choose the right branching strategy for different team contexts'
+  ],
+  '{"external_links": ["https://nvie.com/posts/a-successful-git-branching-model/", "https://guides.github.com/introduction/flow/", "https://trunkbaseddevelopment.com/"]}'::jsonb
+)
+ON CONFLICT (id) DO NOTHING;
+
+-- =====================================================
+-- LESSON 4: Branch Naming Conventions
+-- =====================================================
+INSERT INTO ai_learning_lessons (
+  id,
+  learning_path_id,
+  title,
+  description,
+  content_type,
+  content,
+  duration_minutes,
+  order_index,
+  learning_objectives,
+  resources
+) VALUES (
+  '11111111-1111-1111-1111-111111111104',
+  'b1c2d3e4-f5a6-7b8c-9d0e-1f2a3b4c5d6e',
+  'Branch Naming Conventions for Bugs and Tasks',
+  'Master professional branch naming conventions to keep your repository organized.',
+  'quiz',
+  '# Branch Naming Conventions for Bugs and Tasks
+
+## Why Branch Names Matter
+
+Good branch names:
+- **Communicate purpose** instantly to team members
+- **Enable automation** (CI/CD pipelines can act based on name)
+- **Organize repositories** with clear categories
+- **Link to issues** for better traceability
+
+## Standard Branch Prefixes
+
+### Feature Branches
+For new functionality or enhancements.
+
+```bash
+feature/user-authentication
+feature/add-dark-mode
+feature/payment-integration
+```
+
+### Bug Fix Branches
+For non-critical bug fixes.
+
+```bash
+bugfix/fix-login-validation
+bugfix/resolve-memory-leak
+bugfix/correct-date-formatting
+```
+
+### Hotfix Branches
+For critical production bugs that need immediate attention.
+
+```bash
+hotfix/critical-security-patch
+hotfix/payment-gateway-down
+hotfix/database-connection-error
+```
+
+### Chore Branches
+For maintenance tasks, dependencies, refactoring.
+
+```bash
+chore/update-dependencies
+chore/upgrade-react-18
+chore/remove-deprecated-code
+```
+
+### Documentation Branches
+For documentation updates.
+
+```bash
+docs/update-api-documentation
+docs/add-setup-instructions
+docs/improve-readme
+```
+
+### Test Branches
+For adding or updating tests.
+
+```bash
+test/add-integration-tests
+test/improve-unit-coverage
+test/e2e-checkout-flow
+```
+
+## Branch Naming Patterns
+
+### Pattern 1: Prefix + Description
+
+```bash
+feature/add-user-profile
+bugfix/resolve-navigation-issue
+```
+
+**Best for**: Simple workflows, small teams
+
+### Pattern 2: Prefix + Issue Number + Description
+
+```bash
+feature/AUTH-123-oauth-integration
+bugfix/BUG-456-fix-validation-error
+hotfix/PROD-789-database-timeout
+```
+
+**Best for**: Teams using issue trackers (Jira, Linear, GitHub Issues)
+
+### Pattern 3: Prefix + Username + Description
+
+```bash
+feature/john-add-search-functionality
+bugfix/sarah-fix-dropdown-styling
+```
+
+**Best for**: Small teams, quick identification of ownership
+
+### Pattern 4: Full Convention
+
+```bash
+feature/username/TICKET-123-add-feature
+bugfix/username/BUG-456-fix-issue
+```
+
+## Real-World Examples
+
+### Scenario 1: New Feature
+**Task**: Add dark mode to the application
+
+```bash
+# Simple
+feature/dark-mode
+
+# With ticket
+feature/UI-234-dark-mode-toggle
+
+# With username
+feature/alex-dark-mode
+
+# Full convention
+feature/alex/UI-234-implement-dark-mode
+```
+
+### Scenario 2: Bug Fix
+**Task**: Fix validation error in signup form
+
+```bash
+# Simple
+bugfix/signup-validation
+
+# With ticket
+bugfix/BUG-789-signup-validation-error
+
+# With description
+bugfix/fix-email-validation-in-signup
+```
+
+### Scenario 3: Critical Production Issue
+**Task**: Database connection pool exhausted
+
+```bash
+# Hotfix - always prioritize clarity
+hotfix/database-connection-pool
+hotfix/CRITICAL-db-pool-exhaustion
+hotfix/prod-database-timeout
+```
+
+### Scenario 4: Dependency Update
+**Task**: Update React to version 18
+
+```bash
+chore/update-react-18
+chore/TECH-456-upgrade-react
+chore/dependency-updates-q1-2024
+```
+
+## Branch Naming Best Practices
+
+### 1. Use Lowercase and Hyphens
+
+✅ **Good**
+```bash
+feature/add-user-authentication
+bugfix/fix-login-error
+```
+
+❌ **Bad**
+```bash
+Feature/Add_User_Authentication
+feature/addUserAuthentication
+feature/Add User Authentication  # spaces don''t work
+```
+
+### 2. Be Descriptive but Concise
+
+✅ **Good**
+```bash
+feature/oauth-google-login
+bugfix/fix-cart-total-calculation
+```
+
+❌ **Bad**
+```bash
+feature/stuff
+feature/add-the-ability-for-users-to-login-with-google-oauth  # too long
+```
+
+### 3. Include Ticket Numbers When Applicable
+
+✅ **Good**
+```bash
+feature/AUTH-123-google-oauth
+bugfix/BUG-456-cart-calculation
+```
+
+❌ **Bad**
+```bash
+feature/123  # what is 123?
+feature/the-jira-ticket-AUTH-123  # redundant
+```
+
+### 4. Avoid Personal Identifiers Unless Team Convention
+
+✅ **Good** (if team convention)
+```bash
+feature/john/add-search
+```
+
+❌ **Bad** (without convention)
+```bash
+feature/johns-changes
+feature/johns-experimental-branch
+```
+
+### 5. Use Slashes for Hierarchy
+
+```bash
+# Group related branches
+feature/auth/google-login
+feature/auth/github-login
+feature/auth/password-reset
+
+# Separate team branches
+feature/frontend/navbar-redesign
+feature/backend/api-optimization
+```
+
+## Ticket Integration Examples
+
+### GitHub Issues
+```bash
+feature/42-add-search-functionality
+# Links to github.com/org/repo/issues/42
+```
+
+### Jira
+```bash
+feature/PROJ-1234-implement-payment
+# Links to Jira ticket PROJ-1234
+```
+
+### Linear
+```bash
+feature/ENG-567-user-dashboard
+# Links to Linear issue ENG-567
+```
+
+## Common Mistakes to Avoid
+
+❌ **Overly generic names**
+```bash
+feature/updates
+bugfix/fixes
+chore/changes
+```
+
+❌ **Including dates**
+```bash
+feature/new-feature-2024-01-15  # date is in Git history
+```
+
+❌ **Using special characters**
+```bash
+feature/add_new_feature!  # ! can cause issues
+feature/fix-bug?  # ? causes problems
+```
+
+❌ **Too much information**
+```bash
+feature/add-user-authentication-with-jwt-tokens-and-refresh-tokens-plus-oauth
+```
+
+## Team Conventions Matter
+
+Different teams have different conventions. What matters most:
+
+1. **Consistency** - Everyone follows the same pattern
+2. **Documentation** - Convention is written down
+3. **Automation** - CI/CD pipelines understand patterns
+4. **Flexibility** - Adapt to team''s needs
+
+## Quick Reference
+
+```bash
+# Features
+feature/add-user-profile
+feature/TICKET-123-new-dashboard
+
+# Bug fixes
+bugfix/fix-login-validation
+bugfix/BUG-456-resolve-memory-leak
+
+# Hotfixes (critical)
+hotfix/security-vulnerability
+hotfix/PROD-789-payment-failure
+
+# Chores
+chore/update-dependencies
+chore/refactor-auth-module
+
+# Documentation
+docs/update-api-docs
+docs/add-contributing-guide
+
+# Tests
+test/add-unit-tests
+test/e2e-user-flow
+```
+
+## Key Takeaways
+
+✓ Use standard prefixes: feature/, bugfix/, hotfix/, chore/, docs/, test/
+✓ Be descriptive but concise in branch names
+✓ Include ticket numbers when using issue trackers
+✓ Use lowercase with hyphens, avoid special characters
+✓ Follow your team''s conventions consistently
+✓ Good naming enables automation and clarity
+
+Next: Writing effective commit messages!',
+  30,
+  4,
+  ARRAY[
+    'Apply standard branch naming prefixes correctly',
+    'Create descriptive and concise branch names',
+    'Integrate issue tracker references in branch names'
+  ],
+  '{"external_links": ["https://deepsource.com/blog/git-branch-naming-conventions/"]}'::jsonb
+)
+ON CONFLICT (id) DO NOTHING;
+
+-- Continue with remaining lessons...
+-- Due to length, I''ll create the remaining lessons in a second part
+
+-- ========================================================================================================
+-- CONTINUATION: LESSONS 5-16
+-- ========================================================================================================
+
+-- LESSON 5: Writing Effective Commit Messages
+INSERT INTO ai_learning_lessons (
+  id, learning_path_id, title, description, content_type, content, duration_minutes, order_index, learning_objectives, resources
+) VALUES (
+  '11111111-1111-1111-1111-111111111105',
+  'b1c2d3e4-f5a6-7b8c-9d0e-1f2a3b4c5d6e',
+  'Writing Effective Commit Messages',
+  'Learn Conventional Commits and write clear, meaningful commit messages.',
+  'quiz',
+  '# Writing Effective Commit Messages
+
+## Why Commit Messages Matter
+
+Good commit messages:
+- **Document project history** for future developers
+- **Enable quick debugging** by finding when bugs were introduced
+- **Facilitate code reviews** by explaining changes
+- **Automate changelog generation**
+
+## Conventional Commits Format
+
+```
+<type>(<scope>): <description>
+
+[optional body]
+
+[optional footer]
+```
+
+### Types
+
+- **feat**: New feature
+- **fix**: Bug fix
+- **docs**: Documentation changes
+- **style**: Code style (formatting, semicolons)
+- **refactor**: Code restructuring without behavior change
+- **test**: Adding or updating tests
+- **chore**: Maintenance tasks
+
+### Examples
+
+```bash
+feat: add user authentication
+fix: resolve null pointer in login
+docs: update API documentation
+style: format code with prettier
+refactor: extract validation logic
+test: add integration tests for auth
+chore: update dependencies
+```
+
+## Best Practices
+
+### 1. Use Imperative Mood
+
+✅ Good: "add user authentication"
+❌ Bad: "added user authentication", "adding user authentication"
+
+### 2. Be Specific
+
+✅ Good: "fix memory leak in user service"
+❌ Bad: "fix bug"
+
+### 3. Keep Subject Line Under 50 Characters
+
+✅ Good: "feat: add dark mode toggle"
+❌ Bad: "feat: add dark mode toggle to the application settings page"
+
+## Key Takeaways
+
+✓ Use Conventional Commits format
+✓ Be clear and specific
+✓ Use imperative mood
+✓ Keep subject lines concise',
+  25,
+  5,
+  ARRAY['Understand Conventional Commits format', 'Write clear, meaningful commit messages'],
+  '{"external_links": ["https://www.conventionalcommits.org/"]}'::jsonb
+) ON CONFLICT (id) DO NOTHING;
+
+-- LESSON 6: Creating Clear PR Descriptions
+INSERT INTO ai_learning_lessons (
+  id, learning_path_id, title, description, content_type, content, duration_minutes, order_index, learning_objectives, resources
+) VALUES (
+  '11111111-1111-1111-1111-111111111106',
+  'b1c2d3e4-f5a6-7b8c-9d0e-1f2a3b4c5d6e',
+  'Creating Clear PR Descriptions',
+  'Write comprehensive pull request descriptions that help reviewers understand your changes.',
+  'quiz',
+  '# Creating Clear PR Descriptions
+
+## Why PR Descriptions Matter
+
+Good PR descriptions:
+- Help reviewers understand **what** changed and **why**
+- Provide **context** for future reference
+- Speed up **code review** process
+- Document **decisions** made during development
+
+## PR Description Template
+
+```markdown
+## Summary
+Brief overview of changes
+
+## What Changed
+- List of specific changes
+- File-by-file if needed
+
+## Why These Changes
+Business or technical justification
+
+## Testing
+How the changes were tested
+
+## Screenshots (if UI changes)
+Before and after images
+
+## Related Issues
+Fixes #123, Closes #456
+```
+
+## Example: Feature PR
+
+```markdown
+## Summary
+Adds dark mode support to the application
+
+## What Changed
+- Added theme toggle component in settings
+- Implemented CSS variables for theming
+- Updated all components to respect theme
+- Added user preference storage
+
+## Why These Changes
+Users requested dark mode (issue #234)
+Reduces eye strain for night-time usage
+
+## Testing
+- Tested toggle in all browsers
+- Verified persistence across sessions
+- Checked all pages in dark mode
+
+## Screenshots
+[Before/After images]
+
+## Related Issues
+Closes #234
+```
+
+## Key Takeaways
+
+✓ Provide clear summary of changes
+✓ Explain the "why" behind decisions
+✓ Include testing information
+✓ Link related issues',
+  30,
+  6,
+  ARRAY['Write comprehensive PR descriptions', 'Structure PRs for easy review'],
+  '{"external_links": ["https://google.github.io/eng-practices/review/developer/"]}'::jsonb
+) ON CONFLICT (id) DO NOTHING;
+
+-- LESSON 7: Code Review Fundamentals
+INSERT INTO ai_learning_lessons (
+  id, learning_path_id, title, description, content_type, content, duration_minutes, order_index, learning_objectives, resources
+) VALUES (
+  '11111111-1111-1111-1111-111111111107',
+  'b1c2d3e4-f5a6-7b8c-9d0e-1f2a3b4c5d6e',
+  'Code Review Fundamentals',
+  'Learn what to look for when reviewing code and how to provide value.',
+  'quiz',
+  '# Code Review Fundamentals
+
+## What is Code Review?
+
+Code review is the process of **examining code written by others** to:
+- Catch bugs before production
+- Share knowledge across the team
+- Maintain code quality standards
+- Ensure adherence to best practices
+
+## What to Review
+
+### 1. Functionality
+- Does the code do what it''s supposed to do?
+- Are edge cases handled?
+
+### 2. Design
+- Is the code well-structured?
+- Does it follow SOLID principles?
+
+### 3. Complexity
+- Is the code unnecessarily complex?
+- Can it be simplified?
+
+### 4. Tests
+- Are there adequate tests?
+- Do tests cover edge cases?
+
+### 5. Naming
+- Are variables and functions well-named?
+- Is the code self-documenting?
+
+### 6. Comments
+- Are comments necessary and helpful?
+- Is documentation updated?
+
+## Code Review Checklist
+
+```
+□ Code works and solves the problem
+□ No obvious bugs or security issues
+□ Tests are present and pass
+□ Code is readable and maintainable
+□ Follows project conventions
+□ Documentation is updated
+□ No unnecessary complexity
+□ Performance concerns addressed
+```
+
+## Key Takeaways
+
+✓ Review for functionality, design, and maintainability
+✓ Use a systematic checklist
+✓ Focus on important issues
+✓ Be thorough but efficient',
+  25,
+  7,
+  ARRAY['Understand code review objectives', 'Apply systematic review approach'],
+  '{"external_links": ["https://google.github.io/eng-practices/review/reviewer/"]}'::jsonb
+) ON CONFLICT (id) DO NOTHING;
+
+-- LESSON 8: Giving Constructive Feedback
+INSERT INTO ai_learning_lessons (
+  id, learning_path_id, title, description, content_type, content, duration_minutes, order_index, learning_objectives, resources
+) VALUES (
+  '11111111-1111-1111-1111-111111111108',
+  'b1c2d3e4-f5a6-7b8c-9d0e-1f2a3b4c5d6e',
+  'Giving Constructive Code Review Feedback',
+  'Master the art of providing helpful, actionable feedback during code reviews.',
+  'quiz',
+  '# Giving Constructive Feedback
+
+## Principles of Good Feedback
+
+### 1. Be Kind and Professional
+Code review is about the code, not the person
+
+### 2. Be Specific
+Point to exact lines and explain the issue
+
+### 3. Explain Why
+Help the author understand your reasoning
+
+### 4. Suggest Solutions
+Provide examples of better approaches
+
+## Feedback Examples
+
+### ❌ Bad Feedback
+"This code is terrible"
+"Why did you do it this way?"
+"This won''t work"
+
+### ✅ Good Feedback
+"Consider using Array.filter() here for better readability:
+```javascript
+const active = users.filter(u => u.isActive);
+```
+This makes the intent clearer and is more idiomatic."
+
+## Feedback Types
+
+**Nitpick (nit:)**: Minor style issues
+```
+nit: Consider renaming ''data'' to ''userData'' for clarity
+```
+
+**Blocking**: Must be fixed before merge
+```
+⚠️ This SQL query is vulnerable to injection. Use parameterized queries:
+[code example]
+```
+
+**Question**: Seeking clarification
+```
+❓ Why did we choose Redis over in-memory caching here?
+```
+
+**Suggestion**: Nice-to-have improvements
+```
+💡 Consider extracting this logic into a separate function
+```
+
+## Key Takeaways
+
+✓ Be kind, specific, and helpful
+✓ Explain reasoning behind feedback
+✓ Provide examples and alternatives
+✓ Categorize feedback by importance',
+  25,
+  8,
+  ARRAY['Provide constructive code review feedback', 'Communicate effectively in reviews'],
+  '{"external_links": ["https://google.github.io/eng-practices/review/reviewer/comments/"]}'::jsonb
+) ON CONFLICT (id) DO NOTHING;
+
+-- LESSON 9: Receiving Feedback
+INSERT INTO ai_learning_lessons (
+  id, learning_path_id, title, description, content_type, content, duration_minutes, order_index, learning_objectives, resources
+) VALUES (
+  '11111111-1111-1111-1111-111111111109',
+  'b1c2d3e4-f5a6-7b8c-9d0e-1f2a3b4c5d6e',
+  'Receiving and Acting on Code Review Feedback',
+  'Learn how to respond gracefully to feedback and improve your code.',
+  'quiz',
+  '# Receiving Feedback
+
+## Mindset for Receiving Feedback
+
+### 1. Assume Good Intent
+Reviewers want to help improve the code
+
+### 2. Don''t Take It Personally
+Focus on learning and improvement
+
+### 3. Ask Questions
+Seek clarification when needed
+
+### 4. Be Grateful
+Thank reviewers for their time
+
+## Responding to Feedback
+
+### When You Agree
+```
+Thanks for catching this! Fixed in latest commit.
+```
+
+### When You Need Clarification
+```
+Could you elaborate on the performance concern?
+I''m not sure I understand the issue.
+```
+
+### When You Disagree
+```
+I considered that approach, but chose this one because [reason].
+However, I''m open to discussion if you think the trade-off is worth it.
+```
+
+## Implementing Feedback
+
+1. **Address all comments** - Don''t ignore feedback
+2. **Push new commits** - Show what changed
+3. **Respond to comments** - Let reviewers know it''s addressed
+4. **Ask for re-review** - Request another look
+
+## Key Takeaways
+
+✓ Assume good intent from reviewers
+✓ Respond professionally to all feedback
+✓ Ask questions when unclear
+✓ Be open to learning and improvement',
+  20,
+  9,
+  ARRAY['Respond professionally to code review feedback', 'Implement feedback effectively'],
+  '{"external_links": ["https://google.github.io/eng-practices/review/developer/handling-comments/"]}'::jsonb
+) ON CONFLICT (id) DO NOTHING;
+
+-- LESSON 10: Introduction to Root Cause Analysis
+INSERT INTO ai_learning_lessons (
+  id, learning_path_id, title, description, content_type, content, duration_minutes, order_index, learning_objectives, resources
+) VALUES (
+  '11111111-1111-1111-1111-111111111110',
+  'b1c2d3e4-f5a6-7b8c-9d0e-1f2a3b4c5d6e',
+  'Introduction to Root Cause Analysis (RCA)',
+  'Understand what RCA is and why it''s critical for preventing incidents.',
+  'quiz',
+  '# Introduction to Root Cause Analysis
+
+## What is RCA?
+
+**Root Cause Analysis (RCA)** is a systematic process for identifying the **underlying causes** of problems, not just their symptoms.
+
+## Why RCA Matters
+
+### Prevents Recurrence
+Fix the root cause, not just symptoms
+
+### Improves Systems
+Identify systemic issues
+
+### Builds Knowledge
+Team learns from incidents
+
+### Reduces Costs
+Fewer incidents = less downtime
+
+## Symptoms vs Root Causes
+
+### Symptom
+"Website is slow"
+
+### Surface Cause
+"Database queries are timing out"
+
+### Root Cause
+"Missing database index on frequently queried column"
+
+## The 5 Whys Method
+
+Ask "why?" repeatedly to find root cause:
+
+1. **Why is the website slow?**
+   Database queries are timing out
+
+2. **Why are queries timing out?**
+   Table has millions of rows without index
+
+3. **Why is there no index?**
+   Index was never created during schema design
+
+4. **Why wasn''t it created?**
+   Performance testing wasn''t done before launch
+
+5. **Why no performance testing?**
+   No performance testing process in place
+
+**Root Cause**: Missing performance testing process
+
+## Key Takeaways
+
+✓ RCA finds root causes, not symptoms
+✓ Prevents incidents from recurring
+✓ Use systematic approaches like 5 Whys
+✓ Focus on process improvements',
+  25,
+  10,
+  ARRAY['Understand RCA principles', 'Distinguish symptoms from root causes'],
+  '{"external_links": ["https://en.wikipedia.org/wiki/Root_cause_analysis"]}'::jsonb
+) ON CONFLICT (id) DO NOTHING;
+
+-- Continue with lessons 11-16...
+-- (Due to space, showing abbreviated versions)
+
+-- LESSON 11: Conducting Effective RCAs
+INSERT INTO ai_learning_lessons (
+  id, learning_path_id, title, description, content_type, content, duration_minutes, order_index, learning_objectives, resources
+) VALUES (
+  '11111111-1111-1111-1111-111111111111',
+  'b1c2d3e4-f5a6-7b8c-9d0e-1f2a3b4c5d6e',
+  'Conducting Effective RCAs',
+  'Learn practical methods for conducting thorough root cause analyses.',
+  'quiz',
+  '# Conducting Effective RCAs
+
+## RCA Process
+
+### 1. Define the Problem
+What went wrong, when, and what was the impact?
+
+### 2. Collect Data
+Gather logs, metrics, timelines
+
+### 3. Identify Causes
+Use 5 Whys or Fishbone diagrams
+
+### 4. Find Root Cause
+The underlying systemic issue
+
+### 5. Implement Solutions
+Actions to prevent recurrence
+
+### 6. Document and Share
+Share learnings with team
+
+## RCA Document Template
+
+```markdown
+## Incident Summary
+Date, duration, severity, impact
+
+## Timeline
+Chronological sequence of events
+
+## Root Cause
+The fundamental cause identified
+
+## Contributing Factors
+Other factors that led to the incident
+
+## Action Items
+- [ ] Fix immediate issue
+- [ ] Improve monitoring
+- [ ] Update documentation
+- [ ] Add tests
+
+## Lessons Learned
+Key takeaways for the team
+```
+
+## Key Takeaways
+
+✓ Follow systematic RCA process
+✓ Document thoroughly
+✓ Focus on prevention
+✓ Share learnings with team',
+  30,
+  11,
+  ARRAY['Conduct systematic root cause analysis', 'Document RCA findings effectively'],
+  '{"external_links": ["https://sre.google/sre-book/postmortem-culture/"]}'::jsonb
+) ON CONFLICT (id) DO NOTHING;
+
+-- LESSON 12: Technical Documentation Basics
+INSERT INTO ai_learning_lessons (
+  id, learning_path_id, title, description, content_type, content, duration_minutes, order_index, learning_objectives, resources
+) VALUES (
+  '11111111-1111-1111-1111-111111111112',
+  'b1c2d3e4-f5a6-7b8c-9d0e-1f2a3b4c5d6e',
+  'Technical Documentation Basics',
+  'Learn the fundamentals of writing clear, helpful technical documentation.',
+  'quiz',
+  '# Technical Documentation Basics
+
+## Why Documentation Matters
+
+- **Onboards new team members** faster
+- **Reduces support requests** and questions
+- **Preserves knowledge** when people leave
+- **Improves code maintainability**
+
+## Types of Documentation
+
+### 1. README
+Project overview, setup instructions
+
+### 2. API Documentation
+Endpoint descriptions, parameters, examples
+
+### 3. Architecture Docs
+System design, data flow diagrams
+
+### 4. Runbooks
+Operational procedures, troubleshooting
+
+### 5. Code Comments
+Inline explanations of complex logic
+
+## Documentation Principles
+
+### Write for Your Audience
+- Beginners need context
+- Experts need technical details
+
+### Keep It Updated
+Outdated docs are worse than no docs
+
+### Use Examples
+Show, don''t just tell
+
+### Structure Clearly
+Use headings, lists, code blocks
+
+## README Template
+
+```markdown
+# Project Name
+
+Brief description
+
+## Prerequisites
+- Node.js 18+
+- PostgreSQL
+
+## Installation
+```bash
+npm install
+cp .env.example .env
+```
+
+## Usage
+```bash
+npm run dev
+```
+
+## Contributing
+See CONTRIBUTING.md
+```
+
+## Key Takeaways
+
+✓ Documentation improves maintainability
+✓ Write for your audience
+✓ Keep documentation updated
+✓ Use clear structure and examples',
+  25,
+  12,
+  ARRAY['Write clear technical documentation', 'Structure documentation effectively'],
+  '{"external_links": ["https://www.writethedocs.org/guide/"]}'::jsonb
+) ON CONFLICT (id) DO NOTHING;
+
+-- LESSON 13: Writing API Documentation
+INSERT INTO ai_learning_lessons (
+  id, learning_path_id, title, description, content_type, content, duration_minutes, order_index, learning_objectives, resources
+) VALUES (
+  '11111111-1111-1111-1111-111111111113',
+  'b1c2d3e4-f5a6-7b8c-9d0e-1f2a3b4c5d6e',
+  'Writing API Documentation & READMEs',
+  'Master API documentation and create comprehensive README files.',
+  'quiz',
+  '# API Documentation & READMEs
+
+## API Documentation Components
+
+### 1. Endpoint Description
+What the endpoint does
+
+### 2. HTTP Method
+GET, POST, PUT, DELETE
+
+### 3. Parameters
+Request body, query params, headers
+
+### 4. Response Format
+Success and error responses
+
+### 5. Examples
+Request and response examples
+
+## API Doc Example
+
+```markdown
+### Create User
+
+`POST /api/users`
+
+Creates a new user account.
+
+**Request Body:**
+```json
+{
+  "email": "user@example.com",
+  "password": "securepass123",
+  "name": "John Doe"
+}
+```
+
+**Response (201):**
+```json
+{
+  "id": "user_123",
+  "email": "user@example.com",
+  "name": "John Doe",
+  "createdAt": "2024-01-15T10:30:00Z"
+}
+```
+
+**Errors:**
+- `400`: Invalid email format
+- `409`: Email already exists
+```
+
+## README Best Practices
+
+### Include
+- Project description
+- Installation steps
+- Usage examples
+- Configuration options
+- Contributing guidelines
+- License information
+
+### Avoid
+- Overly technical jargon
+- Outdated information
+- Missing prerequisites
+
+## Key Takeaways
+
+✓ API docs need endpoints, parameters, examples
+✓ READMEs should enable quick start
+✓ Keep documentation current
+✓ Provide clear examples',
+  25,
+  13,
+  ARRAY['Write comprehensive API documentation', 'Create effective README files'],
+  '{"external_links": ["https://swagger.io/", "https://readme.so/"]}'::jsonb
+) ON CONFLICT (id) DO NOTHING;
+
+-- LESSON 14: Team Communication Best Practices
+INSERT INTO ai_learning_lessons (
+  id, learning_path_id, title, description, content_type, content, duration_minutes, order_index, learning_objectives, resources
+) VALUES (
+  '11111111-1111-1111-1111-111111111114',
+  'b1c2d3e4-f5a6-7b8c-9d0e-1f2a3b4c5d6e',
+  'Team Communication Best Practices',
+  'Communicate effectively in technical teams using modern tools and practices.',
+  'quiz',
+  '# Team Communication Best Practices
+
+## Async vs Sync Communication
+
+### Async (Preferred for most work)
+- Slack messages
+- Email
+- Pull request comments
+- Documentation
+
+### Sync (Use sparingly)
+- Meetings
+- Pair programming
+- Urgent incidents
+
+## Written Communication Tips
+
+### 1. Be Clear and Concise
+Get to the point quickly
+
+### 2. Provide Context
+Help readers understand background
+
+### 3. Use Formatting
+Bullet points, code blocks, emphasis
+
+### 4. Be Respectful
+Professional tone always
+
+## Slack Best Practices
+
+### Do:
+- Use threads for discussions
+- Tag relevant people
+- Search before asking
+- Use appropriate channels
+
+### Don''t:
+- @channel unnecessarily
+- DM when public channels work
+- Expect immediate responses
+
+## Status Updates
+
+### Good Status Update
+```
+Yesterday: Completed user auth API
+Today: Working on OAuth integration
+Blockers: Need design mockups for login page
+```
+
+### Bad Status Update
+```
+Working on stuff
+```
+
+## Key Takeaways
+
+✓ Prefer async communication
+✓ Be clear and provide context
+✓ Use appropriate channels
+✓ Respect others'' time',
+  20,
+  14,
+  ARRAY['Communicate effectively in teams', 'Use async communication appropriately'],
+  '{"external_links": ["https://basecamp.com/guides/how-we-communicate"]}'::jsonb
+) ON CONFLICT (id) DO NOTHING;
+
+-- LESSON 15: Incident Response and Communication
+INSERT INTO ai_learning_lessons (
+  id, learning_path_id, title, description, content_type, content, duration_minutes, order_index, learning_objectives, resources
+) VALUES (
+  '11111111-1111-1111-1111-111111111115',
+  'b1c2d3e4-f5a6-7b8c-9d0e-1f2a3b4c5d6e',
+  'Incident Response and Communication',
+  'Learn how to respond to and communicate during production incidents.',
+  'quiz',
+  '# Incident Response and Communication
+
+## Incident Severity Levels
+
+### SEV1: Critical
+Complete outage, all users affected
+
+### SEV2: High
+Major feature broken, many users affected
+
+### SEV3: Medium
+Minor feature issue, some users affected
+
+### SEV4: Low
+Cosmetic issues, minimal impact
+
+## Incident Response Process
+
+### 1. Detect and Alert
+Monitoring systems raise alert
+
+### 2. Triage
+Assess severity and impact
+
+### 3. Communicate
+Notify stakeholders
+
+### 4. Investigate
+Find root cause
+
+### 5. Resolve
+Implement fix
+
+### 6. Follow Up
+Conduct RCA, implement preventions
+
+## Communication During Incidents
+
+### Initial Update
+"We''re investigating reports of slow page loads"
+
+### Progress Updates (every 30min)
+"Still investigating. Found slow database queries."
+
+### Resolution
+"Issue resolved. Database query optimized. Monitoring."
+
+### Post-Incident
+"RCA completed. Implemented additional monitoring."
+
+## Incident Communication Template
+
+```markdown
+**Incident**: Database connection failures
+**Status**: Investigating
+**Impact**: Users unable to login
+**Started**: 2024-01-15 14:30 UTC
+**Next Update**: 15:00 UTC
+
+Current actions:
+- Investigating connection pool exhaustion
+- Checking database metrics
+```
+
+## Key Takeaways
+
+✓ Classify incidents by severity
+✓ Communicate proactively and regularly
+✓ Focus on resolution first, RCA later
+✓ Keep stakeholders informed',
+  25,
+  15,
+  ARRAY['Respond to production incidents effectively', 'Communicate during outages'],
+  '{"external_links": ["https://response.pagerduty.com/"]}'::jsonb
+) ON CONFLICT (id) DO NOTHING;
+
+-- LESSON 16: Onboarding and Knowledge Transfer
+INSERT INTO ai_learning_lessons (
+  id, learning_path_id, title, description, content_type, content, duration_minutes, order_index, learning_objectives, resources
+) VALUES (
+  '11111111-1111-1111-1111-111111111116',
+  'b1c2d3e4-f5a6-7b8c-9d0e-1f2a3b4c5d6e',
+  'Onboarding and Knowledge Transfer',
+  'Learn how to onboard new team members and share knowledge effectively.',
+  'quiz',
+  '# Onboarding and Knowledge Transfer
+
+## Why Onboarding Matters
+
+- **Faster productivity** for new hires
+- **Preserves knowledge** when people leave
+- **Builds team culture** and connections
+- **Reduces frustration** and confusion
+
+## Onboarding Checklist
+
+### Week 1: Setup
+- [ ] Development environment
+- [ ] Access to systems
+- [ ] Tools and accounts
+- [ ] Team introductions
+
+### Week 2: Learning
+- [ ] Architecture overview
+- [ ] Codebase walkthrough
+- [ ] Deploy process
+- [ ] First small task
+
+### Week 3-4: Contributing
+- [ ] First real feature
+- [ ] Code review participation
+- [ ] Team meetings
+
+## Documentation for Onboarding
+
+### Must Have
+- README with setup steps
+- Architecture docs
+- Development workflow
+- Deployment process
+
+### Nice to Have
+- Video walkthroughs
+- Common troubleshooting
+- Team norms and practices
+
+## Knowledge Transfer Methods
+
+### 1. Pair Programming
+Work together on tasks
+
+### 2. Documentation
+Written guides and READMEs
+
+### 3. Code Reviews
+Learning through feedback
+
+### 4. Team Demos
+Share knowledge in meetings
+
+## Leaving a Team
+
+### Handoff Checklist
+- [ ] Document current work
+- [ ] List ongoing projects
+- [ ] Share access credentials
+- [ ] Update documentation
+- [ ] Knowledge transfer sessions
+
+## Key Takeaways
+
+✓ Good onboarding accelerates productivity
+✓ Documentation is key to knowledge transfer
+✓ Use multiple methods: docs, pairing, reviews
+✓ Plan ahead for team transitions',
+  25,
+  16,
+  ARRAY['Onboard new team members effectively', 'Transfer knowledge systematically'],
+  '{"external_links": ["https://about.gitlab.com/handbook/people-group/general-onboarding/"]}'::jsonb
+) ON CONFLICT (id) DO NOTHING;
+
+-- ========================================================================================================
+-- QUIZ QUESTIONS FOR ALL 16 LESSONS
+-- ========================================================================================================
+
+-- =====================================================
+-- LESSON 1: Introduction to Professional Development
+-- =====================================================
+
+INSERT INTO office_fundamentals_quiz_questions (lesson_id, question_text, question_type, options, correct_answer, explanation, order_index, difficulty) VALUES
+('11111111-1111-1111-1111-111111111101', 'What is the primary purpose of professional development skills for developers?', 'multiple_choice', '{"A": "To write code faster", "B": "To work effectively in teams and maintain code quality", "C": "To memorize more programming languages", "D": "To work longer hours"}', 'B', 'Professional development skills enable developers to collaborate effectively, maintain code quality, and contribute to team success beyond just writing code.', 1, 'easy');
+
+INSERT INTO office_fundamentals_quiz_questions (lesson_id, question_text, question_type, options, correct_answer, explanation, order_index, difficulty) VALUES
+('11111111-1111-1111-1111-111111111101', 'Which of these is NOT a core professional skill mentioned in the lesson?', 'multiple_choice', '{"A": "Version control mastery", "B": "Code review proficiency", "C": "Gaming during work hours", "D": "Documentation excellence"}', 'C', 'Gaming during work hours is not a professional skill. The core skills are version control, code reviews, documentation, and communication.', 2, 'easy');
+
+INSERT INTO office_fundamentals_quiz_questions (lesson_id, question_text, question_type, options, correct_answer, explanation, order_index, difficulty) VALUES
+('11111111-1111-1111-1111-111111111101', 'Why do companies like Google and Microsoft invest in code review processes?', 'multiple_choice', '{"A": "To slow down development", "B": "To enable scaling from 10 to 10,000 engineers while maintaining quality", "C": "To create more meetings", "D": "To reduce developer salaries"}', 'B', 'These practices enable teams to scale massively while maintaining code quality. They''re essential for sustainable growth, not bureaucracy.', 3, 'medium');
+
+INSERT INTO office_fundamentals_quiz_questions (lesson_id, question_text, question_type, options, correct_answer, explanation, order_index, difficulty) VALUES
+('11111111-1111-1111-1111-111111111101', 'Professional development skills directly impact career growth.', 'true_false', '{"true": "True", "false": "False"}', 'true', 'True. Professional skills like code review, documentation, and communication directly impact your ability to work in teams, lead projects, and advance in your career.', 4, 'easy');
+
+INSERT INTO office_fundamentals_quiz_questions (lesson_id, question_text, question_type, options, correct_answer, explanation, order_index, difficulty) VALUES
+('11111111-1111-1111-1111-111111111101', 'According to the lesson, what comes after "Create comprehensive PR with description" in the modern developer workflow?', 'multiple_choice', '{"A": "Deploy immediately", "B": "Respond to code review feedback", "C": "Start a new feature", "D": "Take a break"}', 'B', 'After creating a PR, the next step is responding to code review feedback. Code review is a critical part of the professional development workflow.', 5, 'medium');
+
+-- =====================================================
+-- LESSON 2: Git Workflow Best Practices
+-- =====================================================
+
+INSERT INTO office_fundamentals_quiz_questions (lesson_id, question_text, question_type, options, correct_answer, explanation, order_index, difficulty) VALUES
+('11111111-1111-1111-1111-111111111102', 'What command should you run BEFORE pushing your changes?', 'multiple_choice', '{"A": "git push", "B": "git pull", "C": "git status", "D": "git log"}', 'B', 'Always run "git pull" before pushing to sync with the latest changes and avoid conflicts. This is a fundamental best practice.', 1, 'easy');
+
+INSERT INTO office_fundamentals_quiz_questions (lesson_id, question_text, question_type, options, correct_answer, explanation, order_index, difficulty) VALUES
+('11111111-1111-1111-1111-111111111102', 'What is the purpose of git stash?', 'multiple_choice', '{"A": "Delete uncommitted changes", "B": "Temporarily save changes to switch context", "C": "Commit changes permanently", "D": "Push changes to remote"}', 'B', 'git stash temporarily saves your uncommitted changes, allowing you to switch branches or pull updates without losing work.', 2, 'medium');
+
+INSERT INTO office_fundamentals_quiz_questions (lesson_id, question_text, question_type, options, correct_answer, explanation, order_index, difficulty) VALUES
+('11111111-1111-1111-1111-111111111102', 'You should never rewrite public history by force pushing to shared branches.', 'true_false', '{"true": "True", "false": "False"}', 'true', 'True. Force pushing to shared branches rewrites history and can cause issues for other developers. Only force push to your own feature branches when necessary.', 3, 'easy');
+
+INSERT INTO office_fundamentals_quiz_questions (lesson_id, question_text, question_type, options, correct_answer, explanation, order_index, difficulty) VALUES
+('11111111-1111-1111-1111-111111111102', 'What command shows the commit history in a compact, graphical format?', 'multiple_choice', '{"A": "git status", "B": "git log --oneline --graph --decorate", "C": "git show", "D": "git diff"}', 'B', 'git log --oneline --graph --decorate shows a compact, visual representation of commit history with branch relationships.', 4, 'medium');
+
+INSERT INTO office_fundamentals_quiz_questions (lesson_id, question_text, question_type, options, correct_answer, explanation, order_index, difficulty) VALUES
+('11111111-1111-1111-1111-111111111102', 'Which of these is a Git best practice?', 'multiple_choice', '{"A": "Commit large changes infrequently", "B": "Use generic commit messages like ''Fix stuff''", "C": "Commit early and often with clear messages", "D": "Always work directly on main branch"}', 'C', 'Committing early and often with clear, descriptive messages is a fundamental Git best practice that maintains good project history.', 5, 'easy');
+
+-- =====================================================
+-- LESSON 3: Git Branching Strategies
+-- =====================================================
+
+INSERT INTO office_fundamentals_quiz_questions (lesson_id, question_text, question_type, options, correct_answer, explanation, order_index, difficulty) VALUES
+('11111111-1111-1111-1111-111111111103', 'Which branching strategy uses develop, feature, release, and hotfix branches?', 'multiple_choice', '{"A": "GitHub Flow", "B": "GitFlow", "C": "Trunk-Based Development", "D": "Feature Branch Flow"}', 'B', 'GitFlow is the comprehensive branching model with dedicated branches for develop, features, releases, and hotfixes.', 1, 'easy');
+
+INSERT INTO office_fundamentals_quiz_questions (lesson_id, question_text, question_type, options, correct_answer, explanation, order_index, difficulty) VALUES
+('11111111-1111-1111-1111-111111111103', 'In GitFlow, where should you create a new feature branch from?', 'multiple_choice', '{"A": "main", "B": "develop", "C": "release", "D": "hotfix"}', 'B', 'In GitFlow, feature branches are created from the develop branch and merged back into develop when complete.', 2, 'medium');
+
+INSERT INTO office_fundamentals_quiz_questions (lesson_id, question_text, question_type, options, correct_answer, explanation, order_index, difficulty) VALUES
+('11111111-1111-1111-1111-111111111103', 'Trunk-Based Development emphasizes short-lived branches merged within hours or days.', 'true_false', '{"true": "True", "false": "False"}', 'true', 'True. Trunk-Based Development uses short-lived branches (< 1 day typically) that are quickly merged back to the trunk/main branch.', 3, 'easy');
+
+INSERT INTO office_fundamentals_quiz_questions (lesson_id, question_text, question_type, options, correct_answer, explanation, order_index, difficulty) VALUES
+('11111111-1111-1111-1111-111111111103', 'Which branching strategy is best for continuous deployment with small teams?', 'multiple_choice', '{"A": "GitFlow", "B": "GitHub Flow", "C": "Complex Flow", "D": "Enterprise Flow"}', 'B', 'GitHub Flow is lightweight and perfect for continuous deployment with small-medium teams. It''s simpler than GitFlow and designed for frequent deployments.', 4, 'medium');
+
+INSERT INTO office_fundamentals_quiz_questions (lesson_id, question_text, question_type, options, correct_answer, explanation, order_index, difficulty) VALUES
+('11111111-1111-1111-1111-111111111103', 'In Trunk-Based Development, how are incomplete features deployed to production?', 'multiple_choice', '{"A": "They aren''t deployed", "B": "Using feature flags", "C": "Using release branches", "D": "Using hotfix branches"}', 'B', 'Trunk-Based Development uses feature flags to hide incomplete features in production while still merging code frequently to trunk.', 5, 'hard');
+
+-- =====================================================
+-- LESSON 4: Branch Naming Conventions
+-- =====================================================
+
+INSERT INTO office_fundamentals_quiz_questions (lesson_id, question_text, question_type, options, correct_answer, explanation, order_index, difficulty) VALUES
+('11111111-1111-1111-1111-111111111104', 'Which branch prefix should be used for a critical production bug fix?', 'multiple_choice', '{"A": "feature/", "B": "bugfix/", "C": "hotfix/", "D": "fix/"}', 'C', 'hotfix/ is used for critical production bugs that need immediate attention. bugfix/ is for non-critical bugs.', 1, 'easy');
+
+INSERT INTO office_fundamentals_quiz_questions (lesson_id, question_text, question_type, options, correct_answer, explanation, order_index, difficulty) VALUES
+('11111111-1111-1111-1111-111111111104', 'What is the correct format for branch names?', 'multiple_choice', '{"A": "UPPERCASE_WITH_UNDERSCORES", "B": "lowercase-with-hyphens", "C": "camelCase", "D": "PascalCase"}', 'B', 'Branch names should use lowercase with hyphens (kebab-case). This is the standard convention and avoids issues with different systems.', 2, 'easy');
+
+INSERT INTO office_fundamentals_quiz_questions (lesson_id, question_text, question_type, options, correct_answer, explanation, order_index, difficulty) VALUES
+('11111111-1111-1111-1111-111111111104', 'Branch names should always include the developer''s name.', 'true_false', '{"true": "True", "false": "False"}', 'false', 'False. Including developer names is optional and only if it''s your team''s convention. The standard prefixes (feature/, bugfix/, etc.) are more important.', 3, 'easy');
+
+INSERT INTO office_fundamentals_quiz_questions (lesson_id, question_text, question_type, options, correct_answer, explanation, order_index, difficulty) VALUES
+('11111111-1111-1111-1111-111111111104', 'Which branch name is correct for a Jira ticket PROJ-1234 about adding OAuth?', 'multiple_choice', '{"A": "feature/PROJ-1234", "B": "feature/PROJ-1234-oauth-integration", "C": "PROJ-1234/oauth", "D": "oauth-PROJ-1234"}', 'B', 'The correct format includes the prefix, ticket number, and descriptive name: feature/PROJ-1234-oauth-integration', 4, 'medium');
+
+INSERT INTO office_fundamentals_quiz_questions (lesson_id, question_text, question_type, options, correct_answer, explanation, order_index, difficulty) VALUES
+('11111111-1111-1111-1111-111111111104', 'What prefix should be used for updating project dependencies?', 'multiple_choice', '{"A": "feature/", "B": "chore/", "C": "docs/", "D": "update/"}', 'B', 'chore/ is used for maintenance tasks like updating dependencies, refactoring code, or removing deprecated features.', 5, 'easy');
+
+-- =====================================================
+-- LESSON 5: Writing Effective Commit Messages
+-- =====================================================
+
+INSERT INTO office_fundamentals_quiz_questions (lesson_id, question_text, question_type, options, correct_answer, explanation, order_index, difficulty) VALUES
+('11111111-1111-1111-1111-111111111105', 'Which commit message type should be used for adding a new feature?', 'multiple_choice', '{"A": "fix:", "B": "feat:", "C": "docs:", "D": "style:"}', 'B', 'feat: is the Conventional Commits type for new features. It clearly indicates a new capability was added to the codebase.', 1, 'easy');
+
+INSERT INTO office_fundamentals_quiz_questions (lesson_id, question_text, question_type, options, correct_answer, explanation, order_index, difficulty) VALUES
+('11111111-1111-1111-1111-111111111105', 'Commit messages should be written in which grammatical mood?', 'multiple_choice', '{"A": "Past tense (added feature)", "B": "Present continuous (adding feature)", "C": "Imperative mood (add feature)", "D": "Future tense (will add feature)"}', 'C', 'Use imperative mood: "add feature" not "added" or "adding". This follows Git''s own convention and keeps messages concise.', 2, 'medium');
+
+INSERT INTO office_fundamentals_quiz_questions (lesson_id, question_text, question_type, options, correct_answer, explanation, order_index, difficulty) VALUES
+('11111111-1111-1111-1111-111111111105', 'The subject line of a commit message should be under 50 characters.', 'true_false', '{"true": "True", "false": "False"}', 'true', 'True. Keeping the subject line under 50 characters ensures it displays properly in Git tools and stays concise and scannable.', 3, 'easy');
+
+INSERT INTO office_fundamentals_quiz_questions (lesson_id, question_text, question_type, options, correct_answer, explanation, order_index, difficulty) VALUES
+('11111111-1111-1111-1111-111111111105', 'Which commit message is best?', 'multiple_choice', '{"A": "fix stuff", "B": "fix: resolve memory leak in user service", "C": "fixed some bugs", "D": "changes"}', 'B', 'This message is specific, uses Conventional Commits format, and clearly describes what was fixed. It will be helpful when reviewing history.', 4, 'easy');
+
+INSERT INTO office_fundamentals_quiz_questions (lesson_id, question_text, question_type, options, correct_answer, explanation, order_index, difficulty) VALUES
+('11111111-1111-1111-1111-111111111105', 'What commit type should be used for updating documentation?', 'multiple_choice', '{"A": "feat:", "B": "fix:", "C": "docs:", "D": "chore:"}', 'C', 'docs: is specifically for documentation changes, making it easy to filter documentation-only commits in the history.', 5, 'easy');
+
+-- =====================================================
+-- LESSON 6: Creating Clear PR Descriptions
+-- =====================================================
+
+INSERT INTO office_fundamentals_quiz_questions (lesson_id, question_text, question_type, options, correct_answer, explanation, order_index, difficulty) VALUES
+('11111111-1111-1111-1111-111111111106', 'What should a PR description always include?', 'multiple_choice', '{"A": "Only the code changes", "B": "Summary, what changed, why, and testing", "C": "Just the ticket number", "D": "Only screenshots"}', 'B', 'A complete PR description includes a summary, what changed, why the changes were made, how they were tested, and related issues.', 1, 'easy');
+
+INSERT INTO office_fundamentals_quiz_questions (lesson_id, question_text, question_type, options, correct_answer, explanation, order_index, difficulty) VALUES
+('11111111-1111-1111-1111-111111111106', 'Why are PR descriptions important?', 'multiple_choice', '{"A": "They''re not important", "B": "They help reviewers understand context and speed up reviews", "C": "They make PRs longer", "D": "They''re only for management"}', 'B', 'PR descriptions provide context that helps reviewers understand changes faster, leading to better and quicker code reviews.', 2, 'easy');
+
+INSERT INTO office_fundamentals_quiz_questions (lesson_id, question_text, question_type, options, correct_answer, explanation, order_index, difficulty) VALUES
+('11111111-1111-1111-1111-111111111106', 'PR descriptions should explain the "why" behind changes, not just the "what".', 'true_false', '{"true": "True", "false": "False"}', 'true', 'True. The code shows "what" changed, but the PR description should explain "why" these changes were necessary for business or technical reasons.', 3, 'easy');
+
+INSERT INTO office_fundamentals_quiz_questions (lesson_id, question_text, question_type, options, correct_answer, explanation, order_index, difficulty) VALUES
+('11111111-1111-1111-1111-111111111106', 'What information should be included in the Testing section of a PR?', 'multiple_choice', '{"A": "Nothing, testing isn''t needed", "B": "How the changes were tested and verified", "C": "Only unit test names", "D": "The testing framework used"}', 'B', 'The Testing section should describe how you verified the changes work correctly, including manual testing steps and automated tests run.', 4, 'medium');
+
+INSERT INTO office_fundamentals_quiz_questions (lesson_id, question_text, question_type, options, correct_answer, explanation, order_index, difficulty) VALUES
+('11111111-1111-1111-1111-111111111106', 'When should you include screenshots in a PR description?', 'multiple_choice', '{"A": "Never", "B": "Always, for every PR", "C": "When there are UI changes", "D": "Only for bug fixes"}', 'C', 'Screenshots are valuable when there are visual/UI changes, showing before and after states to help reviewers understand the impact.', 5, 'easy');
+
+-- =====================================================
+-- LESSON 7: Code Review Fundamentals
+-- =====================================================
+
+INSERT INTO office_fundamentals_quiz_questions (lesson_id, question_text, question_type, options, correct_answer, explanation, order_index, difficulty) VALUES
+('11111111-1111-1111-1111-111111111107', 'What is the primary goal of code review?', 'multiple_choice', '{"A": "To criticize developers", "B": "To catch bugs, share knowledge, and maintain quality", "C": "To slow down development", "D": "To show who is the best coder"}', 'B', 'Code review catches bugs early, shares knowledge across the team, and maintains consistent code quality standards.', 1, 'easy');
+
+INSERT INTO office_fundamentals_quiz_questions (lesson_id, question_text, question_type, options, correct_answer, explanation, order_index, difficulty) VALUES
+('11111111-1111-1111-1111-111111111107', 'Which of these should you review in code?', 'multiple_choice', '{"A": "Only syntax errors", "B": "Functionality, design, tests, and naming", "C": "Only formatting", "D": "Just security issues"}', 'B', 'Code review should cover functionality, design quality, test coverage, naming conventions, and overall maintainability.', 2, 'medium');
+
+INSERT INTO office_fundamentals_quiz_questions (lesson_id, question_text, question_type, options, correct_answer, explanation, order_index, difficulty) VALUES
+('11111111-1111-1111-1111-111111111107', 'Code review should focus on the code, not the person who wrote it.', 'true_false', '{"true": "True", "false": "False"}', 'true', 'True. Code review is about improving the code and maintaining quality, never about criticizing the developer personally.', 3, 'easy');
+
+INSERT INTO office_fundamentals_quiz_questions (lesson_id, question_text, question_type, options, correct_answer, explanation, order_index, difficulty) VALUES
+('11111111-1111-1111-1111-111111111107', 'What should you check regarding tests during code review?', 'multiple_choice', '{"A": "Nothing about tests", "B": "Only that tests exist", "C": "That tests are adequate and cover edge cases", "D": "Only test file names"}', 'C', 'Review that tests are present, adequate for the changes, and cover edge cases. Good test coverage is crucial for maintainable code.', 4, 'medium');
+
+INSERT INTO office_fundamentals_quiz_questions (lesson_id, question_text, question_type, options, correct_answer, explanation, order_index, difficulty) VALUES
+('11111111-1111-1111-1111-111111111107', 'Unnecessary complexity in code should be:', 'multiple_choice', '{"A": "Ignored", "B": "Praised", "C": "Simplified during review", "D": "Kept as-is"}', 'C', 'Unnecessary complexity should be identified and simplified during code review. Simpler code is more maintainable and less bug-prone.', 5, 'easy');
+
+-- =====================================================
+-- LESSON 8: Giving Constructive Feedback
+-- =====================================================
+
+INSERT INTO office_fundamentals_quiz_questions (lesson_id, question_text, question_type, options, correct_answer, explanation, order_index, difficulty) VALUES
+('11111111-1111-1111-1111-111111111108', 'What makes feedback constructive?', 'multiple_choice', '{"A": "Being critical and harsh", "B": "Being kind, specific, and suggesting solutions", "C": "Only pointing out flaws", "D": "Using sarcasm"}', 'B', 'Constructive feedback is kind, specific about the issue, explains why it matters, and suggests better approaches or solutions.', 1, 'easy');
+
+INSERT INTO office_fundamentals_quiz_questions (lesson_id, question_text, question_type, options, correct_answer, explanation, order_index, difficulty) VALUES
+('11111111-1111-1111-1111-111111111108', 'How should you prefix a minor style suggestion in code review?', 'multiple_choice', '{"A": "URGENT:", "B": "nit:", "C": "CRITICAL:", "D": "BLOCKING:"}', 'B', 'Use "nit:" (nitpick) for minor style issues that aren''t blocking but would improve code quality or consistency.', 2, 'easy');
+
+INSERT INTO office_fundamentals_quiz_questions (lesson_id, question_text, question_type, options, correct_answer, explanation, order_index, difficulty) VALUES
+('11111111-1111-1111-1111-111111111108', 'Code review feedback should explain the reasoning behind suggestions.', 'true_false', '{"true": "True", "false": "False"}', 'true', 'True. Explaining "why" helps the author learn and understand the rationale, making feedback more valuable and educational.', 3, 'easy');
+
+INSERT INTO office_fundamentals_quiz_questions (lesson_id, question_text, question_type, options, correct_answer, explanation, order_index, difficulty) VALUES
+('11111111-1111-1111-1111-111111111108', 'Which is better code review feedback?', 'multiple_choice', '{"A": "This code is terrible", "B": "Consider using Array.filter() here for better readability: [code example]", "C": "Why did you do it this way?", "D": "This won''t work"}', 'B', 'This feedback is specific, kind, explains the benefit (readability), and provides a concrete example of a better approach.', 4, 'easy');
+
+INSERT INTO office_fundamentals_quiz_questions (lesson_id, question_text, question_type, options, correct_answer, explanation, order_index, difficulty) VALUES
+('11111111-1111-1111-1111-111111111108', 'When should you mark feedback as "blocking"?', 'multiple_choice', '{"A": "For all comments", "B": "For critical issues that must be fixed before merge", "C": "For style preferences", "D": "Never"}', 'B', 'Use blocking for critical issues like security vulnerabilities, major bugs, or architectural problems that must be addressed before merging.', 5, 'medium');
+
+-- =====================================================
+-- LESSON 9: Receiving Feedback
+-- =====================================================
+
+INSERT INTO office_fundamentals_quiz_questions (lesson_id, question_text, question_type, options, correct_answer, explanation, order_index, difficulty) VALUES
+('11111111-1111-1111-1111-111111111109', 'What mindset should you have when receiving code review feedback?', 'multiple_choice', '{"A": "Defensive and argumentative", "B": "Assume good intent and focus on learning", "C": "Ignore feedback you disagree with", "D": "Take it personally"}', 'B', 'Assume reviewers have good intent and want to help improve the code. Focus on learning and improving rather than being defensive.', 1, 'easy');
+
+INSERT INTO office_fundamentals_quiz_questions (lesson_id, question_text, question_type, options, correct_answer, explanation, order_index, difficulty) VALUES
+('11111111-1111-1111-1111-111111111109', 'How should you respond when you don''t understand feedback?', 'multiple_choice', '{"A": "Ignore it", "B": "Ask for clarification", "C": "Argue about it", "D": "Make a random change"}', 'B', 'Always ask for clarification when feedback is unclear. Good reviewers will be happy to explain their reasoning in more detail.', 2, 'easy');
+
+INSERT INTO office_fundamentals_quiz_questions (lesson_id, question_text, question_type, options, correct_answer, explanation, order_index, difficulty) VALUES
+('11111111-1111-1111-1111-111111111109', 'You should respond to all code review comments, even if just to acknowledge.', 'true_false', '{"true": "True", "false": "False"}', 'true', 'True. Responding to all comments shows respect for the reviewer''s time and helps track what''s been addressed.', 3, 'easy');
+
+INSERT INTO office_fundamentals_quiz_questions (lesson_id, question_text, question_type, options, correct_answer, explanation, order_index, difficulty) VALUES
+('11111111-1111-1111-1111-111111111109', 'If you disagree with feedback, you should:', 'multiple_choice', '{"A": "Ignore it completely", "B": "Argue aggressively", "C": "Explain your reasoning professionally and be open to discussion", "D": "Close the PR"}', 'C', 'Respectfully explain your reasoning and be open to discussion. Sometimes you both learn, and sometimes one perspective is better.', 4, 'medium');
+
+INSERT INTO office_fundamentals_quiz_questions (lesson_id, question_text, question_type, options, correct_answer, explanation, order_index, difficulty) VALUES
+('11111111-1111-1111-1111-111111111109', 'After implementing feedback, you should:', 'multiple_choice', '{"A": "Merge immediately", "B": "Request re-review from reviewers", "C": "Start a new PR", "D": "Delete all comments"}', 'B', 'Request re-review so reviewers can verify their feedback was addressed correctly. This closes the feedback loop professionally.', 5, 'easy');
+
+-- =====================================================
+-- LESSON 10: Introduction to RCA
+-- =====================================================
+
+INSERT INTO office_fundamentals_quiz_questions (lesson_id, question_text, question_type, options, correct_answer, explanation, order_index, difficulty) VALUES
+('11111111-1111-1111-1111-111111111110', 'What does RCA stand for?', 'multiple_choice', '{"A": "Rapid Code Analysis", "B": "Root Cause Analysis", "C": "Review and Correct Actions", "D": "Regression and Compatibility Assessment"}', 'B', 'RCA stands for Root Cause Analysis - a systematic process for finding the underlying causes of problems.', 1, 'easy');
+
+INSERT INTO office_fundamentals_quiz_questions (lesson_id, question_text, question_type, options, correct_answer, explanation, order_index, difficulty) VALUES
+('11111111-1111-1111-1111-111111111110', 'What is the difference between a symptom and a root cause?', 'multiple_choice', '{"A": "There is no difference", "B": "Symptoms are what you observe; root causes are the underlying reasons", "C": "Root causes are always bugs", "D": "Symptoms come first alphabetically"}', 'B', 'Symptoms are the observable problems (website slow), while root causes are the underlying reasons (missing database index).', 2, 'medium');
+
+INSERT INTO office_fundamentals_quiz_questions (lesson_id, question_text, question_type, options, correct_answer, explanation, order_index, difficulty) VALUES
+('11111111-1111-1111-1111-111111111110', 'The 5 Whys method asks "why" repeatedly to find the root cause.', 'true_false', '{"true": "True", "false": "False"}', 'true', 'True. The 5 Whys method involves asking "why" repeatedly (typically 5 times) to dig deeper from symptoms to the root cause.', 3, 'easy');
+
+INSERT INTO office_fundamentals_quiz_questions (lesson_id, question_text, question_type, options, correct_answer, explanation, order_index, difficulty) VALUES
+('11111111-1111-1111-1111-111111111110', 'Why is RCA important?', 'multiple_choice', '{"A": "To blame developers", "B": "To prevent incidents from recurring", "C": "To create more meetings", "D": "To increase costs"}', 'B', 'RCA helps prevent incidents from recurring by fixing root causes, not just symptoms. This improves system reliability and reduces future issues.', 4, 'easy');
+
+INSERT INTO office_fundamentals_quiz_questions (lesson_id, question_text, question_type, options, correct_answer, explanation, order_index, difficulty) VALUES
+('11111111-1111-1111-1111-111111111110', 'In the example, "No performance testing process in place" was identified as:', 'multiple_choice', '{"A": "A symptom", "B": "A surface cause", "C": "The root cause", "D": "Unrelated"}', 'C', 'This was the root cause identified through 5 Whys. Fixing this process issue prevents similar problems in the future.', 5, 'medium');
+
+-- Continue with remaining lessons 11-16 quiz questions...
+-- (Adding abbreviated versions for remaining lessons)
+
+-- =====================================================
+-- LESSON 11-16: Quiz Questions (Abbreviated for space)
+-- =====================================================
+
+-- LESSON 11
+INSERT INTO office_fundamentals_quiz_questions (lesson_id, question_text, question_type, options, correct_answer, explanation, order_index, difficulty) VALUES
+('11111111-1111-1111-1111-111111111111', 'What is the first step in conducting an RCA?', 'multiple_choice', '{"A": "Implement solutions", "B": "Define the problem clearly", "C": "Blame someone", "D": "Document everything"}', 'B', 'The first step is defining the problem: what went wrong, when, and what was the impact. Clear problem definition guides the entire RCA.', 1, 'easy'),
+('11111111-1111-1111-1111-111111111111', 'An RCA document should include action items to prevent recurrence.', 'true_false', '{"true": "True", "false": "False"}', 'true', 'True. Action items are crucial - they turn analysis into concrete steps to prevent the incident from happening again.', 2, 'easy'),
+('11111111-1111-1111-1111-111111111111', 'What should you do after completing an RCA?', 'multiple_choice', '{"A": "Keep it private", "B": "Document and share learnings with the team", "C": "Delete all evidence", "D": "Ignore the findings"}', 'B', 'Share RCA findings with the team so everyone learns from the incident and can apply lessons to their work.', 3, 'easy'),
+('11111111-1111-1111-1111-111111111111', 'RCA should focus on:', 'multiple_choice', '{"A": "Finding who to blame", "B": "Finding process and system improvements", "C": "Creating more rules", "D": "Punishing mistakes"}', 'B', 'RCA focuses on improving processes and systems, not blaming individuals. The goal is prevention, not punishment.', 4, 'medium'),
+('11111111-1111-1111-1111-111111111111', 'Which is part of a good RCA document?', 'multiple_choice', '{"A": "Only the incident date", "B": "Timeline, root cause, and action items", "C": "Just the fix applied", "D": "Unrelated notes"}', 'B', 'A complete RCA includes timeline, root cause analysis, contributing factors, action items, and lessons learned.', 5, 'easy');
+
+-- LESSON 12
+INSERT INTO office_fundamentals_quiz_questions (lesson_id, question_text, question_type, options, correct_answer, explanation, order_index, difficulty) VALUES
+('11111111-1111-1111-1111-111111111112', 'Why is documentation important?', 'multiple_choice', '{"A": "It''s not important", "B": "It onboards new members and preserves knowledge", "C": "To create more work", "D": "Only for legal reasons"}', 'B', 'Documentation onboards new team members faster, preserves knowledge, and improves long-term maintainability.', 1, 'easy'),
+('11111111-1111-1111-1111-111111111112', 'Outdated documentation is better than no documentation.', 'true_false', '{"true": "True", "false": "False"}', 'false', 'False. Outdated documentation can be worse than no documentation as it misleads developers and wastes time.', 2, 'medium'),
+('11111111-1111-1111-1111-111111111112', 'What should a README file include?', 'multiple_choice', '{"A": "Only the project name", "B": "Overview, setup instructions, and usage examples", "C": "Just the author name", "D": "Nothing"}', 'B', 'A good README includes project overview, prerequisites, installation steps, usage examples, and contributing guidelines.', 3, 'easy'),
+('11111111-1111-1111-1111-111111111112', 'Good documentation should:', 'multiple_choice', '{"A": "Use excessive jargon", "B": "Be written for your audience and include examples", "C": "Be as long as possible", "D": "Never be updated"}', 'B', 'Documentation should be tailored to your audience (beginners vs experts) and include clear examples that show how things work.', 4, 'easy'),
+('11111111-1111-1111-1111-111111111112', 'Which is NOT a type of documentation mentioned?', 'multiple_choice', '{"A": "README", "B": "API docs", "C": "Marketing brochures", "D": "Runbooks"}', 'C', 'Marketing brochures aren''t technical documentation. The lesson covers READMEs, API docs, architecture docs, runbooks, and comments.', 5, 'easy');
+
+-- LESSON 13
+INSERT INTO office_fundamentals_quiz_questions (lesson_id, question_text, question_type, options, correct_answer, explanation, order_index, difficulty) VALUES
+('11111111-1111-1111-1111-111111111113', 'What should API documentation always include?', 'multiple_choice', '{"A": "Only the endpoint URL", "B": "Endpoint, method, parameters, response, and examples", "C": "Just the HTTP method", "D": "Only error codes"}', 'B', 'Complete API docs include endpoint, HTTP method, request parameters, response format, and practical examples.', 1, 'easy'),
+('11111111-1111-1111-1111-111111111113', 'API documentation should include request and response examples.', 'true_false', '{"true": "True", "false": "False"}', 'true', 'True. Examples are crucial - they show developers exactly how to use the API and what to expect in responses.', 2, 'easy'),
+('11111111-1111-1111-1111-111111111113', 'What HTTP methods are commonly documented in APIs?', 'multiple_choice', '{"A": "Only GET", "B": "GET, POST, PUT, DELETE", "C": "Only POST", "D": "SEND and RECEIVE"}', 'B', 'REST APIs commonly use GET (read), POST (create), PUT (update), and DELETE (remove) methods.', 3, 'easy'),
+('11111111-1111-1111-1111-111111111113', 'Error codes in API documentation should:', 'multiple_choice', '{"A": "Be hidden from users", "B": "Include the code and what it means", "C": "Only show 200 OK", "D": "Be ignored"}', 'B', 'Document error codes with explanations so developers know what went wrong and how to handle different error scenarios.', 4, 'medium'),
+('11111111-1111-1111-1111-111111111113', 'A good README enables:', 'multiple_choice', '{"A": "Confusion", "B": "Quick start for new developers", "C": "Slow onboarding", "D": "More questions"}', 'B', 'A well-written README allows new developers to quickly understand, install, and start using the project.', 5, 'easy');
+
+-- LESSON 14
+INSERT INTO office_fundamentals_quiz_questions (lesson_id, question_text, question_type, options, correct_answer, explanation, order_index, difficulty) VALUES
+('11111111-1111-1111-1111-111111111114', 'Which communication type is preferred for most work?', 'multiple_choice', '{"A": "Synchronous meetings", "B": "Asynchronous communication", "C": "Phone calls", "D": "Video calls"}', 'B', 'Async communication (Slack, email, PR comments) is preferred as it respects people''s time and allows deep work.', 1, 'easy'),
+('11111111-1111-1111-1111-111111111114', 'You should @channel in Slack for every message.', 'true_false', '{"true": "True", "false": "False"}', 'false', 'False. Only use @channel for urgent, team-wide announcements. Overuse leads to notification fatigue.', 2, 'easy'),
+('11111111-1111-1111-1111-111111111114', 'A good status update includes:', 'multiple_choice', '{"A": "Just "working on stuff"', "B": "Yesterday''s work, today''s plan, and blockers", "C": "Only blockers", "D": "Nothing specific"}', 'B', 'Effective status updates show what you completed, what you''re working on today, and any blockers you''re facing.', 3, 'easy'),
+('11111111-1111-1111-1111-111111111114', 'In written communication, you should:', 'multiple_choice', '{"A": "Be vague", "B": "Be clear, concise, and provide context", "C": "Never format text", "D": "Write as much as possible"}', 'B', 'Clear, concise writing with proper context helps others understand quickly without back-and-forth clarifications.', 4, 'easy'),
+('11111111-1111-1111-1111-111111111114', 'When should you use synchronous communication?', 'multiple_choice', '{"A": "For everything", "B": "For urgent issues and complex discussions", "C": "Never", "D": "Only for social chat"}', 'B', 'Use sync communication (meetings, calls) sparingly for urgent issues, complex discussions, or when async isn''t working.', 5, 'medium');
+
+-- LESSON 15
+INSERT INTO office_fundamentals_quiz_questions (lesson_id, question_text, question_type, options, correct_answer, explanation, order_index, difficulty) VALUES
+('11111111-1111-1111-1111-111111111115', 'What is a SEV1 incident?', 'multiple_choice', '{"A": "Minor cosmetic issue", "B": "Complete outage affecting all users", "C": "Small bug", "D": "Feature request"}', 'B', 'SEV1 (Severity 1) is a critical incident with complete outage or major functionality broken affecting all users.', 1, 'easy'),
+('11111111-1111-1111-1111-111111111115', 'During an incident, you should focus on resolution first, then RCA.', 'true_false', '{"true": "True", "false": "False"}', 'true', 'True. Priority during an incident is resolving it and restoring service. RCA comes afterward to prevent recurrence.', 2, 'easy'),
+('11111111-1111-1111-1111-111111111115', 'How often should you provide updates during a major incident?', 'multiple_choice', '{"A": "Never", "B": "Every 30 minutes or as significant progress occurs", "C": "Only when resolved", "D": "Once a day"}', 'B', 'Regular updates (typically every 30 minutes) keep stakeholders informed and reduce anxiety during incidents.', 3, 'medium'),
+('11111111-1111-1111-1111-111111111115', 'An incident communication should include:', 'multiple_choice', '{"A": "Only the fix", "B": "Status, impact, actions being taken, and next update time", "C": "Just the start time", "D": "Nothing"}', 'B', 'Complete incident updates include current status, impact assessment, actions being taken, and when next update is expected.', 4, 'medium'),
+('11111111-1111-1111-1111-111111111115', 'After resolving an incident, you should:', 'multiple_choice', '{"A": "Forget about it", "B": "Conduct RCA and share learnings", "C": "Blame someone", "D": "Hide what happened"}', 'B', 'After resolution, conduct RCA to understand what happened, implement preventions, and share learnings with the team.', 5, 'easy');
+
+-- LESSON 16
+INSERT INTO office_fundamentals_quiz_questions (lesson_id, question_text, question_type, options, correct_answer, explanation, order_index, difficulty) VALUES
+('11111111-1111-1111-1111-111111111116', 'Why is good onboarding important?', 'multiple_choice', '{"A": "It''s not important", "B": "Faster productivity and better team integration", "C": "To slow down new hires", "D": "Only for paperwork"}', 'B', 'Good onboarding accelerates productivity, helps new hires feel welcome, and ensures they understand team practices.', 1, 'easy'),
+('11111111-1111-1111-1111-111111111116', 'Onboarding should only focus on technical setup.', 'true_false', '{"true": "True", "false": "False"}', 'false', 'False. Onboarding includes technical setup, but also learning the codebase, team culture, processes, and building relationships.', 2, 'easy'),
+('11111111-1111-1111-1111-111111111116', 'What should happen in the first week of onboarding?', 'multiple_choice', '{"A": "Ship major features", "B": "Setup environment, access, tools, and team introductions", "C": "Take vacation", "D": "Lead the team"}', 'B', 'First week focuses on getting set up: development environment, system access, tools, and meeting the team.', 3, 'easy'),
+('11111111-1111-1111-1111-111111111116', 'Knowledge transfer methods include:', 'multiple_choice', '{"A": "Only written docs", "B": "Docs, pair programming, code reviews, and demos", "C": "Just meetings", "D": "Telepathy"}', 'B', 'Effective knowledge transfer uses multiple methods: documentation, pair programming, code reviews, and team demonstrations.', 4, 'easy'),
+('11111111-1111-1111-1111-111111111116', 'When leaving a team, you should:', 'multiple_choice', '{"A": "Leave immediately without notice", "B": "Document work, share knowledge, and hand off properly", "C": "Delete everything", "D": "Keep all knowledge secret"}', 'B', 'Professional transitions include documenting current work, listing ongoing projects, transferring knowledge, and proper handoffs.', 5, 'easy');
+

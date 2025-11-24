@@ -12,7 +12,10 @@ export function MobileNav() {
     <nav className="fixed bottom-0 left-0 right-0 z-40 border-t border-slate-200 bg-white lg:hidden">
       <div className="flex items-center justify-around">
         {MOBILE_NAV_ITEMS.map((item) => {
-          const isActive = pathname === item.href;
+          // For Dashboard, match exact path. For others, match if path starts with href
+          const isActive = item.href === '/dashboard'
+            ? pathname === '/dashboard'
+            : pathname.startsWith(item.href);
           const Icon = item.icon;
 
           return (

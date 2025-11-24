@@ -9,8 +9,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
+import { AlertCircle, Clock, CheckCircle } from 'lucide-react';
 
 const resetPasswordSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
@@ -19,9 +19,9 @@ const resetPasswordSchema = z.object({
 type ResetPasswordFormValues = z.infer<typeof resetPasswordSchema>;
 
 export function ResetPasswordForm() {
-  const [isSuccess, setIsSuccess] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const { resetPassword } = useAuth();
-  const { toast } = useToast();
 
   const form = useForm<ResetPasswordFormValues>({
     resolver: zodResolver(resetPasswordSchema),
@@ -31,49 +31,65 @@ export function ResetPasswordForm() {
   });
 
   const onSubmit = async (values: ResetPasswordFormValues) => {
+    // Clear previous messages
+    setErrorMessage(null);
+    setSuccessMessage(null);
+
     try {
       await resetPassword(values.email);
-      setIsSuccess(true);
-      toast({
-        title: 'Success',
-        description: 'Password reset link sent to your email',
-      });
+      setSuccessMessage("We've sent a password reset link to your email address. Please check your inbox and follow the instructions.");
       form.reset();
     } catch (error) {
-      toast({
-        title: 'Error',
-        description: error instanceof Error ? error.message : 'Failed to send reset link',
-        variant: 'destructive',
-      });
+      const message = error instanceof Error ? error.message : 'Failed to send reset link';
+      setErrorMessage(message);
     }
   };
 
   return (
-    <Card className="w-full max-w-md">
-      <CardHeader className="space-y-1">
-        <CardTitle className="text-2xl font-bold">Reset Password</CardTitle>
-        <CardDescription>
-          Enter your email address and we&apos;ll send you a link to reset your password
-        </CardDescription>
-      </CardHeader>
-      {isSuccess ? (
-        <CardContent className="space-y-4">
-          <div className="rounded-lg bg-green-50 p-4 text-sm text-green-800">
-            <p className="font-medium">Check your email</p>
-            <p className="mt-1">
-              We&apos;ve sent a password reset link to your email address. Please check your inbox
-              and follow the instructions to reset your password.
-            </p>
+    <div className="w-full max-w-md">
+      {/* Error Message Banner */}
+      {errorMessage && (
+        <div className="mb-4 rounded-lg bg-red-50 border border-red-200 p-4">
+          <div className="flex items-center justify-center gap-3">
+            {errorMessage.toLowerCase().includes('security purposes') ||
+             errorMessage.toLowerCase().includes('12 seconds') ? (
+              <Clock className="h-5 w-5 text-red-600 flex-shrink-0" />
+            ) : (
+              <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0" />
+            )}
+            <div className="text-center">
+              <h4 className="text-sm font-semibold text-red-900 mb-1">
+                {errorMessage.toLowerCase().includes('security purposes') ||
+                 errorMessage.toLowerCase().includes('12 seconds')
+                  ? 'Please Wait'
+                  : 'Error'}
+              </h4>
+              <p className="text-sm text-red-800">{errorMessage}</p>
+            </div>
           </div>
-          <Button
-            variant="outline"
-            className="w-full"
-            onClick={() => setIsSuccess(false)}
-          >
-            Send another link
-          </Button>
-        </CardContent>
-      ) : (
+        </div>
+      )}
+
+      {/* Success Message Banner */}
+      {successMessage && (
+        <div className="mb-4 rounded-lg bg-green-50 border border-green-200 p-4">
+          <div className="flex items-center justify-center gap-3">
+            <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0" />
+            <div className="text-center">
+              <h4 className="text-sm font-semibold text-green-900 mb-1">Check Your Email</h4>
+              <p className="text-sm text-green-800">{successMessage}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <Card className="w-full max-w-md">
+        <CardHeader className="space-y-1">
+          <CardTitle className="text-2xl font-bold">Reset Password</CardTitle>
+          <CardDescription>
+            Enter your email address and we&apos;ll send you a link to reset your password
+          </CardDescription>
+        </CardHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
             <CardContent className="space-y-4">
@@ -89,6 +105,14 @@ export function ResetPasswordForm() {
                         placeholder="you@example.com"
                         disabled={form.formState.isSubmitting}
                         {...field}
+                        onChange={(e) => {
+                          field.onChange(e);
+                          // Clear messages when user starts typing
+                          if (errorMessage || successMessage) {
+                            setErrorMessage(null);
+                            setSuccessMessage(null);
+                          }
+                        }}
                       />
                     </FormControl>
                     <FormMessage />
@@ -113,7 +137,7 @@ export function ResetPasswordForm() {
             </CardFooter>
           </form>
         </Form>
-      )}
-    </Card>
+      </Card>
+    </div>
   );
 }

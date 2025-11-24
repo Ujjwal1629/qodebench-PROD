@@ -8,7 +8,7 @@ import { NAV_ITEMS } from '@/lib/constants/dashboard';
 import { useUIStore } from '@/store/ui-store';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { formatPoints } from '@/lib/utils/format';
+import { formatPoints, getUserInitials } from '@/lib/utils/format';
 
 interface SidebarProps {
   user?: {
@@ -62,7 +62,10 @@ export function Sidebar({ user }: SidebarProps) {
         {/* Navigation */}
         <nav className="flex-1 space-y-1 overflow-y-auto p-4">
           {NAV_ITEMS.map((item) => {
-            const isActive = pathname === item.href;
+            // For Dashboard, match exact path. For others, match if path starts with href
+            const isActive = item.href === '/dashboard'
+              ? pathname === '/dashboard'
+              : pathname.startsWith(item.href);
             const Icon = item.icon;
 
             return (
@@ -123,7 +126,7 @@ export function Sidebar({ user }: SidebarProps) {
               <Avatar className="h-10 w-10 flex-shrink-0">
                 <AvatarImage src={user.avatar_url || undefined} alt={user.username} />
                 <AvatarFallback className="bg-brand-100 text-brand-700 font-semibold">
-                  {user.username.slice(0, 2).toUpperCase()}
+                  {getUserInitials(user.username)}
                 </AvatarFallback>
               </Avatar>
               {!sidebarCollapsed && (

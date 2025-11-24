@@ -86,6 +86,18 @@ export type Database = {
           created_by: string | null
           created_at: string
           updated_at: string
+          // Tier-based system fields (migration 017)
+          tier: 'beginner' | 'intermediate' | 'office-workflow' | 'advanced' | 'product-planning' | 'software-engineering-essentials' | null
+          order_in_tier: number | null
+          unlock_requirement_type: 'none' | 'previous' | 'tier_completion' | null
+          unlock_requirement_count: number | null
+          previous_challenge_id: string | null
+          // Challenge type and validation fields (migration 016)
+          challenge_type: 'code' | 'document' | 'mixed' | null
+          response_format: 'javascript' | 'typescript' | 'markdown' | 'text' | 'json' | null
+          validation_type: 'test_cases' | 'ai_only' | 'hybrid' | null
+          // Free tier access control (migration 036)
+          is_free_tier_accessible: boolean
         }
         Insert: {
           id?: string
@@ -107,6 +119,18 @@ export type Database = {
           created_by?: string | null
           created_at?: string
           updated_at?: string
+          // Tier-based system fields
+          tier?: 'beginner' | 'intermediate' | 'office-workflow' | 'advanced' | 'product-planning' | 'software-engineering-essentials' | null
+          order_in_tier?: number | null
+          unlock_requirement_type?: 'none' | 'previous' | 'tier_completion' | null
+          unlock_requirement_count?: number | null
+          previous_challenge_id?: string | null
+          // Challenge type and validation fields
+          challenge_type?: 'code' | 'document' | 'mixed' | null
+          response_format?: 'javascript' | 'typescript' | 'markdown' | 'text' | 'json' | null
+          validation_type?: 'test_cases' | 'ai_only' | 'hybrid' | null
+          // Free tier access control
+          is_free_tier_accessible?: boolean
         }
         Update: {
           id?: string
@@ -128,6 +152,18 @@ export type Database = {
           created_by?: string | null
           created_at?: string
           updated_at?: string
+          // Tier-based system fields
+          tier?: 'beginner' | 'intermediate' | 'office-workflow' | 'advanced' | 'product-planning' | 'software-engineering-essentials' | null
+          order_in_tier?: number | null
+          unlock_requirement_type?: 'none' | 'previous' | 'tier_completion' | null
+          unlock_requirement_count?: number | null
+          previous_challenge_id?: string | null
+          // Challenge type and validation fields
+          challenge_type?: 'code' | 'document' | 'mixed' | null
+          response_format?: 'javascript' | 'typescript' | 'markdown' | 'text' | 'json' | null
+          validation_type?: 'test_cases' | 'ai_only' | 'hybrid' | null
+          // Free tier access control
+          is_free_tier_accessible?: boolean
         }
       }
       submissions: {

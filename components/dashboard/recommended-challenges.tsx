@@ -18,7 +18,7 @@ export function RecommendedChallenges({ challenges }: RecommendedChallengesProps
   if (challenges.length === 0) {
     return (
       <Card>
-        <CardContent className="p-6">
+        <CardContent className="p-4 sm:p-5 md:p-6">
           <EmptyState
             icon={Sparkles}
             title="No recommendations yet"
@@ -38,7 +38,7 @@ export function RecommendedChallenges({ challenges }: RecommendedChallengesProps
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold text-slate-900">
+        <h2 className="text-lg sm:text-xl font-semibold text-slate-900">
           Recommended for You
         </h2>
         <Button asChild variant="ghost" size="sm">
@@ -52,7 +52,7 @@ export function RecommendedChallenges({ challenges }: RecommendedChallengesProps
             key={challenge.id}
             className="transition-shadow hover:shadow-md"
           >
-            <CardContent className="p-6">
+            <CardContent className="p-4 sm:p-5 md:p-6">
               <div className="space-y-4">
                 {/* Badges */}
                 <div className="flex flex-wrap items-center gap-2">

@@ -1,0 +1,183 @@
+import { redirect } from 'next/navigation';
+import { createClient } from '@/lib/supabase/server';
+import { ProgressService } from '@/lib/learning/progress-service';
+import { QuizService } from '@/lib/quiz/quiz-service';
+import { SplitScreenLayout } from '@/components/learning/split-screen-layout';
+import { AITutorDock } from '@/components/learning/ai-tutor-dock';
+import { QuizComponent } from '@/components/learning/quiz/quiz-component';
+import { ReadingProgress } from '@/components/learning/reading-progress';
+import { EnhancedMarkdownRenderer } from '@/components/learning/enhanced-markdown-renderer';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import Link from 'next/link';
+import { ArrowLeft, CheckCircle2, BookOpen } from 'lucide-react';
+
+export default async function LessonPage({ params }: { params: Promise<{ lessonId: string }> }) {
+  const { lessonId } = await params;
+  const supabase = await createClient();
+
+  // Check authentication
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect('/signin');
+  }
+
+  // Get lesson details
+  const { data: lesson } = await supabase
+    .from('ai_learning_lessons')
+    .select('*')
+    .eq('id', lessonId)
+    .single();
+
+  if (!lesson) {
+    return (
+      <div className="container max-w-4xl py-10">
+        <Card>
+          <CardContent className="p-6">
+            <p>Lesson not found.</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Parallelize independent queries for faster loading
+  const [accessCheck, quizQuestions, nextLesson] = await Promise.all([
+    ProgressService.canAccessLesson(user.id, lessonId),
+    QuizService.getQuestionsForLesson(lessonId),
+    ProgressService.getNextLesson(user.id, lessonId),
+  ]);
+
+  if (!accessCheck.can_access) {
+    return (
+      <div className="container max-w-4xl py-10 space-y-4">
+        <Link
+          href="/dashboard/learning/office-fundamentals"
+          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-sky-600"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back to Lessons
+        </Link>
+        <Card className="border-2 border-red-200 bg-red-50">
+          <CardContent className="p-6 text-center space-y-4">
+            <div className="text-4xl">🔒</div>
+            <h2 className="text-2xl font-bold">Lesson Locked</h2>
+            <p className="text-muted-foreground">{accessCheck.reason}</p>
+            {accessCheck.required_lesson && (
+              <div className="mt-4">
+                <p className="text-sm mb-2">Complete this lesson first:</p>
+                <Button asChild className="bg-sky-600 hover:bg-sky-700">
+                  <Link href={`/dashboard/learning/office-fundamentals/${accessCheck.required_lesson.id}`}>
+                    Go to {accessCheck.required_lesson.title}
+                  </Link>
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Mark lesson as started (non-blocking - fire and forget)
+  ProgressService.markLessonAsStarted(user.id, lessonId);
+
+  const nextLessonUrl = nextLesson ? `/dashboard/learning/office-fundamentals/${nextLesson.id}` : null;
+
+  // Theory Panel Component
+  const TheoryPanel = () => (
+    <div className="relative">
+      {/* Reading Progress Bar */}
+      <ReadingProgress />
+
+      <div className="space-y-8">
+        <Link
+          href="/dashboard/learning/office-fundamentals"
+          className="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-sky-600 transition-colors font-medium"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back to Office Fundamentals
+        </Link>
+
+        {/* Lesson Header */}
+        <div className="space-y-4">
+          <div className="flex items-center gap-3 flex-wrap">
+            <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-sky-700 bg-sky-100 px-3 py-1.5 rounded-full border border-sky-200">
+              <BookOpen className="h-3.5 w-3.5" />
+              Lesson {lesson.order_index}
+            </span>
+            <span className="text-sm text-slate-500">
+              {lesson.duration_minutes} min read • {quizQuestions.length} quiz questions
+            </span>
+          </div>
+          <h1 className="text-4xl font-bold leading-tight text-slate-900 tracking-tight">
+            {lesson.title}
+          </h1>
+          <p className="text-lg text-slate-600 leading-relaxed">
+            {lesson.description}
+          </p>
+
+          {lesson.learning_objectives && (
+            <div className="flex flex-wrap gap-2 pt-2">
+              {lesson.learning_objectives.map((obj: string, idx: number) => (
+                <span
+                  key={idx}
+                  className="inline-flex items-center gap-1.5 text-xs font-medium text-green-700 bg-green-50 border border-green-200 px-2.5 py-1 rounded-full"
+                >
+                  <CheckCircle2 className="h-3 w-3" />
+                  {obj}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Divider */}
+        <hr className="border-slate-200" />
+
+        {/* Enhanced Markdown Content */}
+        <EnhancedMarkdownRenderer content={lesson.content} className="prose-enhanced" />
+
+        {/* Additional Resources */}
+        {lesson.resources && lesson.resources.external_links && (
+          <Card className="bg-sky-50 border-2 border-sky-200 shadow-md">
+            <CardContent className="p-6">
+              <h3 className="font-bold text-lg mb-4 text-sky-900 flex items-center gap-2">
+                <span className="text-2xl">📚</span>
+                Additional Resources
+              </h3>
+              <ul className="space-y-2">
+                {lesson.resources.external_links.map((link: string, idx: number) => (
+                  <li key={idx}>
+                    <a
+                      href={link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-base text-sky-600 hover:text-sky-800 hover:underline font-medium transition-colors"
+                    >
+                      {link}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+    </div>
+  );
+
+  return (
+    <>
+      <SplitScreenLayout leftPanel={<TheoryPanel />} />
+      <AITutorDock
+        lessonId={lessonId}
+        lessonTitle={lesson.title}
+        lessonContent={lesson.content}
+      />
+    </>
+  );
+}

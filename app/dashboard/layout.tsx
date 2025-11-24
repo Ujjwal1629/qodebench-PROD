@@ -3,15 +3,15 @@ import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { Sidebar } from '@/components/dashboard/sidebar';
 import { TopBar } from '@/components/dashboard/topbar';
-import { MobileNav } from '@/components/dashboard/mobile-nav';
 import { MainContentWrapper } from '@/components/dashboard/main-content-wrapper';
+import { ScrollToTop } from '@/components/scroll-to-top';
 
 // Cache user profile data for better performance
 const getUserProfile = cache(async (userId: string) => {
   const supabase = await createClient();
   const { data: profile } = await supabase
     .from('profiles')
-    .select('username, avatar_url, full_name, total_points')
+    .select('username, avatar_url, full_name, total_points, subscription_tier, subscription_status')
     .eq('id', userId)
     .single();
 
@@ -43,11 +43,16 @@ export default async function DashboardLayout({
         avatar_url: profile.avatar_url,
         full_name: profile.full_name,
         total_points: profile.total_points,
+        subscription_tier: profile.subscription_tier,
+        subscription_status: profile.subscription_status,
       }
     : null;
 
   return (
     <div className="min-h-screen bg-slate-50">
+      {/* Scroll to top on route change */}
+      <ScrollToTop />
+
       {/* Sidebar for desktop */}
       <Sidebar user={userData} />
 
@@ -56,9 +61,6 @@ export default async function DashboardLayout({
 
       {/* Main content with dynamic padding based on sidebar state */}
       <MainContentWrapper>{children}</MainContentWrapper>
-
-      {/* Mobile navigation */}
-      <MobileNav />
     </div>
   );
 }

@@ -2,12 +2,11 @@ import {
   Home,
   BookOpen,
   Code2,
+  FileQuestion,
   // Map, // Temporarily removed - Roadmap hidden
   Mic,
   Trophy,
   Gift,
-  Sparkles,
-  Settings,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -46,10 +45,10 @@ export const NAV_ITEMS: NavItem[] = [
   //   description: 'Your learning path',
   // },
   {
-    title: 'Mock Interviews',
+    title: 'Interviews',
     href: '/dashboard/interviews',
     icon: Mic,
-    description: 'Practice technical interviews',
+    description: 'Interview prep & mock interviews',
   },
   {
     title: 'Leaderboard',
@@ -57,32 +56,22 @@ export const NAV_ITEMS: NavItem[] = [
     icon: Trophy,
     description: 'Compete with developers worldwide',
   },
-  {
-    title: 'Rewards',
-    href: '/dashboard/rewards',
-    icon: Gift,
-    description: 'Redeem exclusive merch',
-  },
-  {
-    title: 'AI Tools Guide',
-    href: '/dashboard/ai-tools',
-    icon: Sparkles,
-    description: 'Master AI-assisted coding',
-  },
-  {
-    title: 'Settings',
-    href: '/dashboard/settings',
-    icon: Settings,
-    description: 'Manage your account',
-  },
+  // Temporarily hidden for beta - Coming soon
+  // {
+  //   title: 'Rewards',
+  //   href: '/dashboard/rewards',
+  //   icon: Gift,
+  //   description: 'Redeem exclusive merch',
+  // },
 ];
 
-// Mobile navigation items (reduced set)
+// Mobile navigation items (essential features)
 export const MOBILE_NAV_ITEMS: NavItem[] = [
   NAV_ITEMS[0], // Dashboard
-  NAV_ITEMS[2], // Challenges (index shifted after adding Learning)
+  NAV_ITEMS[1], // Learning
+  NAV_ITEMS[2], // Challenges
   NAV_ITEMS[3], // Interviews
-  NAV_ITEMS[7], // Settings (More)
+  NAV_ITEMS[4], // Leaderboard
 ];
 
 // Experience levels and point thresholds
@@ -191,10 +180,9 @@ export const STATUS_COLORS = {
   not_started: 'text-slate-600 bg-slate-50 border-slate-200',
 } as const;
 
-// Category labels
+// Category labels (Python removed for tier-based system)
 export const CATEGORY_LABELS = {
   'office-fundamentals': 'Office Fundamentals',
-  python: 'Python',
   javascript: 'JavaScript',
   react: 'React',
   nextjs: 'Next.js',
@@ -204,12 +192,152 @@ export const CATEGORY_LABELS = {
 // Category colors
 export const CATEGORY_COLORS = {
   'office-fundamentals': 'text-orange-600 bg-orange-50 border-orange-200',
-  python: 'text-blue-600 bg-blue-50 border-blue-200',
   javascript: 'text-yellow-600 bg-yellow-50 border-yellow-200',
   react: 'text-cyan-600 bg-cyan-50 border-cyan-200',
   nextjs: 'text-slate-600 bg-slate-50 border-slate-200',
   nodejs: 'text-green-600 bg-green-50 border-green-200',
 } as const;
+
+// ============================================================================
+// TIER-BASED CHALLENGE SYSTEM
+// ============================================================================
+
+export type ChallengeTier = 'beginner' | 'intermediate' | 'software-engineering-essentials' | 'advanced' | 'product-planning';
+
+export type TierInfo = {
+  id: ChallengeTier;
+  name: string;
+  icon: string;
+  description: string;
+  color: string;
+  bgColor: string;
+  borderColor: string;
+  totalChallenges: number;
+  unlockRequirement: {
+    type: 'none' | 'tier_completion';
+    previousTier?: ChallengeTier;
+    requiredCount?: number;
+    description: string;
+  };
+};
+
+export const TIERS: Record<ChallengeTier, TierInfo> = {
+  beginner: {
+    id: 'beginner',
+    name: 'Beginner',
+    icon: '🎯',
+    description: 'Pure coding basics - Build your foundation',
+    color: 'text-green-600',
+    bgColor: 'bg-green-50',
+    borderColor: 'border-green-200',
+    totalChallenges: 30,
+    unlockRequirement: {
+      type: 'none',
+      description: 'Unlocked by default',
+    },
+  },
+  intermediate: {
+    id: 'intermediate',
+    name: 'Intermediate',
+    icon: '⚡',
+    description: 'Feature & bug-level tasks - Level up your skills',
+    color: 'text-blue-600',
+    bgColor: 'bg-blue-50',
+    borderColor: 'border-blue-200',
+    totalChallenges: 10,
+    unlockRequirement: {
+      type: 'none',
+      description: 'Unlocked by default',
+    },
+  },
+  'software-engineering-essentials': {
+    id: 'software-engineering-essentials',
+    name: 'Software Engineering Essentials',
+    icon: '📋',
+    description: 'Professional workflow practices and office fundamentals',
+    color: 'text-orange-600',
+    bgColor: 'bg-orange-50',
+    borderColor: 'border-orange-200',
+    totalChallenges: 10,
+    unlockRequirement: {
+      type: 'none',
+      description: 'Unlocked by default',
+    },
+  },
+  advanced: {
+    id: 'advanced',
+    name: 'Advanced',
+    icon: '🚀',
+    description: 'Full simulations - Real-world scenarios',
+    color: 'text-purple-600',
+    bgColor: 'bg-purple-50',
+    borderColor: 'border-purple-200',
+    totalChallenges: 5,
+    unlockRequirement: {
+      type: 'none',
+      description: 'Unlocked by default',
+    },
+  },
+  'product-planning': {
+    id: 'product-planning',
+    name: 'Product & Feature Planning',
+    icon: '🎯',
+    description: 'Product management, sprint planning, and WBS creation',
+    color: 'text-indigo-600',
+    bgColor: 'bg-indigo-50',
+    borderColor: 'border-indigo-200',
+    totalChallenges: 0,
+    unlockRequirement: {
+      type: 'none',
+      description: 'Coming soon',
+    },
+  },
+};
+
+// Get all tiers in order
+export const TIER_ORDER: ChallengeTier[] = [
+  'beginner',
+  'intermediate',
+  'software-engineering-essentials',
+  'advanced',
+  'product-planning',
+];
+
+// Get tier info by id
+export function getTierInfo(tier: ChallengeTier): TierInfo {
+  return TIERS[tier];
+}
+
+// Get next tier
+export function getNextTier(currentTier: ChallengeTier): ChallengeTier | null {
+  const currentIndex = TIER_ORDER.indexOf(currentTier);
+  return TIER_ORDER[currentIndex + 1] || null;
+}
+
+// Check if tier is unlocked
+export function isTierUnlocked(
+  tier: ChallengeTier,
+  completedChallengesByTier: Record<ChallengeTier, number>
+): boolean {
+  const tierInfo = TIERS[tier];
+
+  if (tierInfo.unlockRequirement.type === 'none') {
+    return true;
+  }
+
+  if (
+    tierInfo.unlockRequirement.type === 'tier_completion' &&
+    tierInfo.unlockRequirement.previousTier &&
+    tierInfo.unlockRequirement.requiredCount
+  ) {
+    const previousTier = tierInfo.unlockRequirement.previousTier;
+    const requiredCount = tierInfo.unlockRequirement.requiredCount;
+    const completed = completedChallengesByTier[previousTier] || 0;
+    return completed >= requiredCount;
+  }
+
+  return false;
+}
 
 // Motivational messages based on time of day
 export function getGreetingMessage(): string {

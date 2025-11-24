@@ -24,17 +24,23 @@ export type ChallengeWithProgress = Challenge & {
 
 /**
  * Get list of challenges with optional filters
+ * OPTIMIZED: Fetches only needed columns for list display
  */
 export const getChallengesList = cache(
   async (filters?: ChallengeFilters): Promise<ChallengeWithProgress[]> => {
     try {
       const supabase = await createClient();
 
-      // Build query
+      // Only select columns needed for challenge list display
+      const listColumns = 'id, slug, title, description, difficulty, points, category, tier, order_in_tier, challenge_type, response_format';
+
+      // Build query (excluding Code Friday challenges)
       let query = supabase
         .from('challenges')
-        .select('*')
+        .select(listColumns)
         .eq('is_active', true)
+        .not('title', 'ilike', 'Code Friday:%')
+        .not('slug', 'ilike', 'code-friday-%')
         .order('created_at', { ascending: false });
 
       // Apply filters
@@ -94,13 +100,13 @@ export const getChallengesList = cache(
         return challenges.map((challenge) => ({
           ...challenge,
           userProgress: progressMap.get(challenge.id) || null,
-        }));
+        })) as ChallengeWithProgress[];
       }
 
       return challenges.map((challenge) => ({
         ...challenge,
         userProgress: null,
-      }));
+      })) as ChallengeWithProgress[];
     } catch (error) {
       console.error('Error fetching challenges list:', error);
       return [];
@@ -110,6 +116,8 @@ export const getChallengesList = cache(
 
 /**
  * Get a single challenge by ID or slug
+ * SECURITY: Checks subscription access before returning challenge data
+ * NOTE: Uses select('*') because workspace needs all challenge data (starter_code, test_cases, etc.)
  */
 export const getChallengeById = cache(
   async (idOrSlug: string): Promise<ChallengeWithProgress | null> => {
@@ -117,6 +125,7 @@ export const getChallengeById = cache(
       const supabase = await createClient();
 
       // Try to fetch by ID first, then by slug
+      // Using select('*') because workspace needs full challenge data
       let query = supabase.from('challenges').select('*').eq('is_active', true);
 
       // Check if it's a UUID or slug
@@ -134,6 +143,9 @@ export const getChallengeById = cache(
       const { data: challenge } = await query.single();
 
       if (!challenge) return null;
+
+      // NOTE: Tier access checks are handled in the page component
+      // to show proper paywall UI instead of 404
 
       // Get user progress if authenticated
       const {
@@ -294,6 +306,7 @@ export const getUserChallengeStats = cache(
 
 /**
  * Get challenges with progress, pagination, and advanced filtering
+ * OPTIMIZED: Fetches only needed columns for list display
  */
 export const getChallengesWithProgress = cache(
   async (
@@ -313,6 +326,9 @@ export const getChallengesWithProgress = cache(
       const from = (page - 1) * pageSize;
       const to = from + pageSize - 1;
 
+      // Only select columns needed for challenge list display
+      const listColumns = 'id, slug, title, description, difficulty, points, category, tier, order_in_tier, challenge_type, response_format';
+
       // Build query for count
       let countQuery = supabase
         .from('challenges')
@@ -322,7 +338,7 @@ export const getChallengesWithProgress = cache(
       // Build query for data
       let query = supabase
         .from('challenges')
-        .select('*')
+        .select(listColumns)
         .eq('is_active', true);
 
       // Exclude office-fundamentals if requested (when showing category cards)
@@ -397,12 +413,12 @@ export const getChallengesWithProgress = cache(
         data: { user },
       } = await supabase.auth.getUser();
 
-      let challengesWithProgress: ChallengeWithProgress[] = challenges.map(
+      let challengesWithProgress = challenges.map(
         (challenge) => ({
           ...challenge,
           userProgress: null,
         })
-      );
+      ) as ChallengeWithProgress[];
 
       if (user) {
         const { data: progressData } = await supabase
@@ -417,7 +433,7 @@ export const getChallengesWithProgress = cache(
         challengesWithProgress = challenges.map((challenge) => ({
           ...challenge,
           userProgress: progressMap.get(challenge.id) || null,
-        }));
+        })) as ChallengeWithProgress[];
 
         // Apply status filter if specified
         if (filters?.status && filters.status !== 'all') {
@@ -454,6 +470,7 @@ export const getChallengesWithProgress = cache(
 
 /**
  * Get user's in-progress challenges
+ * OPTIMIZED: Fetches only needed columns for display
  */
 export const getInProgressChallenges = cache(
   async (): Promise<ChallengeWithProgress[]> => {
@@ -479,10 +496,13 @@ export const getInProgressChallenges = cache(
 
       const challengeIds = progressData.map((p) => p.challenge_id);
 
+      // Only select columns needed for display
+      const listColumns = 'id, slug, title, description, difficulty, points, category, tier, order_in_tier, challenge_type, response_format';
+
       // Fetch the challenges
       const { data: challenges } = await supabase
         .from('challenges')
-        .select('*')
+        .select(listColumns)
         .in('id', challengeIds)
         .eq('is_active', true);
 
@@ -496,7 +516,7 @@ export const getInProgressChallenges = cache(
       return challenges.map((challenge) => ({
         ...challenge,
         userProgress: progressMap.get(challenge.id) || null,
-      }));
+      })) as ChallengeWithProgress[];
     } catch (error) {
       console.error('Error fetching in-progress challenges:', error);
       return [];
@@ -595,3 +615,433 @@ export const getCategoryStats = cache(async (): Promise<CategoryStat[]> => {
     return [];
   }
 });
+
+// ============================================================================
+// TIER-BASED CHALLENGE SYSTEM FUNCTIONS
+// ============================================================================
+
+import { ChallengeTier, TIERS, TIER_ORDER } from '@/lib/constants/dashboard';
+import {
+  isChallengeUnlocked,
+  getCompletionStatsByTier,
+  getNextChallengeInTier,
+  type Challenge as UnlockChallenge,
+  type UserProgress,
+} from '@/lib/utils/challenge-unlock';
+import {
+  canAccessChallenge,
+  canAccessChallengeTier,
+  canMakeAttempt,
+  incrementDailyUsage,
+} from '@/lib/utils/subscription-check';
+
+export type TierProgressStats = {
+  tier: ChallengeTier;
+  name: string;
+  description: string;
+  icon: string;
+  completed: number;
+  total: number;
+  percentage: number;
+  isUnlocked: boolean;
+  unlockRequirement?: string;
+  nextChallenge?: {
+    id: string;
+    slug: string;
+    title: string;
+    order: number;
+  } | null;
+};
+
+/**
+ * Get tier progress for all tiers
+ */
+export const getTierProgress = cache(async (): Promise<TierProgressStats[]> => {
+  try {
+    const supabase = await createClient();
+
+    // Get authenticated user
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    // Get all active challenges (excluding Code Friday challenges)
+    const { data: challenges } = await supabase
+      .from('challenges')
+      .select('id, slug, title, tier, order_in_tier, unlock_requirement_type, unlock_requirement_count, previous_challenge_id, is_free_tier_accessible')
+      .eq('is_active', true)
+      .not('title', 'ilike', 'Code Friday:%')
+      .not('slug', 'ilike', 'code-friday-%')
+      .order('tier')
+      .order('order_in_tier');
+
+    if (!challenges) {
+      return TIER_ORDER.map((tierId) => {
+        const tierInfo = TIERS[tierId];
+        return {
+          tier: tierId,
+          name: tierInfo.name,
+          description: tierInfo.description,
+          icon: tierInfo.icon,
+          completed: 0,
+          total: tierInfo.totalChallenges,
+          percentage: 0,
+          isUnlocked: tierId === 'beginner',
+          unlockRequirement: tierInfo.unlockRequirement.description,
+          nextChallenge: null,
+        };
+      });
+    }
+
+    // Get user progress if authenticated
+    let userProgress: UserProgress[] = [];
+    if (user) {
+      const { data: progressData } = await supabase
+        .from('roadmap_progress')
+        .select('challenge_id, status')
+        .eq('user_id', user.id);
+
+      userProgress = progressData || [];
+    }
+
+    // Calculate completion stats by tier
+    const statsByTier = getCompletionStatsByTier(
+      challenges as unknown as UnlockChallenge[],
+      userProgress
+    );
+
+    // Build tier progress array
+    const tierProgress: TierProgressStats[] = TIER_ORDER.map((tierId) => {
+      const tierInfo = TIERS[tierId];
+      const stats = statsByTier[tierId] || { completed: 0, total: 0 }; // Defensive: handle missing tier stats
+      const percentage = stats.total > 0 ? Math.round((stats.completed / stats.total) * 100) : 0;
+
+      // Check if tier is unlocked
+      let isUnlocked = tierInfo.unlockRequirement.type === 'none';
+      if (
+        tierInfo.unlockRequirement.type === 'tier_completion' &&
+        tierInfo.unlockRequirement.previousTier &&
+        tierInfo.unlockRequirement.requiredCount
+      ) {
+        const previousTier = tierInfo.unlockRequirement.previousTier;
+        const requiredCount = tierInfo.unlockRequirement.requiredCount;
+        const previousCompleted = statsByTier[previousTier]?.completed || 0; // Defensive: handle missing previous tier
+        isUnlocked = previousCompleted >= requiredCount;
+      }
+
+      // Get next challenge in tier
+      const nextChallenge = user
+        ? getNextChallengeInTier(tierId, challenges as unknown as UnlockChallenge[], userProgress)
+        : null;
+
+      return {
+        tier: tierId,
+        name: tierInfo.name,
+        description: tierInfo.description,
+        icon: tierInfo.icon,
+        completed: stats.completed,
+        total: stats.total,
+        percentage,
+        isUnlocked,
+        unlockRequirement: tierInfo.unlockRequirement.description,
+        nextChallenge: nextChallenge
+          ? {
+              id: nextChallenge.id,
+              slug: nextChallenge.slug,
+              title: nextChallenge.title,
+              order: nextChallenge.order_in_tier,
+            }
+          : null,
+      };
+    });
+
+    return tierProgress;
+  } catch (error) {
+    console.error('Error fetching tier progress:', error);
+    return [];
+  }
+});
+
+/**
+ * Get challenges by tier with unlock status
+ * OPTIMIZED: Calculates tier stats inline instead of calling getTierProgress()
+ */
+export const getChallengesByTier = cache(
+  async (tier: ChallengeTier): Promise<{
+    challenges: (ChallengeWithProgress & {
+      order_in_tier: number;
+      isUnlocked: boolean;
+      unlockReason?: string;
+    })[];
+    tierInfo: TierProgressStats;
+  }> => {
+    try {
+      const supabase = await createClient();
+      const tierConfig = TIERS[tier];
+
+      // Get authenticated user
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      // Fetch tier challenges and all challenges for unlock checks in parallel
+      const [tierChallengesResult, allChallengesResult] = await Promise.all([
+        // Get challenges in this tier (select only needed columns + full data for display)
+        supabase
+          .from('challenges')
+          .select('id, slug, title, description, difficulty, points, category, tier, order_in_tier, unlock_requirement_type, unlock_requirement_count, previous_challenge_id, is_free_tier_accessible, challenge_type, response_format, validation_type')
+          .eq('tier', tier)
+          .eq('is_active', true)
+          .not('title', 'ilike', 'Code Friday:%')
+          .not('slug', 'ilike', 'code-friday-%')
+          .order('order_in_tier'),
+        // Get minimal challenge data for unlock checks
+        supabase
+          .from('challenges')
+          .select('id, slug, title, tier, order_in_tier, unlock_requirement_type, unlock_requirement_count, previous_challenge_id, is_free_tier_accessible')
+          .eq('is_active', true)
+          .not('title', 'ilike', 'Code Friday:%')
+          .not('slug', 'ilike', 'code-friday-%'),
+      ]);
+
+      const challenges = tierChallengesResult.data;
+      const allChallenges = allChallengesResult.data;
+
+      if (!challenges || challenges.length === 0) {
+        return {
+          challenges: [],
+          tierInfo: {
+            tier,
+            name: tierConfig.name,
+            description: tierConfig.description,
+            icon: tierConfig.icon,
+            completed: 0,
+            total: 0,
+            percentage: 0,
+            isUnlocked: tier === 'beginner',
+            unlockRequirement: tierConfig.unlockRequirement.description,
+            nextChallenge: null,
+          },
+        };
+      }
+
+      // Get user progress if authenticated
+      let userProgress: UserProgress[] = [];
+      if (user) {
+        const { data: progressData } = await supabase
+          .from('roadmap_progress')
+          .select('challenge_id, status, attempts')
+          .eq('user_id', user.id);
+
+        userProgress = progressData || [];
+      }
+
+      // Calculate tier stats inline (avoiding extra getTierProgress() call)
+      const completedInTier = userProgress.filter(p =>
+        p.status === 'completed' &&
+        challenges.some(c => c.id === p.challenge_id)
+      ).length;
+      const totalInTier = challenges.length;
+      const percentage = totalInTier > 0 ? Math.round((completedInTier / totalInTier) * 100) : 0;
+
+      // Calculate if tier is unlocked based on previous tier completion
+      let isUnlocked = tierConfig.unlockRequirement.type === 'none';
+      if (
+        tierConfig.unlockRequirement.type === 'tier_completion' &&
+        tierConfig.unlockRequirement.previousTier &&
+        tierConfig.unlockRequirement.requiredCount
+      ) {
+        const previousTier = tierConfig.unlockRequirement.previousTier;
+        const requiredCount = tierConfig.unlockRequirement.requiredCount;
+        const previousTierChallenges = (allChallenges || []).filter(c => c.tier === previousTier);
+        const previousCompleted = userProgress.filter(p =>
+          p.status === 'completed' &&
+          previousTierChallenges.some(c => c.id === p.challenge_id)
+        ).length;
+        isUnlocked = previousCompleted >= requiredCount;
+      }
+
+      // Map challenges with unlock status
+      const challengesWithUnlock = challenges
+        .filter((challenge) => challenge.order_in_tier !== null)
+        .map((challenge) => {
+          const progress = userProgress.find((p) => p.challenge_id === challenge.id);
+          const unlockStatus = isChallengeUnlocked(
+            challenge as unknown as UnlockChallenge,
+            (allChallenges || []) as unknown as UnlockChallenge[],
+            userProgress
+          );
+
+          return {
+            ...challenge,
+            order_in_tier: challenge.order_in_tier!,
+            userProgress: progress ? { status: progress.status } : null,
+            isUnlocked: unlockStatus.isUnlocked,
+            unlockReason: unlockStatus.reason,
+          };
+        });
+
+      // Find next challenge in tier
+      const nextChallenge = challengesWithUnlock.find(c =>
+        c.isUnlocked && (!c.userProgress || c.userProgress.status !== 'completed')
+      );
+
+      return {
+        // Cast to expected type (we select fewer columns for performance but components only need these)
+        challenges: challengesWithUnlock as (ChallengeWithProgress & {
+          order_in_tier: number;
+          isUnlocked: boolean;
+          unlockReason?: string;
+        })[],
+        tierInfo: {
+          tier,
+          name: tierConfig.name,
+          description: tierConfig.description,
+          icon: tierConfig.icon,
+          completed: completedInTier,
+          total: totalInTier,
+          percentage,
+          isUnlocked,
+          unlockRequirement: tierConfig.unlockRequirement.description,
+          nextChallenge: nextChallenge
+            ? { id: nextChallenge.id, slug: nextChallenge.slug, title: nextChallenge.title, order: nextChallenge.order_in_tier }
+            : null,
+        },
+      };
+    } catch (error) {
+      console.error('Error fetching challenges by tier:', error);
+      const tierInfo = TIERS[tier];
+      return {
+        challenges: [],
+        tierInfo: {
+          tier,
+          name: tierInfo.name,
+          description: tierInfo.description,
+          icon: tierInfo.icon,
+          completed: 0,
+          total: 0,
+          percentage: 0,
+          isUnlocked: tier === 'beginner',
+          unlockRequirement: tierInfo.unlockRequirement.description,
+          nextChallenge: null,
+        },
+      };
+    }
+  }
+);
+
+/**
+ * Check if a specific challenge is unlocked
+ */
+export const checkChallengeUnlocked = cache(
+  async (challengeId: string): Promise<{ isUnlocked: boolean; reason?: string }> => {
+    try {
+      const supabase = await createClient();
+
+      // Get authenticated user
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        return { isUnlocked: false, reason: 'Not authenticated' };
+      }
+
+      // Get the challenge
+      const { data: challenge } = await supabase
+        .from('challenges')
+        .select('id, slug, title, tier, order_in_tier, unlock_requirement_type, unlock_requirement_count, previous_challenge_id, is_free_tier_accessible')
+        .eq('id', challengeId)
+        .eq('is_active', true)
+        .single();
+
+      if (!challenge) {
+        return { isUnlocked: false, reason: 'Challenge not found' };
+      }
+
+      // SUBSCRIPTION CHECK: Use new granular access check
+      const accessCheck = await canAccessChallenge(challengeId, user.id);
+      if (!accessCheck.canAccess) {
+        return {
+          isUnlocked: false,
+          reason: accessCheck.reason,
+        };
+      }
+
+      // Get all challenges (excluding Code Friday challenges)
+      const { data: allChallenges } = await supabase
+        .from('challenges')
+        .select('id, slug, title, tier, order_in_tier, unlock_requirement_type, unlock_requirement_count, previous_challenge_id, is_free_tier_accessible')
+        .eq('is_active', true)
+        .not('title', 'ilike', 'Code Friday:%')
+        .not('slug', 'ilike', 'code-friday-%');
+
+      // Get user progress
+      const { data: progressData } = await supabase
+        .from('roadmap_progress')
+        .select('challenge_id, status')
+        .eq('user_id', user.id);
+
+      const userProgress: UserProgress[] = progressData || [];
+
+      // Check unlock status
+      const unlockStatus = isChallengeUnlocked(
+        challenge as unknown as UnlockChallenge,
+        (allChallenges || []) as unknown as UnlockChallenge[],
+        userProgress
+      );
+
+      return unlockStatus;
+    } catch (error) {
+      console.error('Error checking challenge unlock status:', error);
+      return { isUnlocked: false, reason: 'Error checking unlock status' };
+    }
+  }
+);
+
+/**
+ * Check if user can submit a challenge attempt
+ * Enforces daily limits for free users
+ */
+export async function canSubmitChallenge(
+  challengeId: string
+): Promise<{ allowed: boolean; reason?: string; attemptsRemaining?: number }> {
+  try {
+    // Check if challenge is unlocked
+    const unlockStatus = await checkChallengeUnlocked(challengeId);
+    if (!unlockStatus.isUnlocked) {
+      return { allowed: false, reason: unlockStatus.reason };
+    }
+
+    // Check daily attempt limit
+    const attemptCheck = await canMakeAttempt();
+    if (!attemptCheck.allowed) {
+      return {
+        allowed: false,
+        reason: attemptCheck.reason,
+        attemptsRemaining: 0,
+      };
+    }
+
+    return {
+      allowed: true,
+      attemptsRemaining: attemptCheck.attemptsRemaining,
+    };
+  } catch (error) {
+    console.error('Error in canSubmitChallenge:', error);
+    return { allowed: false, reason: 'Error checking submission eligibility' };
+  }
+}
+
+/**
+ * Record a challenge submission attempt
+ * Increments daily usage counter for free users
+ */
+export async function recordChallengeAttempt(): Promise<boolean> {
+  try {
+    return await incrementDailyUsage('attempts');
+  } catch (error) {
+    console.error('Error recording challenge attempt:', error);
+    return false;
+  }
+}

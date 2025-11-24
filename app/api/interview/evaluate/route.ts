@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
 import { createClient } from '@/lib/supabase/server';
+import { verifyInterviewAPIAccess } from '@/lib/utils/api-access-checks';
+import { verifyResponseOwnership } from '@/lib/utils/interview-auth';
+import { isValidUUID } from '@/lib/utils/input-validation';
 
 interface EvaluationResult {
   quality_score: number; // 0-10
@@ -12,6 +15,10 @@ interface EvaluationResult {
 
 export async function POST(request: NextRequest) {
   try {
+    // SECURITY CHECK: Verify user has access to interview prep
+    const { user, error: accessError } = await verifyInterviewAPIAccess();
+    if (accessError) return accessError;
+
     // Initialize OpenAI client only when needed
     const openai = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY || '',
@@ -19,8 +26,20 @@ export async function POST(request: NextRequest) {
 
     const { responseId, sessionId } = await request.json();
 
-    if (!responseId) {
-      return NextResponse.json({ error: 'Response ID required' }, { status: 400 });
+    // SECURITY: Validate UUID format to prevent SQL injection
+    if (!responseId || !isValidUUID(responseId)) {
+      return NextResponse.json({ error: 'Invalid response ID format' }, { status: 400 });
+    }
+
+    // Validate sessionId if provided
+    if (sessionId && !isValidUUID(sessionId)) {
+      return NextResponse.json({ error: 'Invalid session ID format' }, { status: 400 });
+    }
+
+    // CRITICAL SECURITY: Verify user owns this interview response
+    const ownership = await verifyResponseOwnership(responseId, user.id);
+    if (!ownership.authorized) {
+      return ownership.error!;
     }
 
     const supabase = await createClient();

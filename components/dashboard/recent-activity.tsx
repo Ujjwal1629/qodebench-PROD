@@ -18,7 +18,7 @@ export function RecentActivity({ submissions }: RecentActivityProps) {
   if (submissions.length === 0) {
     return (
       <Card>
-        <CardContent className="p-6">
+        <CardContent className="p-4 sm:p-5 md:p-6">
           <EmptyState
             icon={FileX2}
             title="No submissions yet"
@@ -37,19 +37,19 @@ export function RecentActivity({ submissions }: RecentActivityProps) {
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>Recent Activity</CardTitle>
+      <CardHeader className="flex flex-row items-center justify-between px-4 py-4 sm:px-5 sm:py-5 md:px-6 md:py-6">
+        <CardTitle className="text-base sm:text-lg">Recent Activity</CardTitle>
         <Button asChild variant="ghost" size="sm">
           <Link href="/submissions">View All</Link>
         </Button>
       </CardHeader>
-      <CardContent>
+      <CardContent className="px-4 pb-4 sm:px-5 sm:pb-5 md:px-6 md:pb-6">
         <div className="space-y-3">
           {submissions.map((submission) => (
             <Link
               key={submission.id}
               href={`/dashboard/challenges/${submission.challengeSlug}`}
-              className="block rounded-lg border border-slate-200 p-4 transition-colors hover:bg-slate-50"
+              className="block rounded-lg border border-slate-200 p-3 sm:p-4 transition-colors hover:bg-slate-50"
             >
               <div className="flex items-start justify-between gap-4">
                 <div className="min-w-0 flex-1">

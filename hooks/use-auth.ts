@@ -78,8 +78,7 @@ export function useAuth() {
     // Profile is created automatically by the handle_new_user() trigger
     // No need to create it manually anymore!
 
-    // Don't redirect to dashboard - user needs to confirm email first
-    // The signup form will show a success message
+    // No redirect here - the signup form component handles navigation
     setLoading(false);
   };
 

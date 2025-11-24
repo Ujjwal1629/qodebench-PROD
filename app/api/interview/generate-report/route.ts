@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
 import { createClient } from '@/lib/supabase/server';
+import { verifyInterviewAPIAccess } from '@/lib/utils/api-access-checks';
 
 interface InterviewReport {
   overall_summary: string;
@@ -27,6 +28,10 @@ interface InterviewReport {
 
 export async function POST(request: NextRequest) {
   try {
+    // SECURITY CHECK: Verify user has access to interview prep
+    const { user, error: accessError } = await verifyInterviewAPIAccess();
+    if (accessError) return accessError;
+
     // Initialize OpenAI client only when needed
     const openai = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY || '',

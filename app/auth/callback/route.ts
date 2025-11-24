@@ -1,8 +1,18 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 import { cookies } from 'next/headers';
+import { rateLimiter, getRateLimitIdentifier } from '@/lib/utils/rate-limiter';
+import { logger } from '@/lib/utils/logger';
 
 export async function GET(request: NextRequest) {
+  // Rate limit OAuth callbacks to prevent abuse
+  const identifier = getRateLimitIdentifier(null, request);
+  const rateLimit = rateLimiter.checkAndRespond(identifier, 'authCallback');
+  if (rateLimit) {
+    logger.security('Auth callback rate limited', { identifier, action: 'rate_limited' });
+    return rateLimit.response;
+  }
+
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get('code');
   const type = searchParams.get('type');

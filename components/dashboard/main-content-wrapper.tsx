@@ -14,11 +14,11 @@ export function MainContentWrapper({ children }: MainContentWrapperProps) {
   return (
     <main
       className={cn(
-        'min-h-screen pt-16 pb-20 lg:pb-8 transition-all duration-300',
+        'min-h-screen pt-16 pb-8 transition-all duration-300',
         sidebarCollapsed ? 'lg:pl-20' : 'lg:pl-64'
       )}
     >
-      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      <div className="mx-auto px-4 py-4 sm:px-6 sm:py-6 lg:px-8">
         {children}
       </div>
     </main>

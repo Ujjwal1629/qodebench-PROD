@@ -10,10 +10,10 @@ export const metadata = {
 
 export default async function LeaderboardPage() {
   return (
-    <div className="container max-w-7xl mx-auto py-8 px-4">
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold mb-2">Leaderboard</h1>
-        <p className="text-muted-foreground">
+    <div className="container max-w-7xl mx-auto py-6 sm:py-8 px-4">
+      <div className="mb-6 sm:mb-8">
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-2">Leaderboard</h1>
+        <p className="text-sm sm:text-base text-muted-foreground">
           Compete with developers worldwide and climb the ranks
         </p>
       </div>

@@ -54,7 +54,7 @@ export function StatsOverview({ stats }: StatsOverviewProps) {
         footer={
           stats.globalRank ? (
             <Link
-              href="/leaderboard"
+              href="/dashboard/leaderboard"
               className="text-xs text-brand-600 hover:text-brand-700 font-medium"
             >
               View Leaderboard →
