@@ -55,18 +55,6 @@ function setCachedProfile(response: NextResponse, profile: any): void {
 }
 
 export async function updateSession(request: NextRequest) {
-  // Block all auth pages - redirect to home
-  if (
-    request.nextUrl.pathname.startsWith('/signin') ||
-    request.nextUrl.pathname.startsWith('/signup') ||
-    request.nextUrl.pathname.startsWith('/reset-password') ||
-    request.nextUrl.pathname.startsWith('/update-password')
-  ) {
-    const url = request.nextUrl.clone();
-    url.pathname = '/';
-    return NextResponse.redirect(url);
-  }
-
   let supabaseResponse = NextResponse.next({
     request,
   });
