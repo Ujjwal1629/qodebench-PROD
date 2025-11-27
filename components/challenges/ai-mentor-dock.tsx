@@ -130,7 +130,7 @@ export function AIMentorDock({
       {!isDockExpanded && (
         <button
           onClick={() => setIsDockExpanded(true)}
-          className="fixed bottom-8 right-8 z-40 group"
+          className="fixed bottom-12 lg:bottom-8 right-4 lg:right-8 group"
         >
           <div className="relative">
             {/* Pulsing glow effect - more prominent */}
@@ -181,7 +181,7 @@ export function AIMentorDock({
 
       {/* Expanded Dock */}
       {isDockExpanded && (
-        <div className="fixed bottom-8 right-8 z-40 w-[320px]">
+        <div className="fixed bottom-24 lg:bottom-8 right-4 lg:right-8 w-[320px]">
           <div
             className="relative backdrop-blur-md bg-white/95 border border-white/40 rounded-2xl shadow-2xl overflow-hidden"
             style={{
