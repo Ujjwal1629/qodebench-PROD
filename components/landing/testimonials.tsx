@@ -7,57 +7,57 @@ export function Testimonials() {
   const testimonials = [
     {
       name: "Priya Sharma",
-      role: "Frontend Developer",
-      company: "Tech Startup",
+      role: "CS Student",
+      company: "DAV University",
       avatar: "PS",
       rating: 5,
       feedback:
-        "Qodebench completely changed how I prepare for interviews. The mock interviews feel so real, and the AI feedback helped me identify gaps I didn't even know I had.",
+        "This platform is a game-changer! The mock interviews helped me prepare for placements. The AI feedback is incredibly detailed and helped me improve my technical communication.",
     },
     {
-      name: "Rahul Mehta",
-      role: "Full-Stack Engineer",
-      company: "E-commerce Company",
-      avatar: "RM",
+      name: "Rahul Verma",
+      role: "Final Year Student",
+      company: "NIT Vellore",
+      avatar: "RV",
       rating: 5,
       feedback:
-        "The production-bug challenges are incredible. It's like working on real tickets. I finally understand how to debug complex issues in a team environment.",
+        "The real-world challenges are exactly what I needed. It's like working on actual company projects. I landed my dream job thanks to the skills I built here!",
     },
     {
-      name: "Ananya Desai",
-      role: "Backend Developer",
-      company: "SaaS Product",
-      avatar: "AD",
+      name: "Ananya Reddy",
+      role: "B.Tech CSE",
+      company: "Amity University",
+      avatar: "AR",
       rating: 5,
       feedback:
-        "Code Fridays keep me sharp. The weekly challenges are well-designed, and competing on the leaderboard pushes me to learn faster. Worth every rupee!",
+        "The learning modules with AI tutor are amazing. Complex concepts become so easy to understand. The weekly challenges keep me motivated to learn more.",
     },
     {
-      name: "Vikram Singh",
-      role: "CS Graduate",
-      company: "Job Seeker",
-      avatar: "VS",
+      name: "Vikram Joshi",
+      role: "MCA Student",
+      company: "Guru Jambheshwar University",
+      avatar: "VJ",
       rating: 5,
       feedback:
-        "As a fresh graduate, Qodebench gave me the confidence I needed. The learning modules with AI tutor made complex concepts easy to understand.",
+        "As someone switching to tech, Qodebench gave me the practical experience I was missing. The production bug challenges taught me real debugging skills.",
     },
     {
-      name: "Sneha Gupta",
-      role: "React Developer",
-      company: "Startup Founder",
-      avatar: "SG",
+      name: "DevCommunity_X",
+      role: "Tech Community",
+      company: "Twitter/X Campaign",
+      avatar: "DC",
       rating: 5,
       feedback:
-        "I use Qodebench to train my junior developers. The platform simulates real development scenarios better than any other tool I've seen.",
+        "Finally, a platform that simulates actual dev work! The interview prep is top-notch. Our community members are loving it. Highly recommended for serious learners.",
     },
     {
-      name: "Arjun Patel",
-      role: "Full-Stack Developer",
-      company: "Fintech Company",
-      avatar: "AP",
+      name: "CodeWithPratik",
+      role: "Developer Influencer",
+      company: "LinkedIn Campaign",
+      avatar: "CP",
       rating: 5,
       feedback:
-        "The AI interviewer is no joke — it asks tough questions and gives honest feedback. Helped me land my current role at a top fintech company.",
+        "Tested this with my students - the results are incredible. The AI-powered feedback and realistic challenges make this stand out from other platforms. Worth every penny!",
     },
   ];
 
@@ -69,7 +69,7 @@ export function Testimonials() {
           <div className="inline-flex items-center gap-2 bg-yellow-100 border border-yellow-300 px-4 py-2 rounded-full mb-6">
             <Star className="w-4 h-4 text-yellow-600 fill-yellow-600" />
             <span className="text-sm font-semibold text-yellow-700">
-              Beta Tester Feedback
+              Student & Community Feedback
             </span>
           </div>
           <h2 className="text-4xl md:text-5xl font-bold text-slate-900 mb-4">
@@ -79,7 +79,7 @@ export function Testimonials() {
             </span>
           </h2>
           <p className="text-lg text-slate-600">
-            See what our beta testers and early users are saying about their Qodebench experience.
+            Real feedback from students and tech communities who tested Qodebench.
           </p>
         </div>
 
@@ -88,10 +88,10 @@ export function Testimonials() {
           {testimonials.map((testimonial, index) => (
             <div
               key={index}
-              className="bg-white border border-slate-200 rounded-2xl p-6 hover:shadow-xl hover:border-brand-300 transition-all duration-300"
+              className="bg-white border border-slate-200 rounded-2xl p-6 hover:shadow-xl hover:border-brand-300 transition-all duration-300 text-center md:text-left"
             >
               {/* Rating Stars */}
-              <div className="flex gap-1 mb-4">
+              <div className="flex gap-1 mb-4 justify-center md:justify-start">
                 {Array.from({ length: testimonial.rating }).map((_, i) => (
                   <Star
                     key={i}
@@ -106,13 +106,13 @@ export function Testimonials() {
               </p>
 
               {/* User Info */}
-              <div className="flex items-center gap-3 pt-4 border-t border-slate-100">
+              <div className="flex items-center gap-3 pt-4 border-t border-slate-100 justify-center md:justify-start">
                 <Avatar className="w-12 h-12">
                   <AvatarFallback className="bg-gradient-to-br from-brand-500 to-purple-600 text-white font-semibold">
                     {testimonial.avatar}
                   </AvatarFallback>
                 </Avatar>
-                <div>
+                <div className="text-center md:text-left">
                   <div className="font-semibold text-slate-900">
                     {testimonial.name}
                   </div>
@@ -128,7 +128,7 @@ export function Testimonials() {
         {/* Bottom Note */}
         <div className="text-center mt-12">
           <p className="text-slate-500 text-sm">
-            Join 100+ developers already training on Qodebench
+            Join 100+ students and developers already training on Qodebench
           </p>
         </div>
       </div>

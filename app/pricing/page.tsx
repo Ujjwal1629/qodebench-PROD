@@ -114,7 +114,7 @@ function PricingContent() {
 
   const plans = [
     {
-      tier: 'beta' as const,
+      tier: 'launch_offer' as const,
       icon: Zap,
       color: 'from-green-500 to-emerald-500',
       borderColor: 'border-green-200',
@@ -200,7 +200,7 @@ function PricingContent() {
                       ₹{planData.price}
                     </span>
                     <span className="text-slate-600 ml-2">
-                      / {plan.tier === 'beta' ? '21 days' : plan.tier === 'quarterly' ? '3 months' : '6 months'}
+                      / {plan.tier === 'launch_offer' ? '21 days' : plan.tier === 'quarterly' ? '3 months' : '6 months'}
                     </span>
                   </div>
                 </div>
@@ -261,10 +261,10 @@ function PricingContent() {
           <div className="space-y-4">
             <details className="bg-white p-6 rounded-lg border border-slate-200">
               <summary className="font-semibold text-slate-900 cursor-pointer">
-                What happens after the beta trial ends?
+                What happens after the launch offer ends?
               </summary>
               <p className="mt-3 text-slate-600">
-                After 21 days, your beta trial will expire. You can then choose to upgrade to either the 3-Month Offer (₹1999) or 6-Month Plan (₹4999) to continue accessing premium features.
+                After 21 days, your launch offer will expire. You can then choose to upgrade to either the 3-Month Offer (₹1999) or 6-Month Plan (₹4999) to continue accessing premium features.
               </p>
             </details>
 

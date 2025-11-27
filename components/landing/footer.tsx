@@ -7,7 +7,6 @@ const footerLinks = {
     { name: "Challenges", href: "/dashboard/challenges" },
     { name: "Learning", href: "/dashboard/learning" },
     { name: "Mock Interviews", href: "/dashboard/interviews" },
-    { name: "Code Fridays", href: "/dashboard/challenges" },
   ],
   resources: [
     { name: "Documentation", href: "/documentation" },

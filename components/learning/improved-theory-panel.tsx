@@ -290,24 +290,24 @@ export function ImprovedTheoryPanel({ lesson, backHref, quizQuestionsCount }: Im
 
         {/* Quiz CTA - W3Schools style */}
         {quizQuestionsCount > 0 && (
-          <div className="mt-12 p-8 bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200 rounded-2xl">
-            <div className="flex items-start gap-4">
-              <div className="flex-shrink-0 w-14 h-14 bg-green-500 rounded-2xl flex items-center justify-center shadow-lg">
-                <CheckCircle2 className="h-7 w-7 text-white" />
+          <div className="mt-12 bg-gradient-to-br from-sky-50 via-white to-purple-50 rounded-3xl p-8">
+            <div className="flex flex-col items-center text-center">
+              <div className="flex-shrink-0 bg-gradient-to-br from-sky-500 to-purple-600 p-4 rounded-2xl shadow-lg mb-6">
+                <CheckCircle2 className="h-8 w-8 text-white" />
               </div>
-              <div className="flex-1">
-                <h2 className="text-2xl font-bold text-slate-900 mb-2">
+              <div>
+                <h2 className="text-2xl md:text-3xl font-bold text-slate-900 mb-3">
                   Ready to Test Your Knowledge?
                 </h2>
-                <p className="text-slate-600 mb-4">
-                  Complete the quiz to reinforce what you've learned. Don't worry about perfection - you can move forward anytime!
+                <p className="text-base text-slate-600 leading-relaxed max-w-2xl mx-auto mb-6">
+                  Complete the quiz to reinforce what you have learned. You can move to the next lesson anytime - scoring well helps track your progress and mastery!
                 </p>
-                <div className="flex items-center gap-3">
-                  <span className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-green-200 rounded-lg text-sm font-medium text-slate-700">
-                    <Code2 className="h-4 w-4" />
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+                  <span className="inline-flex items-center gap-2 px-4 py-2 bg-white/80 backdrop-blur-sm border border-slate-200 rounded-xl text-sm font-medium text-slate-700 shadow-sm">
+                    <Code2 className="h-4 w-4 text-sky-600" />
                     {quizQuestionsCount} Questions
                   </span>
-                  <span className="text-sm text-slate-500">
+                  <span className="text-sm text-slate-500 font-medium">
                     Switch to the Quiz tab to get started →
                   </span>
                 </div>

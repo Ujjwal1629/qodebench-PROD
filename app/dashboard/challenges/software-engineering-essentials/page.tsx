@@ -33,13 +33,13 @@ export default async function SoftwareEngineeringEssentialsPage() {
 
       {/* Page Header */}
       <div className="space-y-4">
-        <div className="flex items-center gap-2 sm:gap-3">
-          <div className="rounded-lg bg-orange-100 p-1.5 sm:p-2">
-            <Briefcase className="h-5 w-5 sm:h-6 sm:w-6 text-orange-600" />
+        <div className="flex flex-col sm:flex-row items-center sm:items-center gap-3 sm:gap-3 text-center sm:text-left">
+          <div className="rounded-2xl bg-gradient-to-br from-orange-500 to-amber-600 p-3 shadow-lg">
+            <Briefcase className="h-7 w-7 text-white" />
           </div>
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">
-              📋 Software Engineering Essentials
+              Software Engineering Essentials
             </h1>
             <p className="text-sm sm:text-base text-slate-600">
               Professional workflow practices and office fundamentals
@@ -48,7 +48,7 @@ export default async function SoftwareEngineeringEssentialsPage() {
         </div>
 
         {/* Overall Stats */}
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3">
           <Badge variant="outline" className="px-3 py-1 text-sm">
             <span className="font-semibold text-green-600">{totalCompleted}</span>
             <span className="mx-1 text-slate-400">/</span>
@@ -64,7 +64,7 @@ export default async function SoftwareEngineeringEssentialsPage() {
       {/* Info Banner */}
       <div className="rounded-lg bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-200 p-4 sm:p-5 md:p-6">
         <h2 className="text-base sm:text-lg font-semibold text-slate-900 mb-2">
-          🎯 Master Professional Workflows
+          Master Professional Workflows
         </h2>
         <p className="text-sm sm:text-base text-slate-700 leading-relaxed">
           Learn essential software engineering practices including{' '}

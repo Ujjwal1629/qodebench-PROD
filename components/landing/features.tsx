@@ -23,9 +23,9 @@ const features = [
   },
   {
     icon: Trophy,
-    title: "Code Friday Challenges",
+    title: "Weekly Competitions",
     description:
-      "Join weekly Friday competitions, compete on global leaderboards, and prove your skills against developers worldwide",
+      "Join weekly coding competitions, compete on global leaderboards, and prove your skills against developers worldwide",
   },
   {
     icon: TrendingUp,
@@ -38,12 +38,6 @@ const features = [
     title: "AI-Powered Evaluation",
     description:
       "Receive instant, detailed feedback on your code quality, best practices, and areas for improvement from advanced AI analysis",
-  },
-  {
-    icon: Gift,
-    title: "Rewards & Recognition",
-    description:
-      "Earn points through challenges and competitions, then redeem them for exclusive QodeBench merchandise and rewards",
   },
   {
     icon: Target,
@@ -74,12 +68,12 @@ export function Features() {
             const Icon = feature.icon;
             return (
               <div key={index} className="group">
-                <div className="relative bg-white border border-slate-200 rounded-2xl p-8 h-full hover:border-brand-300 hover:shadow-2xl hover:shadow-brand-500/10 transition-all duration-300 hover:-translate-y-1">
+                <div className="relative bg-white border border-slate-200 rounded-2xl p-8 h-full hover:border-brand-300 hover:shadow-2xl hover:shadow-brand-500/10 transition-all duration-300 hover:-translate-y-1 text-center md:text-left">
                   {/* Gradient background on hover */}
                   <div className="absolute inset-0 bg-gradient-to-br from-brand-50/50 to-purple-50/30 opacity-0 group-hover:opacity-100 rounded-2xl transition-opacity duration-300" />
 
                   {/* Icon */}
-                  <div className="relative w-14 h-14 rounded-xl bg-gradient-to-br from-brand-500 to-purple-500 flex items-center justify-center mb-6 shadow-lg shadow-brand-500/25 group-hover:shadow-xl group-hover:shadow-brand-500/40 transition-all duration-300 group-hover:scale-110">
+                  <div className="relative w-14 h-14 rounded-xl bg-gradient-to-br from-brand-500 to-purple-500 flex items-center justify-center mb-6 shadow-lg shadow-brand-500/25 group-hover:shadow-xl group-hover:shadow-brand-500/40 transition-all duration-300 group-hover:scale-110 mx-auto md:mx-0">
                     <Icon className="h-7 w-7 text-white" />
                   </div>
 

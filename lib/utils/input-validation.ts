@@ -145,7 +145,7 @@ export const paymentVerifySchema = z.object({
   razorpay_order_id: z.string().min(1).max(100),
   razorpay_payment_id: z.string().min(1).max(100),
   razorpay_signature: z.string().min(1).max(500),
-  tier: z.enum(['beta', 'quarterly', 'yearly']),
+  tier: z.enum(['launch_offer', 'quarterly', 'yearly']),
 });
 
 export const learningChatSchema = z.object({

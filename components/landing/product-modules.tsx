@@ -76,11 +76,11 @@ export function ProductModules() {
             return (
               <div
                 key={index}
-                className="group bg-white border border-slate-200 rounded-2xl p-8 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300"
+                className="group bg-white border border-slate-200 rounded-2xl p-8 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 text-center md:text-left"
               >
                 {/* Icon */}
                 <div
-                  className={`inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br ${module.gradient} mb-6 group-hover:scale-110 transition-transform duration-300`}
+                  className={`inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br ${module.gradient} mb-6 group-hover:scale-110 transition-transform duration-300 mx-auto md:mx-0`}
                 >
                   <Icon className="w-8 h-8 text-white" />
                 </div>
@@ -96,7 +96,7 @@ export function ProductModules() {
                 </p>
 
                 {/* Features List */}
-                <ul className="space-y-3 mb-8">
+                <ul className="space-y-3 mb-8 text-left">
                   {module.features.map((feature, idx) => (
                     <li key={idx} className="flex items-start gap-2">
                       <span className="text-green-500 mt-1">✓</span>

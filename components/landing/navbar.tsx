@@ -183,7 +183,7 @@ export function Navbar() {
                     {subscriptionTier !== 'free' && (
                       <Badge variant="secondary" className="bg-primary/10 text-primary">
                         <Crown className="h-3 w-3 mr-1" />
-                        {subscriptionTier === 'beta' ? 'Beta' : 'Pro'}
+                        {subscriptionTier === 'launch_offer' ? 'Launch' : 'Pro'}
                       </Badge>
                     )}
                   </Button>
@@ -296,12 +296,15 @@ export function Navbar() {
                       {subscriptionTier !== 'free' && (
                         <Badge variant="secondary" className="bg-primary/10 text-primary">
                           <Crown className="h-3 w-3 mr-1" />
-                          {subscriptionTier === 'beta' ? 'Beta' : 'Pro'}
+                          {subscriptionTier === 'launch_offer' ? 'Launch' : 'Pro'}
                         </Badge>
                       )}
                     </div>
-                    <span className="text-xs text-muted-foreground capitalize">
-                      {subscriptionTier === 'free' ? 'Free Tier' : `${subscriptionTier} Plan`}
+                    <span className="text-xs text-muted-foreground">
+                      {subscriptionTier === 'free' ? 'Free Tier' :
+                       subscriptionTier === 'launch_offer' ? 'Launch Plan' :
+                       subscriptionTier === 'quarterly' ? 'Quarterly Plan' :
+                       subscriptionTier === 'yearly' ? 'Yearly Plan' : 'Premium Plan'}
                     </span>
                   </div>
                   <Button

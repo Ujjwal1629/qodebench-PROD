@@ -61,7 +61,7 @@ export function ComingSoon() {
             </span>
           </h2>
           <p className="text-lg text-slate-600">
-            We're building the most comprehensive AI development education platform. Join the beta to get early access.
+            We're building the most comprehensive AI development education platform. Join now to get early access.
           </p>
         </div>
 

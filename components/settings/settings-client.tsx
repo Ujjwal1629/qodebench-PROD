@@ -76,7 +76,7 @@ export function SettingsClient({ profile, email }: SettingsClientProps) {
               {isPremium && (
                 <Badge variant="secondary" className="bg-primary/10 text-primary">
                   <Crown className="h-3 w-3 mr-1" />
-                  {subscriptionTier === 'beta' ? 'Beta' : 'Pro'}
+                  {subscriptionTier === 'launch_offer' ? 'Launch' : 'Pro'}
                 </Badge>
               )}
             </div>
@@ -87,7 +87,7 @@ export function SettingsClient({ profile, email }: SettingsClientProps) {
                 <span className="text-sm font-medium">Subscription Tier</span>
                 <span className="text-sm text-muted-foreground capitalize">
                   {subscriptionTier === 'free' ? 'Free Tier' :
-                   subscriptionTier === 'beta' ? 'Beta Trial (₹199)' :
+                   subscriptionTier === 'launch_offer' ? 'Launch Offer (₹199)' :
                    subscriptionTier === 'monthly' ? 'Monthly (₹999)' :
                    subscriptionTier === 'quarterly' ? 'Quarterly (₹1,999)' :
                    subscriptionTier === 'yearly' ? 'Yearly (₹4,999)' : 'Free Tier'}
@@ -104,7 +104,7 @@ export function SettingsClient({ profile, email }: SettingsClientProps) {
               {profile.subscription_end_date && (
                 <div className="flex justify-between items-center py-3 border-b">
                   <span className="text-sm font-medium">
-                    {subscriptionTier === 'beta' ? 'Trial Expires' : 'Renews On'}
+                    {subscriptionTier === 'launch_offer' ? 'Offer Expires' : 'Renews On'}
                   </span>
                   <span className="text-sm text-muted-foreground">
                     {formatDate(profile.subscription_end_date)}

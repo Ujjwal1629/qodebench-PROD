@@ -91,7 +91,7 @@ export function PromoBanner() {
                     </Button>
                     <div className="flex flex-col justify-center">
                       <span className="text-sm text-slate-400">
-                        Limited to first <span className="text-brand-400 font-semibold">500 beta testers</span>
+                        Limited to first <span className="text-brand-400 font-semibold">500 early users</span>
                       </span>
                       <span className="text-xs text-slate-500">
                         Free for 1 month • No credit card required

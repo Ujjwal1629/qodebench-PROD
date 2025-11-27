@@ -109,10 +109,10 @@ export function PlatformPreview() {
             return (
               <div
                 key={index}
-                className="group bg-white border border-slate-200 rounded-2xl p-8 hover:border-brand-300 hover:shadow-2xl transition-all duration-300 hover:-translate-y-1"
+                className="group bg-white border border-slate-200 rounded-2xl p-8 hover:border-brand-300 hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 text-center md:text-left"
               >
                 {/* Icon with gradient */}
-                <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${feature.color} flex items-center justify-center mb-6 shadow-lg group-hover:shadow-xl transition-all duration-300 group-hover:scale-110`}>
+                <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${feature.color} flex items-center justify-center mb-6 shadow-lg group-hover:shadow-xl transition-all duration-300 group-hover:scale-110 mx-auto md:mx-0`}>
                   <Icon className="h-7 w-7 text-white" />
                 </div>
 
@@ -127,7 +127,7 @@ export function PlatformPreview() {
                 </p>
 
                 {/* Highlights */}
-                <ul className="space-y-2">
+                <ul className="space-y-2 flex flex-col items-center md:items-start">
                   {feature.highlights.map((highlight, idx) => (
                     <li key={idx} className="flex items-start gap-2 text-sm text-slate-600">
                       <span className="text-brand-500 mt-0.5">✓</span>
@@ -153,7 +153,7 @@ export function PlatformPreview() {
             </Link>
           </Button>
           <p className="text-sm text-slate-500 mt-4">
-            No credit card required • 1 month free beta access
+            No credit card required • Start learning for free
           </p>
         </div>
       </div>

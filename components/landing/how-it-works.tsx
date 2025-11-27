@@ -4,7 +4,7 @@ const steps = [
   {
     title: "Sign Up Free",
     description:
-      "Create your account in seconds. No credit card required for beta access",
+      "Create your account in seconds. No credit card required to get started",
   },
   {
     title: "Start with Your Level",

@@ -1,6 +1,6 @@
 "use client";
 
-import { Code2, Trophy, Users, Zap, Target, Award, Calendar } from "lucide-react";
+import { Code2, Trophy, Users, Zap, Target, Award, Calendar, Sparkles } from "lucide-react";
 
 const stats = [
   {
@@ -18,8 +18,8 @@ const stats = [
   {
     icon: Calendar,
     value: "Weekly",
-    label: "Code Friday",
-    description: "Competitive challenges",
+    label: "Competitions",
+    description: "New challenges every week",
   },
   {
     icon: Trophy,
@@ -34,10 +34,10 @@ const stats = [
     description: "On every submission",
   },
   {
-    icon: Award,
-    value: "Real",
-    label: "Rewards",
-    description: "Exclusive merch & prizes",
+    icon: Sparkles,
+    value: "Smart",
+    label: "AI Companion",
+    description: "Learn with AI assistance",
   },
 ];
 
@@ -65,10 +65,10 @@ export function Stats() {
             return (
               <div
                 key={index}
-                className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 hover:border-brand-300 hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
+                className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 hover:border-brand-300 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 text-center"
               >
                 {/* Icon */}
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-brand-500 to-purple-500 flex items-center justify-center mb-4 shadow-lg shadow-brand-500/25">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-brand-500 to-purple-500 flex items-center justify-center mb-4 shadow-lg shadow-brand-500/25 mx-auto">
                   <Icon className="h-6 w-6 text-white" />
                 </div>
 

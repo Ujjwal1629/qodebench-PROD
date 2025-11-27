@@ -1,4 +1,4 @@
-export type SubscriptionTier = 'free' | 'beta' | 'monthly' | 'quarterly' | 'yearly';
+export type SubscriptionTier = 'free' | 'launch_offer' | 'monthly' | 'quarterly' | 'yearly';
 
 export type SubscriptionStatus =
   | 'active'
@@ -25,14 +25,14 @@ export interface SubscriptionPlan {
 }
 
 export const SUBSCRIPTION_PLANS: Record<Exclude<SubscriptionTier, 'free'>, SubscriptionPlan> = {
-  beta: {
-    id: 'beta',
-    name: 'Beta Trial',
+  launch_offer: {
+    id: 'launch_offer',
+    name: 'Launch Offer',
     price: 199,
     priceInPaise: 19900,
     originalPrice: 999, // Show this crossed out
     duration: 21, // 21 days
-    description: '21-day beta offer',
+    description: '21-day launch offer',
     features: [
       'All Intermediate challenges',
       'All Office Workflow challenges',

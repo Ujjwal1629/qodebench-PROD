@@ -129,29 +129,27 @@ export default async function LessonPage({ params }: { params: Promise<{ lessonI
 
         {/* Quiz Section */}
         {quizQuestions.length > 0 && (
-          <Card className="mt-16 shadow-lg border-2 border-sky-100 bg-gradient-to-br from-sky-50/50 to-purple-50/30">
-            <CardContent className="p-8 space-y-6">
-              <div className="flex items-start gap-4">
-                <div className="bg-gradient-to-br from-sky-500 to-purple-600 p-3 rounded-xl shadow-md">
-                  <CheckCircle2 className="h-6 w-6 text-white" />
-                </div>
-                <div className="flex-1">
-                  <h2 className="text-2xl font-bold text-slate-900 mb-2">
-                    Ready to Test Your Knowledge?
-                  </h2>
-                  <p className="text-base text-slate-600 leading-relaxed">
-                    Complete the quiz to reinforce what you have learned. You can move to the next lesson
-                    anytime - scoring well helps track your progress and mastery!
-                  </p>
-                </div>
+          <div className="mt-16 bg-gradient-to-br from-sky-50 via-white to-purple-50 rounded-3xl p-8 space-y-6">
+            <div className="flex flex-col items-center text-center">
+              <div className="bg-gradient-to-br from-sky-500 to-purple-600 p-4 rounded-2xl shadow-lg mb-6">
+                <CheckCircle2 className="h-8 w-8 text-white" />
               </div>
+              <div>
+                <h2 className="text-2xl md:text-3xl font-bold text-slate-900 mb-3">
+                  Ready to Test Your Knowledge?
+                </h2>
+                <p className="text-base text-slate-600 leading-relaxed max-w-2xl mx-auto">
+                  Complete the quiz to reinforce what you have learned. You can move to the next lesson
+                  anytime - scoring well helps track your progress and mastery!
+                </p>
+              </div>
+            </div>
               <QuizComponent
                 lessonId={lessonId}
                 questions={quizQuestions}
                 nextLessonUrl={nextLessonUrl}
               />
-            </CardContent>
-          </Card>
+          </div>
         )}
       </div>
     </div>

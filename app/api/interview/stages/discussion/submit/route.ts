@@ -196,7 +196,7 @@ Respond in JSON format:
       model: 'gpt-4',
       messages: [{ role: 'user', content: prompt }],
       temperature: 0.7,
-      max_tokens: 600,
+      max_tokens: 1500,
     });
 
     const result = JSON.parse(completion.choices[0].message.content || '{}');

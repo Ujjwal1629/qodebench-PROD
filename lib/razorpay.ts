@@ -153,7 +153,7 @@ export function calculateSubscriptionEndDate(tier: string, startDate: Date = new
   const endDate = new Date(startDate);
 
   switch (tier) {
-    case 'beta':
+    case 'launch_offer':
       endDate.setDate(endDate.getDate() + 21);
       break;
     case 'monthly':

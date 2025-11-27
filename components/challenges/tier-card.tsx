@@ -62,7 +62,7 @@ export function TierCard({ tierStats, challenges, onUnlock, hasActiveSubscriptio
   return (
     <Card
       className={cn(
-        'transition-all duration-300',
+        'transition-all duration-300 max-w-full overflow-hidden',
         isUnlocked
           ? 'border-2 hover:shadow-lg'
           : hasFreeAccessibleChallenges
@@ -71,8 +71,8 @@ export function TierCard({ tierStats, challenges, onUnlock, hasActiveSubscriptio
         isCompleted && 'bg-gradient-to-br from-green-50 to-emerald-50 border-green-300'
       )}
     >
-      <CardHeader className="pb-4">
-        <div className="flex items-start justify-between gap-3 sm:gap-4">
+      <CardHeader className="pb-4 max-w-full overflow-hidden">
+        <div className="flex items-start justify-between gap-3 sm:gap-4 max-w-full">
           {/* Tier Icon & Info */}
           <div className="flex items-start gap-2 sm:gap-3 flex-1 min-w-0">
             <div
@@ -128,7 +128,7 @@ export function TierCard({ tierStats, challenges, onUnlock, hasActiveSubscriptio
         </div>
       </CardHeader>
 
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-4 max-w-full overflow-hidden">
         {/* Progress Bar */}
         {isUnlocked && (
           <div className="space-y-2">
@@ -194,7 +194,7 @@ export function TierCard({ tierStats, challenges, onUnlock, hasActiveSubscriptio
 
             {/* Challenges List */}
             {isExpanded && (
-              <div className="space-y-2 pt-2 border-t">
+              <div className="space-y-2 pt-2 border-t max-w-full overflow-hidden">
                 {challenges.map((challenge, index) => {
                   const isCompleted = challenge.userProgress?.status === 'completed';
                   const isInProgress = challenge.userProgress?.status === 'in_progress';
@@ -213,7 +213,7 @@ export function TierCard({ tierStats, challenges, onUnlock, hasActiveSubscriptio
                     <div
                       key={challenge.id}
                       className={cn(
-                        'rounded-lg border transition-all',
+                        'rounded-lg border transition-all max-w-full overflow-hidden',
                         isCompleted && 'bg-green-50 border-green-200',
                         isInProgress && 'bg-blue-50 border-blue-200',
                         isSubscriptionLocked && 'bg-amber-50 border-amber-200 hover:border-amber-300',
@@ -223,7 +223,7 @@ export function TierCard({ tierStats, challenges, onUnlock, hasActiveSubscriptio
                     >
                       {/* Main Row - Clickable on mobile to expand */}
                       <div
-                        className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 cursor-pointer sm:cursor-default"
+                        className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 cursor-pointer sm:cursor-default max-w-full"
                         onClick={() => setExpandedChallengeId(isMobileExpanded ? null : challenge.id)}
                       >
                         {/* Challenge Status Icon */}
@@ -243,26 +243,28 @@ export function TierCard({ tierStats, challenges, onUnlock, hasActiveSubscriptio
 
                         {/* Challenge Title */}
                         <div className="flex-1 min-w-0 overflow-hidden">
-                          <div className="flex items-center gap-1 sm:gap-2">
+                          <div className="flex items-center gap-1 max-w-full">
                             <p className={cn(
-                              'text-xs sm:text-sm font-medium flex-1',
-                              isMobileExpanded ? '' : 'truncate',
+                              'text-xs sm:text-sm font-medium min-w-0',
+                              isMobileExpanded ? 'break-words flex-1' : 'truncate flex-1',
                               (isLocked || isSubscriptionLocked) && 'text-slate-500'
                             )}>
                               {index + 1}. {challenge.title}
                             </p>
-                            <div className="flex items-center gap-1 flex-shrink-0">
-                              {isFreeAccessible && tier !== 'beginner' && challenge.order_in_tier <= freeLimit && (
-                                <Badge variant="outline" className="text-[10px] sm:text-xs py-0 px-1 sm:px-1.5 bg-green-50 text-green-700 border-green-200">
-                                  Free
-                                </Badge>
-                              )}
-                              {requiresSubscription && (
-                                <Badge variant="outline" className="text-[10px] sm:text-xs py-0 px-1 sm:px-1.5 bg-amber-50 text-amber-700 border-amber-200">
-                                  Pro
-                                </Badge>
-                              )}
-                            </div>
+                            {(isFreeAccessible && tier !== 'beginner' && challenge.order_in_tier <= freeLimit) || requiresSubscription ? (
+                              <div className="flex-shrink-0 ml-1">
+                                {isFreeAccessible && tier !== 'beginner' && challenge.order_in_tier <= freeLimit && (
+                                  <Badge variant="outline" className="text-[10px] py-0 px-1 bg-green-50 text-green-700 border-green-200">
+                                    Free
+                                  </Badge>
+                                )}
+                                {requiresSubscription && (
+                                  <Badge variant="outline" className="text-[10px] py-0 px-1 bg-amber-50 text-amber-700 border-amber-200">
+                                    Pro
+                                  </Badge>
+                                )}
+                              </div>
+                            ) : null}
                           </div>
                         </div>
 

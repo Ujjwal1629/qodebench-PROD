@@ -116,7 +116,7 @@ export async function POST(request: NextRequest) {
     // Calculate subscription dates
     const startDate = new Date();
     const endDate = calculateSubscriptionEndDate(tier, startDate);
-    const trialEndDate = tier === 'beta' ? calculateSubscriptionEndDate('beta', startDate) : undefined;
+    const trialEndDate = tier === 'launch_offer' ? calculateSubscriptionEndDate('launch_offer', startDate) : undefined;
 
     // Create subscription record with conflict handling for idempotency
     const { data: subscription, error: subscriptionError } = await supabase
@@ -191,7 +191,7 @@ export async function POST(request: NextRequest) {
     const updateSuccess = await updateUserSubscription(
       user.id,
       tier,
-      tier === 'beta' ? 'trial' : 'active',
+      tier === 'launch_offer' ? 'trial' : 'active',
       startDate,
       endDate,
       trialEndDate
@@ -208,7 +208,7 @@ export async function POST(request: NextRequest) {
       logger.payment('Payment verified and subscription created successfully', {
         userId: user.id,
         tier,
-        status: tier === 'beta' ? 'trial' : 'active',
+        status: tier === 'launch_offer' ? 'trial' : 'active',
       });
     }
 
@@ -218,7 +218,7 @@ export async function POST(request: NextRequest) {
       message: 'Payment verified successfully',
       subscription: {
         tier,
-        status: tier === 'beta' ? 'trial' : 'active',
+        status: tier === 'launch_offer' ? 'trial' : 'active',
         startDate: startDate.toISOString(),
         endDate: endDate.toISOString(),
         trialEndDate: trialEndDate?.toISOString() || null,

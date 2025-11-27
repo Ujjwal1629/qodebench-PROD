@@ -22,11 +22,11 @@ const pricingTiers = [
     ctaLink: "/signup",
   },
   {
-    name: "Beta Trial",
+    name: "Launch Offer",
     monthlyPrice: "₹199",
     yearlyPrice: "₹199",
     originalPrice: "₹999",
-    description: "21-day beta offer",
+    description: "21-day launch offer",
     features: [
       "All challenges (beginner to advanced)",
       "Interview prep mode (6 stages)",
@@ -35,7 +35,7 @@ const pricingTiers = [
       "System design discussions",
       "Professional interview reports",
     ],
-    cta: "Start Beta Trial",
+    cta: "Get Launch Offer",
     ctaLink: "/pricing",
     popular: true,
     badge: "Limited Time",
@@ -46,7 +46,7 @@ const pricingTiers = [
     yearlyPrice: "₹4,999",
     description: "Choose your commitment",
     features: [
-      "Everything in Beta Trial",
+      "Everything in Launch Offer",
       "3-Month Offer: ₹1,999 (Introductory)",
       "6-Month Plan: ₹4,999 (Best value)",
       "Cancel anytime",
@@ -68,7 +68,7 @@ export function Pricing() {
         <div className="text-center max-w-4xl mx-auto mb-12">
           <div className="inline-flex items-center gap-2 bg-gradient-to-r from-green-500/10 via-brand-500/10 to-purple-500/10 border-2 border-green-400/50 px-6 py-3 rounded-full backdrop-blur-sm mb-8">
             <span className="text-lg font-bold bg-gradient-to-r from-green-600 to-brand-600 bg-clip-text text-transparent">
-              🚀 BETA LAUNCH SPECIAL
+              🚀 LAUNCH SPECIAL
             </span>
           </div>
 
@@ -78,7 +78,7 @@ export function Pricing() {
           </h2>
 
           <p className="text-xl text-slate-600 mb-8">
-            Start with <strong className="text-brand-600">free beginner challenges</strong> or try our beta trial for just ₹199 for 21 days.
+            Start with <strong className="text-brand-600">free beginner challenges</strong> or try our launch offer for just ₹199 for 21 days.
           </p>
 
           {/* Toggle */}
@@ -100,11 +100,6 @@ export function Pricing() {
             <span className={`text-sm ${isYearly ? 'text-slate-900 font-medium' : 'text-slate-500'}`}>
               6 Months
             </span>
-            {isYearly && (
-              <span className="inline-flex items-center rounded-full bg-gradient-to-r from-brand-500 to-purple-500 text-white px-3 py-1 text-xs font-semibold shadow-lg">
-                Best Value
-              </span>
-            )}
           </div>
 
           <p className="text-sm text-slate-500 mt-4">
@@ -132,6 +127,15 @@ export function Pricing() {
                 </div>
               )}
 
+              {/* Best Value Badge for Premium Plans when 6 months selected */}
+              {tier.name === "Premium Plans" && isYearly && (
+                <div className="absolute -top-4 left-1/2 -translate-x-1/2">
+                  <span className="bg-gradient-to-r from-brand-500 to-purple-500 text-white px-5 py-1.5 rounded-full text-sm font-semibold shadow-xl shadow-brand-500/30">
+                    Best Value
+                  </span>
+                </div>
+              )}
+
               {/* Header */}
               <div className="mb-6">
                 <h3 className="text-2xl font-bold text-slate-900 mb-2">
@@ -154,7 +158,7 @@ export function Pricing() {
                     {isYearly ? tier.yearlyPrice : tier.monthlyPrice}
                   </span>
                   <span className="text-slate-600">
-                    {tier.monthlyPrice !== "₹0" ? (tier.name === "Beta Trial" ? "/21 days" : isYearly ? "/6 months" : "/3 months") : ""}
+                    {tier.monthlyPrice !== "₹0" ? (tier.name === "Launch Offer" ? "/21 days" : isYearly ? "/6 months" : "/3 months") : ""}
                   </span>
                 </div>
               </div>

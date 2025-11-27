@@ -4,7 +4,7 @@ import { getTierProgress } from '@/app/actions/challenges';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Code2, ArrowRight, Lock } from 'lucide-react';
+import { Code2, ArrowRight, Lock, Briefcase, Target, Rocket } from 'lucide-react';
 
 export const metadata: Metadata = {
   title: 'Challenges | QodeBench',
@@ -33,9 +33,9 @@ export default async function ChallengesPage() {
     <div className="space-y-8">
       {/* Page Header */}
       <div className="space-y-4">
-        <div className="flex items-center gap-2 sm:gap-3">
-          <div className="rounded-lg bg-blue-100 p-1.5 sm:p-2">
-            <Code2 className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600" />
+        <div className="flex flex-col sm:flex-row items-center sm:items-center gap-3 sm:gap-3 text-center sm:text-left">
+          <div className="rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 p-3 shadow-lg">
+            <Code2 className="h-7 w-7 text-white" />
           </div>
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Challenges</h1>
@@ -46,7 +46,7 @@ export default async function ChallengesPage() {
         </div>
 
         {/* Overall Stats */}
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3">
           <Badge variant="outline" className="px-3 py-1 text-sm">
             <span className="font-semibold text-green-600">{totalCompleted}</span>
             <span className="mx-1 text-slate-400">/</span>
@@ -61,8 +61,8 @@ export default async function ChallengesPage() {
 
       {/* Learning Path Info */}
       <div className="rounded-lg bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 p-4 sm:p-5 md:p-6">
-        <h2 className="text-base sm:text-lg font-semibold text-slate-900 mb-2 flex items-center gap-2">
-          🎯 Choose Your Challenge Path
+        <h2 className="text-base sm:text-lg font-semibold text-slate-900 mb-2">
+          Choose Your Challenge Path
         </h2>
         <p className="text-sm sm:text-base text-slate-700 leading-relaxed">
           Select a category below to explore challenges that match your learning goals. From
@@ -80,8 +80,8 @@ export default async function ChallengesPage() {
           <Card className="border-2 border-blue-200 hover:border-blue-400 hover:shadow-lg transition-all duration-300 group overflow-visible">
             <CardHeader className="bg-gradient-to-br from-blue-50 to-sky-50 rounded-t-xl">
               <div className="flex items-start justify-between">
-                <div className="p-3 rounded-xl bg-white shadow-sm group-hover:scale-110 transition-transform">
-                  <span className="text-4xl">💻</span>
+                <div className="p-3 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 shadow-lg group-hover:scale-110 transition-transform">
+                  <Code2 className="h-6 w-6 text-white" />
                 </div>
                 <Badge variant="outline" className="bg-white">
                   {practicalTotal} Challenges
@@ -116,10 +116,10 @@ export default async function ChallengesPage() {
               {/* Tier Badges */}
               <div className="flex flex-wrap gap-2">
                 <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
-                  🎯 Beginner
+                  Beginner
                 </Badge>
                 <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
-                  ⚡ Intermediate
+                  Intermediate
                 </Badge>
               </div>
 
@@ -143,8 +143,8 @@ export default async function ChallengesPage() {
           <Card className="border-2 border-orange-200 hover:border-orange-400 hover:shadow-lg transition-all duration-300 group overflow-visible">
             <CardHeader className="bg-gradient-to-br from-orange-50 to-amber-50 rounded-t-xl">
               <div className="flex items-start justify-between">
-                <div className="p-3 rounded-xl bg-white shadow-sm group-hover:scale-110 transition-transform">
-                  <span className="text-4xl">📋</span>
+                <div className="p-3 rounded-xl bg-gradient-to-br from-orange-500 to-amber-600 shadow-lg group-hover:scale-110 transition-transform">
+                  <Briefcase className="h-6 w-6 text-white" />
                 </div>
                 <Badge variant="outline" className="bg-white">
                   {softwareEngTier?.total || 0} Challenges
@@ -196,8 +196,8 @@ export default async function ChallengesPage() {
           <Card className="border-2 border-indigo-200 hover:border-indigo-400 hover:shadow-lg transition-all duration-300 group overflow-visible">
             <CardHeader className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-t-xl">
               <div className="flex items-start justify-between">
-                <div className="p-3 rounded-xl bg-white shadow-sm group-hover:scale-110 transition-transform">
-                  <span className="text-4xl">🎯</span>
+                <div className="p-3 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 shadow-lg group-hover:scale-110 transition-transform">
+                  <Target className="h-6 w-6 text-white" />
                 </div>
                 <Badge variant="outline" className="bg-white">
                   {productPlanningTier?.total || 15} Challenges
@@ -257,8 +257,8 @@ export default async function ChallengesPage() {
             <CardHeader className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-tl-xl">
               <div className="space-y-4">
                 <div className="flex items-start justify-between">
-                  <div className="p-3 rounded-xl bg-white shadow-sm group-hover:scale-110 transition-transform">
-                    <span className="text-4xl">🚀</span>
+                  <div className="p-3 rounded-xl bg-gradient-to-br from-purple-500 to-pink-600 shadow-lg group-hover:scale-110 transition-transform">
+                    <Rocket className="h-6 w-6 text-white" />
                   </div>
                   <Badge variant="outline" className="bg-white">
                     {advancedTier?.total || 0} Challenges

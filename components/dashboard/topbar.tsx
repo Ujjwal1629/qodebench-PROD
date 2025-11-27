@@ -132,14 +132,14 @@ export function TopBar({ pageTitle, user }: TopBarProps) {
                     {user?.subscription_tier && user.subscription_tier !== 'free' && (
                       <Badge variant="secondary" className="bg-primary/10 text-primary text-xs">
                         <Crown className="h-3 w-3 mr-1" />
-                        {user.subscription_tier === 'beta' ? 'Beta' : 'Pro'}
+                        {user.subscription_tier === 'launch_offer' ? 'Launch' : 'Pro'}
                       </Badge>
                     )}
                   </div>
                   <p className="text-xs text-slate-500">@{user?.username}</p>
                   <p className="text-xs text-muted-foreground capitalize">
                     {user?.subscription_tier === 'free' ? 'Free Tier' :
-                     user?.subscription_tier === 'beta' ? 'Beta Trial' :
+                     user?.subscription_tier === 'launch_offer' ? 'Launch Offer' :
                      user?.subscription_tier === 'monthly' ? 'Monthly Plan' :
                      user?.subscription_tier === 'quarterly' ? 'Quarterly Plan' :
                      user?.subscription_tier === 'yearly' ? 'Yearly Plan' : 'Free Tier'}

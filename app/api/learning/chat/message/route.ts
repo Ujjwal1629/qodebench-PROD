@@ -242,7 +242,7 @@ export async function POST(request: NextRequest) {
         },
       ],
       temperature: 0.85, // Higher for more natural, varied responses
-      max_tokens: 600, // Increased for richer responses with code examples
+      max_tokens: 2000, // Allow longer responses with detailed explanations and code examples
       stream: true,
     });
 

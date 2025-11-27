@@ -144,11 +144,11 @@ export function SubscriptionManager({ subscription, userId }: SubscriptionManage
               </div>
             )}
 
-            {subscription?.trialEndsAt && currentTier === 'beta' && (
+            {subscription?.trialEndsAt && currentTier === 'launch_offer' && (
               <div className="flex items-center gap-3">
                 <Clock className="h-5 w-5 text-muted-foreground" />
                 <div>
-                  <p className="text-sm font-medium">Trial Ends</p>
+                  <p className="text-sm font-medium">Offer Ends</p>
                   <p className="text-sm text-muted-foreground">
                     {formatDate(subscription.trialEndsAt)}
                   </p>

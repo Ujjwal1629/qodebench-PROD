@@ -82,9 +82,9 @@ export async function POST(request: NextRequest) {
         status: profile.subscription_status,
       });
 
-      // Only allow if it's a beta trial (which might not have a payment record)
-      if (profile.subscription_tier !== 'beta') {
-        logger.security('Non-beta subscription without subscription record - possible data corruption', {
+      // Only allow if it's a launch offer trial (which might not have a payment record)
+      if (profile.subscription_tier !== 'launch_offer') {
+        logger.security('Non-launch_offer subscription without subscription record - possible data corruption', {
           userId: user.id,
           tier: profile.subscription_tier,
         }, 'error');

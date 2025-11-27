@@ -99,7 +99,7 @@ export function UpgradeRequired({
             View Pricing Plans
           </Button>
           <p className="text-center text-xs text-muted-foreground">
-            Starting at just ₹199 for 21-day beta trial
+            Starting at just ₹199 for 21-day launch offer
           </p>
         </div>
       </CardContent>

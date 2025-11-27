@@ -33,13 +33,13 @@ export default async function AdvancedChallengesPage() {
 
       {/* Page Header */}
       <div className="space-y-4">
-        <div className="flex items-center gap-2 sm:gap-3">
-          <div className="rounded-lg bg-purple-100 p-1.5 sm:p-2">
-            <Rocket className="h-5 w-5 sm:h-6 sm:w-6 text-purple-600" />
+        <div className="flex flex-col sm:flex-row items-center sm:items-center gap-3 sm:gap-3 text-center sm:text-left">
+          <div className="rounded-2xl bg-gradient-to-br from-purple-500 to-pink-600 p-3 shadow-lg">
+            <Rocket className="h-7 w-7 text-white" />
           </div>
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">
-              🚀 Advanced Challenges
+              Advanced Challenges
             </h1>
             <p className="text-sm sm:text-base text-slate-600">
               Full simulations and real-world scenarios
@@ -48,7 +48,7 @@ export default async function AdvancedChallengesPage() {
         </div>
 
         {/* Overall Stats */}
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3">
           <Badge variant="outline" className="px-3 py-1 text-sm">
             <span className="font-semibold text-green-600">{totalCompleted}</span>
             <span className="mx-1 text-slate-400">/</span>
@@ -63,8 +63,8 @@ export default async function AdvancedChallengesPage() {
 
       {/* Info Banner */}
       <div className="rounded-lg bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 p-4 sm:p-5 md:p-6">
-        <h2 className="text-base sm:text-lg font-semibold text-slate-900 mb-2 flex items-center gap-2">
-          💡 Elite Developer Skills
+        <h2 className="text-base sm:text-lg font-semibold text-slate-900 mb-2">
+          Elite Developer Skills
         </h2>
         <p className="text-sm sm:text-base text-slate-700 leading-relaxed">
           These challenges simulate <strong>complete real-world scenarios</strong> that senior

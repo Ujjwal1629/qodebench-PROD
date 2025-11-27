@@ -72,11 +72,11 @@ export function WhyQodebench() {
             return (
               <div
                 key={index}
-                className="group bg-gradient-to-br from-slate-50 to-white border border-slate-200 rounded-2xl p-8 hover:shadow-2xl hover:border-brand-300 hover:-translate-y-1 transition-all duration-300"
+                className="group bg-gradient-to-br from-slate-50 to-white border border-slate-200 rounded-2xl p-8 hover:shadow-2xl hover:border-brand-300 hover:-translate-y-1 transition-all duration-300 text-center md:text-left"
               >
                 {/* Icon */}
                 <div
-                  className={`inline-flex items-center justify-center w-14 h-14 rounded-xl bg-gradient-to-br ${reason.color} mb-5 group-hover:scale-110 transition-transform duration-300 shadow-lg`}
+                  className={`inline-flex items-center justify-center w-14 h-14 rounded-xl bg-gradient-to-br ${reason.color} mb-5 group-hover:scale-110 transition-transform duration-300 shadow-lg mx-auto md:mx-0`}
                 >
                   <Icon className="w-7 h-7 text-white" />
                 </div>

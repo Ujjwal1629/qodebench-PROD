@@ -33,10 +33,10 @@ export default function DocumentationPage() {
 
         <div className="max-w-5xl mx-auto grid md:grid-cols-2 gap-6">
           <Card>
-            <CardContent className="p-8">
-              <Rocket className="h-12 w-12 text-brand-600 mb-4" />
+            <CardContent className="p-8 text-center md:text-left">
+              <Rocket className="h-12 w-12 text-brand-600 mb-4 mx-auto md:mx-0" />
               <h2 className="text-2xl font-bold text-slate-900 mb-3">Getting Started</h2>
-              <ul className="space-y-3 text-slate-600">
+              <ul className="space-y-3 text-slate-600 flex flex-col items-center md:items-start">
                 <li>• Create your account and set up your profile</li>
                 <li>• Navigate the dashboard and explore features</li>
                 <li>• Start your first coding challenge</li>
@@ -46,10 +46,10 @@ export default function DocumentationPage() {
           </Card>
 
           <Card>
-            <CardContent className="p-8">
-              <Code2 className="h-12 w-12 text-brand-600 mb-4" />
+            <CardContent className="p-8 text-center md:text-left">
+              <Code2 className="h-12 w-12 text-brand-600 mb-4 mx-auto md:mx-0" />
               <h2 className="text-2xl font-bold text-slate-900 mb-3">Challenges</h2>
-              <ul className="space-y-3 text-slate-600">
+              <ul className="space-y-3 text-slate-600 flex flex-col items-center md:items-start">
                 <li>• Browse challenges by category and difficulty</li>
                 <li>• Use the built-in code editor</li>
                 <li>• Submit and validate your solutions</li>
@@ -59,10 +59,10 @@ export default function DocumentationPage() {
           </Card>
 
           <Card>
-            <CardContent className="p-8">
-              <Lightbulb className="h-12 w-12 text-brand-600 mb-4" />
+            <CardContent className="p-8 text-center md:text-left">
+              <Lightbulb className="h-12 w-12 text-brand-600 mb-4 mx-auto md:mx-0" />
               <h2 className="text-2xl font-bold text-slate-900 mb-3">AI Tools</h2>
-              <ul className="space-y-3 text-slate-600">
+              <ul className="space-y-3 text-slate-600 flex flex-col items-center md:items-start">
                 <li>• Get AI-powered hints and explanations</li>
                 <li>• Use the learning companion for guidance</li>
                 <li>• Generate personalized learning paths</li>
@@ -72,10 +72,10 @@ export default function DocumentationPage() {
           </Card>
 
           <Card>
-            <CardContent className="p-8">
-              <BookOpen className="h-12 w-12 text-brand-600 mb-4" />
+            <CardContent className="p-8 text-center md:text-left">
+              <BookOpen className="h-12 w-12 text-brand-600 mb-4 mx-auto md:mx-0" />
               <h2 className="text-2xl font-bold text-slate-900 mb-3">Mock Interviews</h2>
-              <ul className="space-y-3 text-slate-600">
+              <ul className="space-y-3 text-slate-600 flex flex-col items-center md:items-start">
                 <li>• Practice with AI-powered mock interviews</li>
                 <li>• Receive detailed performance reports</li>
                 <li>• Improve your interview skills</li>

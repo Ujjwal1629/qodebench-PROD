@@ -208,11 +208,11 @@ export async function updateSession(request: NextRequest) {
         // A subscription is expired if:
         // 1. Status is 'expired', OR
         // 2. End date has passed (applies to active, trial, AND cancelled subscriptions), OR
-        // 3. Trial has ended for beta tier
+        // 3. Trial has ended for launch offer tier
         const isExpired =
           subscriptionData.subscription_status === 'expired' ||
           (subscriptionData.subscription_end_date && new Date(subscriptionData.subscription_end_date) < now) ||
-          (subscriptionData.trial_ends_at && new Date(subscriptionData.trial_ends_at) < now && subscriptionData.subscription_tier === 'beta');
+          (subscriptionData.trial_ends_at && new Date(subscriptionData.trial_ends_at) < now && subscriptionData.subscription_tier === 'launch_offer');
 
         // If subscription expired by date (not just cancelled), update status in database (with await for reliability)
         // Note: Cancelled subscriptions retain access until end_date, so don't mark them expired prematurely

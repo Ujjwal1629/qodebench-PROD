@@ -55,7 +55,7 @@ export function Hero() {
             </Button>
           </div>
           <p className="text-sm text-slate-500 mt-4">
-            Start free • Beta trial at ₹199 for 21 days
+            Start free • Launch offer at ₹199 for 21 days
           </p>
 
           {/* Quick Stats */}
@@ -90,7 +90,7 @@ export function Hero() {
                   Free
                 </div>
                 <div className="text-xs md:text-sm text-slate-600 font-medium mt-1">
-                  Beta Access
+                  to Start
                 </div>
               </div>
             </div>
