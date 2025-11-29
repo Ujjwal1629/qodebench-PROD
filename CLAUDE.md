@@ -14,8 +14,14 @@ npm run lint         # Run ESLint
 # Adding UI components
 npx shadcn@latest add [component-name]
 
-# Database migrations (run via Supabase CLI or dashboard)
-# Migration files located in supabase/migrations/
+# Database migrations (Supabase CLI)
+supabase migration new <name>    # Create new migration
+supabase db push                 # Apply migrations to linked project
+supabase db pull                 # Pull schema changes from remote
+supabase db reset                # Reset local dev database
+supabase gen types typescript --linked > types/supabase.ts  # Generate types
+
+# See DATABASE_ENVIRONMENT_SETUP.md for full migration workflow
 ```
 
 ## Architecture Overview
@@ -362,23 +368,24 @@ if (error) return error;
 
 ## Key Gotchas
 
-1. **Server vs Client Supabase**: Always use correct client for environment
-2. **Middleware matcher**: Update middleware.ts:9-18 when adding static file types
-3. **Auth state sync**: useAuth hook must be called in client components wrapped in QueryProvider
-4. **Protected routes**: Non-auth, non-home routes require authentication by default
-5. **Cookies API**: Server components use `await cookies()` (Next.js 15 pattern)
-6. **Onboarding**: Users are redirected to `/onboarding/quiz` until profile completion
+1. **Database Environments**: NEVER use single database for dev and production - set up separate Supabase projects (see DATABASE_ENVIRONMENT_SETUP.md)
+2. **Server vs Client Supabase**: Always use correct client for environment
+3. **Middleware matcher**: Update middleware.ts:9-18 when adding static file types
+4. **Auth state sync**: useAuth hook must be called in client components wrapped in QueryProvider
+5. **Protected routes**: Non-auth, non-home routes require authentication by default
+6. **Cookies API**: Server components use `await cookies()` (Next.js 15 pattern)
+7. **Onboarding**: Users are redirected to `/onboarding/quiz` until profile completion
    - Quiz can only be taken once - middleware redirects away if `onboarding_completed` AND `quiz_score` is not null
    - Users who skipped quiz can retake it later (onboarding_completed but quiz_score is null)
-7. **Profile creation**: Automatic via database trigger - don't create manually in auth flow
-8. **Cache control**: Middleware sets no-cache headers on protected routes to prevent back-button access after logout (middleware.ts:115-119)
-9. **React 19**: When adding new dependencies, verify React 19 compatibility
-10. **Challenge editors**: Use `FlexibleEditor` component, not hardcoded `CodeEditor`, to support different response formats
-11. **Validation scores**: Always enforce 0-100 range; hybrid validation uses 50/50 split for structure/quality
-12. **Payment verification**: ALWAYS verify Razorpay signatures server-side; never trust client-side payment success
-13. **Subscription checks**: Use `hasActiveSubscription()` or specific access check functions for feature gating
-14. **Free tier limits**: Remember to call `incrementDailyUsage()` after free tier actions (attempts, AI feedback)
-15. **Cancelled subscriptions**: Users with cancelled subscriptions retain access until end_date expires
-16. **Auth error messages**: Never use toast notifications - use inline banners above form headings
-17. **Password fields**: Always use PasswordInput component with visibility toggle, not raw Input with type="password"
-18. **Pricing tiers**: Only 3 paid tiers (beta, quarterly, yearly) - no monthly tier. Beta shows originalPrice crossed out.
+8. **Profile creation**: Automatic via database trigger - don't create manually in auth flow
+9. **Cache control**: Middleware sets no-cache headers on protected routes to prevent back-button access after logout (middleware.ts:115-119)
+10. **React 19**: When adding new dependencies, verify React 19 compatibility
+11. **Challenge editors**: Use `FlexibleEditor` component, not hardcoded `CodeEditor`, to support different response formats
+12. **Validation scores**: Always enforce 0-100 range; hybrid validation uses 50/50 split for structure/quality
+13. **Payment verification**: ALWAYS verify Razorpay signatures server-side; never trust client-side payment success
+14. **Subscription checks**: Use `hasActiveSubscription()` or specific access check functions for feature gating
+15. **Free tier limits**: Remember to call `incrementDailyUsage()` after free tier actions (attempts, AI feedback)
+16. **Cancelled subscriptions**: Users with cancelled subscriptions retain access until end_date expires
+17. **Auth error messages**: Never use toast notifications - use inline banners above form headings
+18. **Password fields**: Always use PasswordInput component with visibility toggle, not raw Input with type="password"
+19. **Pricing tiers**: Only 3 paid tiers (beta, quarterly, yearly) - no monthly tier. Beta shows originalPrice crossed out.

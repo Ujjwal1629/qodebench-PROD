@@ -227,21 +227,24 @@ export async function updateSession(request: NextRequest) {
             .then(() => console.log('Updated expired subscription status'));
         }
 
-        // Don't redirect on pricing, dashboard root, settings (all settings pages), or learning routes
+        // Don't redirect on pricing, dashboard root, settings (all settings pages), learning, or challenges routes
         const isPricingRoute = request.nextUrl.pathname === '/pricing';
         const isDashboardRoot = request.nextUrl.pathname === '/dashboard';
         const isSettingsRoute = request.nextUrl.pathname.startsWith('/dashboard/settings');
         const isLearningRoute = request.nextUrl.pathname.startsWith('/dashboard/learning');
-        const isChallengesListRoute = request.nextUrl.pathname === '/dashboard/challenges';
+        // Allow all challenges routes - let individual challenge pages handle access control
+        // This allows browsing categories (practical, advanced, etc.) and seeing what's available
+        const isChallengesRoute = request.nextUrl.pathname.startsWith('/dashboard/challenges');
 
-        // Allow access to pricing, dashboard root, all settings pages, learning, and challenge list even if expired
-        // This lets users see what they're missing, manage their profile, and upgrade
+        // Allow access to pricing, dashboard root, settings, learning, and all challenges routes even if expired
+        // This lets users browse available challenges, see what they're missing, manage profile, and upgrade
+        // Individual challenge pages will handle their own access control for premium content
         const allowedRoutesWhenExpired =
           isPricingRoute ||
           isDashboardRoot ||
           isSettingsRoute ||
           isLearningRoute ||
-          isChallengesListRoute;
+          isChallengesRoute;
 
         // Redirect expired users away from paid content (but not from allowed routes)
         if (isExpired && !allowedRoutesWhenExpired) {

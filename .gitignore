@@ -44,6 +44,9 @@ next-env.d.ts
 .vscode
 .idea
 
-*.md
-
+# Environment files (must be ignored for security)
+.env.local
+.env.staging
+.env.production
+*.md    
 *.sql
