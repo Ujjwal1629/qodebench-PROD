@@ -93,26 +93,26 @@ export function DeleteAccountDialog({ username }: DeleteAccountDialogProps) {
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
-        <Button variant="destructive">Delete Account</Button>
+        <Button variant="destructive" className="w-full sm:w-auto text-xs sm:text-sm">Delete Account</Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="max-w-[95vw] sm:max-w-[500px]">
         <DialogHeader>
           <div className="flex items-center gap-2 mb-2">
-            <div className="rounded-full bg-red-100 p-2">
-              <AlertTriangle className="h-5 w-5 text-red-600" />
+            <div className="rounded-full bg-red-100 p-1.5 sm:p-2">
+              <AlertTriangle className="h-4 w-4 sm:h-5 sm:w-5 text-red-600" />
             </div>
-            <DialogTitle>Delete Account</DialogTitle>
+            <DialogTitle className="text-base sm:text-lg">Delete Account</DialogTitle>
           </div>
-          <DialogDescription>
+          <DialogDescription className="text-xs sm:text-sm">
             This action cannot be undone. This will permanently delete your
             account and remove all your data from our servers.
           </DialogDescription>
         </DialogHeader>
 
-        <Alert variant="destructive" className="my-4">
+        <Alert variant="destructive" className="my-3 sm:my-4">
           <AlertDescription className="space-y-2">
-            <p className="font-semibold">You will lose:</p>
-            <ul className="list-disc list-inside space-y-1 text-sm">
+            <p className="font-semibold text-xs sm:text-sm">You will lose:</p>
+            <ul className="list-disc list-inside space-y-1 text-xs sm:text-sm">
               <li>All your challenge submissions and solutions</li>
               <li>Your points, streak, and leaderboard rankings</li>
               <li>Mock interview history and evaluations</li>
@@ -123,14 +123,14 @@ export function DeleteAccountDialog({ username }: DeleteAccountDialogProps) {
         </Alert>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3 sm:space-y-4">
             <FormField
               control={form.control}
               name="confirmation"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>
-                    Type <span className="font-mono font-bold">{username}</span>{' '}
+                  <FormLabel className="text-xs sm:text-sm">
+                    Type <span className="font-mono font-bold text-xs sm:text-sm">{username}</span>{' '}
                     to confirm
                   </FormLabel>
                   <FormControl>
@@ -138,23 +138,25 @@ export function DeleteAccountDialog({ username }: DeleteAccountDialogProps) {
                       placeholder={username}
                       disabled={form.formState.isSubmitting}
                       autoComplete="off"
+                      className="text-sm"
                       {...field}
                     />
                   </FormControl>
-                  <FormDescription>
+                  <FormDescription className="text-xs">
                     This confirms you understand this action is permanent
                   </FormDescription>
-                  <FormMessage />
+                  <FormMessage className="text-xs" />
                 </FormItem>
               )}
             />
 
-            <DialogFooter>
+            <DialogFooter className="flex-col sm:flex-row gap-2 sm:gap-0">
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => handleOpenChange(false)}
                 disabled={form.formState.isSubmitting}
+                className="w-full sm:w-auto text-xs sm:text-sm order-2 sm:order-1"
               >
                 Cancel
               </Button>
@@ -165,10 +167,11 @@ export function DeleteAccountDialog({ username }: DeleteAccountDialogProps) {
                   form.formState.isSubmitting ||
                   form.watch('confirmation') !== username
                 }
+                className="w-full sm:w-auto text-xs sm:text-sm order-1 sm:order-2"
               >
                 {form.formState.isSubmitting ? (
                   <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    <Loader2 className="mr-2 h-3 w-3 sm:h-4 sm:w-4 animate-spin" />
                     Deleting...
                   </>
                 ) : (

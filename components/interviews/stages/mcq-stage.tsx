@@ -152,41 +152,41 @@ export default function MCQStage({ sessionId, experienceLevel, onComplete }: MCQ
 
   if (!hasStarted) {
     return (
-      <Card className="p-8 max-w-2xl mx-auto">
-        <div className="text-center space-y-6">
-          <div className="bg-blue-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto">
-            <CheckCircle2 className="h-10 w-10 text-blue-600" />
+      <Card className="p-4 sm:p-8 max-w-2xl mx-auto">
+        <div className="text-center space-y-4 sm:space-y-6">
+          <div className="bg-blue-100 w-16 h-16 sm:w-20 sm:h-20 rounded-full flex items-center justify-center mx-auto">
+            <CheckCircle2 className="h-8 w-8 sm:h-10 sm:w-10 text-blue-600" />
           </div>
           <div>
-            <h2 className="text-2xl font-bold mb-2">Stage 1: Multiple Choice Questions</h2>
-            <p className="text-muted-foreground">
+            <h2 className="text-xl sm:text-2xl font-bold mb-2">Stage 1: Multiple Choice Questions</h2>
+            <p className="text-sm sm:text-base text-muted-foreground">
               Test your knowledge with {questions.length} questions
             </p>
           </div>
 
-          <div className="bg-slate-50 p-6 rounded-lg space-y-3 text-left">
-            <h3 className="font-semibold text-lg mb-4">Instructions:</h3>
-            <div className="flex items-start gap-3">
-              <Clock className="h-5 w-5 text-blue-600 mt-0.5" />
+          <div className="bg-slate-50 p-4 sm:p-6 rounded-lg space-y-3 text-left">
+            <h3 className="font-semibold text-base sm:text-lg mb-3 sm:mb-4">Instructions:</h3>
+            <div className="flex items-start gap-2 sm:gap-3">
+              <Clock className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600 mt-0.5 flex-shrink-0" />
               <div>
-                <p className="font-medium">Time Limit</p>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm sm:text-base font-medium">Time Limit</p>
+                <p className="text-xs sm:text-sm text-muted-foreground">
                   {experienceLevel === 'senior' ? '12' : '15'} minutes total
                 </p>
               </div>
             </div>
-            <div className="flex items-start gap-3">
-              <CheckCircle2 className="h-5 w-5 text-green-600 mt-0.5" />
+            <div className="flex items-start gap-2 sm:gap-3">
+              <CheckCircle2 className="h-4 w-4 sm:h-5 sm:w-5 text-green-600 mt-0.5 flex-shrink-0" />
               <div>
-                <p className="font-medium">Total Questions</p>
-                <p className="text-sm text-muted-foreground">{questions.length} questions</p>
+                <p className="text-sm sm:text-base font-medium">Total Questions</p>
+                <p className="text-xs sm:text-sm text-muted-foreground">{questions.length} questions</p>
               </div>
             </div>
-            <div className="flex items-start gap-3">
-              <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5" />
+            <div className="flex items-start gap-2 sm:gap-3">
+              <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5 text-amber-600 mt-0.5 flex-shrink-0" />
               <div>
-                <p className="font-medium">Auto-Submit</p>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm sm:text-base font-medium">Auto-Submit</p>
+                <p className="text-xs sm:text-sm text-muted-foreground">
                   Quiz will auto-submit when time expires
                 </p>
               </div>
@@ -202,35 +202,33 @@ export default function MCQStage({ sessionId, experienceLevel, onComplete }: MCQ
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header with Timer and Progress */}
-      <Card className="p-6">
-        <div className="flex items-center justify-between mb-4">
+      <Card className="p-4 sm:p-6">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 mb-4">
           <div>
-            <h2 className="text-xl font-bold">MCQ Assessment</h2>
-            <p className="text-sm text-muted-foreground">
+            <h2 className="text-lg sm:text-xl font-bold">MCQ Assessment</h2>
+            <p className="text-xs sm:text-sm text-muted-foreground">
               Answer all {questions.length} questions
             </p>
           </div>
-          <div className="flex items-center gap-4">
-            <div className="text-right">
-              <div className="flex items-center gap-2">
-                <Clock className="h-5 w-5 text-blue-600" />
-                <span
-                  className={`text-2xl font-bold ${
-                    timeLeft < 60 ? 'text-red-600' : 'text-blue-600'
-                  }`}
-                >
-                  {formatTime(timeLeft)}
-                </span>
-              </div>
-              <p className="text-xs text-muted-foreground">Time Remaining</p>
+          <div className="w-full sm:w-auto">
+            <div className="flex items-center justify-between sm:justify-end gap-2">
+              <Clock className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600 flex-shrink-0" />
+              <span
+                className={`text-xl sm:text-2xl font-bold ${
+                  timeLeft < 60 ? 'text-red-600' : 'text-blue-600'
+                }`}
+              >
+                {formatTime(timeLeft)}
+              </span>
             </div>
+            <p className="text-[10px] sm:text-xs text-muted-foreground text-right">Time Remaining</p>
           </div>
         </div>
 
         <div className="space-y-2">
-          <div className="flex justify-between text-sm">
+          <div className="flex justify-between text-xs sm:text-sm">
             <span>Progress</span>
             <span className="font-medium">
               {answeredCount} / {questions.length} answered
@@ -241,25 +239,25 @@ export default function MCQStage({ sessionId, experienceLevel, onComplete }: MCQ
       </Card>
 
       {/* Questions */}
-      <div className="space-y-4">
+      <div className="space-y-3 sm:space-y-4">
         {questions.map((question, index) => (
-          <Card key={question.id} className="p-6">
-            <div className="space-y-4">
-              <div className="flex items-start justify-between gap-4">
+          <Card key={question.id} className="p-4 sm:p-6">
+            <div className="space-y-3 sm:space-y-4">
+              <div className="flex items-start justify-between gap-3 sm:gap-4">
                 <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-3">
-                    <Badge variant="outline">Question {index + 1}</Badge>
-                    <Badge variant="secondary" className="capitalize">
+                  <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-2 sm:mb-3">
+                    <Badge variant="outline" className="text-xs">Question {index + 1}</Badge>
+                    <Badge variant="secondary" className="capitalize text-xs">
                       {question.category.replace('_', ' ')}
                     </Badge>
                     {answers[question.id] && (
-                      <Badge variant="default" className="bg-green-600">
-                        <CheckCircle2 className="h-3 w-3 mr-1" />
+                      <Badge variant="default" className="bg-green-600 text-xs">
+                        <CheckCircle2 className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-1" />
                         Answered
                       </Badge>
                     )}
                   </div>
-                  <p className="text-lg font-medium leading-relaxed">
+                  <p className="text-sm sm:text-base md:text-lg font-medium leading-relaxed">
                     {question.question_text}
                   </p>
                 </div>
@@ -268,23 +266,23 @@ export default function MCQStage({ sessionId, experienceLevel, onComplete }: MCQ
               <RadioGroup
                 value={answers[question.id] || ''}
                 onValueChange={(value) => handleAnswerChange(question.id, value)}
-                className="space-y-3"
+                className="space-y-2 sm:space-y-3"
               >
                 {['a', 'b', 'c', 'd'].map((option) => (
                   <div
                     key={option}
-                    className={`flex items-start space-x-3 p-4 rounded-lg border-2 transition-all cursor-pointer hover:border-blue-300 ${
+                    className={`flex items-start space-x-2 sm:space-x-3 p-3 sm:p-4 rounded-lg border-2 transition-all cursor-pointer hover:border-blue-300 ${
                       answers[question.id] === option
                         ? 'border-blue-600 bg-blue-50'
                         : 'border-slate-200'
                     }`}
                   >
-                    <RadioGroupItem value={option} id={`${question.id}-${option}`} />
+                    <RadioGroupItem value={option} id={`${question.id}-${option}`} className="mt-0.5" />
                     <Label
                       htmlFor={`${question.id}-${option}`}
-                      className="flex-1 cursor-pointer font-normal"
+                      className="flex-1 cursor-pointer font-normal text-xs sm:text-sm"
                     >
-                      <span className="font-semibold uppercase mr-2">{option}.</span>
+                      <span className="font-semibold uppercase mr-1.5 sm:mr-2">{option}.</span>
                       {question[`option_${option}` as keyof MCQQuestion]}
                     </Label>
                   </div>
@@ -296,23 +294,23 @@ export default function MCQStage({ sessionId, experienceLevel, onComplete }: MCQ
       </div>
 
       {/* Submit Button */}
-      <Card className="p-6 sticky bottom-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="font-medium">
+      <Card className="p-4 sm:p-6 sticky bottom-2 sm:bottom-4">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4">
+          <div className="text-center sm:text-left">
+            <p className="text-sm sm:text-base font-medium">
               {answeredCount === questions.length ? (
-                <span className="text-green-600 flex items-center gap-2">
-                  <CheckCircle2 className="h-5 w-5" />
+                <span className="text-green-600 flex items-center justify-center sm:justify-start gap-2">
+                  <CheckCircle2 className="h-4 w-4 sm:h-5 sm:w-5" />
                   All questions answered!
                 </span>
               ) : (
-                <span className="text-amber-600 flex items-center gap-2">
-                  <AlertCircle className="h-5 w-5" />
+                <span className="text-amber-600 flex items-center justify-center sm:justify-start gap-2">
+                  <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5" />
                   {questions.length - answeredCount} questions remaining
                 </span>
               )}
             </p>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-xs sm:text-sm text-muted-foreground mt-1">
               {answeredCount === questions.length
                 ? 'You can now submit your answers'
                 : 'Please answer all questions to submit'}
@@ -322,7 +320,7 @@ export default function MCQStage({ sessionId, experienceLevel, onComplete }: MCQ
             onClick={handleSubmit}
             disabled={isSubmitting || answeredCount < questions.length}
             size="lg"
-            className="min-w-[200px]"
+            className="w-full sm:w-auto sm:min-w-[200px]"
           >
             {isSubmitting ? (
               <>

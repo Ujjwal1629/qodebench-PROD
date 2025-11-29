@@ -130,32 +130,32 @@ export function AIMentorDock({
       {!isDockExpanded && (
         <button
           onClick={() => setIsDockExpanded(true)}
-          className="fixed bottom-12 lg:bottom-8 right-4 lg:right-8 group"
+          className="fixed bottom-4 lg:bottom-8 right-3 lg:right-8 group z-40"
         >
           <div className="relative">
             {/* Pulsing glow effect - more prominent */}
-            <div className="absolute -inset-3 bg-gradient-to-r from-sky-400 via-blue-500 to-purple-500 rounded-full opacity-60 blur-xl group-hover:opacity-90 animate-pulse"></div>
+            <div className="absolute -inset-2 lg:-inset-3 bg-gradient-to-r from-sky-400 via-blue-500 to-purple-500 rounded-full opacity-60 blur-xl group-hover:opacity-90 animate-pulse"></div>
 
             {/* Main button with text */}
-            <div className="relative bg-gradient-to-r from-sky-500 via-blue-600 to-purple-600 px-6 py-4 rounded-full shadow-2xl hover:shadow-sky-500/50 transition-all hover:scale-105 border-white/20">
-              <div className="flex items-center gap-3">
+            <div className="relative bg-gradient-to-r from-sky-500 via-blue-600 to-purple-600 px-3 py-2.5 lg:px-6 lg:py-4 rounded-full shadow-2xl hover:shadow-sky-500/50 transition-all hover:scale-105 border-white/20">
+              <div className="flex items-center gap-2 lg:gap-3">
                 <div className="relative">
-                  <Bot className="h-7 w-7 text-white" />
+                  <Bot className="h-5 w-5 lg:h-7 lg:w-7 text-white" />
                   {/* Online indicator */}
-                  <div className="absolute -top-1 -right-1 h-3 w-3 bg-green-400 rounded-full border-2 border-white animate-pulse shadow-lg shadow-green-500/50"></div>
+                  <div className="absolute -top-0.5 -right-0.5 lg:-top-1 lg:-right-1 h-2 w-2 lg:h-3 lg:w-3 bg-green-400 rounded-full border-2 border-white animate-pulse shadow-lg shadow-green-500/50"></div>
                 </div>
 
                 <div className="text-left">
-                  <div className="text-white font-bold text-sm whitespace-nowrap">Ask AI Senior Dev</div>
-                  <div className="text-sky-100 text-xs whitespace-nowrap flex items-center gap-1">
-                    <Sparkles className="h-3 w-3" />
+                  <div className="text-white font-bold text-xs lg:text-sm whitespace-nowrap">Ask AI Senior Dev</div>
+                  <div className="text-sky-100 text-[10px] lg:text-xs whitespace-nowrap flex items-center gap-1">
+                    <Sparkles className="h-2.5 w-2.5 lg:h-3 lg:w-3" />
                     <span>Always Available</span>
                   </div>
                 </div>
 
                 {/* Message count badge */}
                 {messages.length > 0 && (
-                  <div className="bg-red-500 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center shadow-lg ml-2 animate-bounce">
+                  <div className="bg-red-500 text-white text-[10px] lg:text-xs font-bold rounded-full w-5 h-5 lg:w-6 lg:h-6 flex items-center justify-center shadow-lg ml-1 lg:ml-2 animate-bounce">
                     {messages.length}
                   </div>
                 )}
@@ -181,7 +181,7 @@ export function AIMentorDock({
 
       {/* Expanded Dock */}
       {isDockExpanded && (
-        <div className="fixed bottom-24 lg:bottom-8 right-4 lg:right-8 w-[320px]">
+        <div className="fixed bottom-16 lg:bottom-8 right-3 lg:right-8 w-[280px] sm:w-[320px] z-40">
           <div
             className="relative backdrop-blur-md bg-white/95 border border-white/40 rounded-2xl shadow-2xl overflow-hidden"
             style={{

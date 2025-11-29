@@ -132,18 +132,18 @@ export function ProfileSettingsForm({ initialData }: ProfileSettingsFormProps) {
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Profile Information</CardTitle>
-        <CardDescription>
+      <CardHeader className="p-4 sm:p-6">
+        <CardTitle className="text-base sm:text-lg">Profile Information</CardTitle>
+        <CardDescription className="text-xs sm:text-sm">
           Update your profile information and photo
         </CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="p-4 sm:p-6">
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 sm:space-y-6">
             {/* Avatar Upload */}
             <div>
-              <label className="text-sm font-medium mb-4 block">
+              <label className="text-xs sm:text-sm font-medium mb-3 sm:mb-4 block">
                 Profile Photo
               </label>
               <AvatarUpload
@@ -159,36 +159,37 @@ export function ProfileSettingsForm({ initialData }: ProfileSettingsFormProps) {
               name="username"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Username</FormLabel>
+                  <FormLabel className="text-xs sm:text-sm">Username</FormLabel>
                   <FormControl>
                     <div className="relative">
                       <Input
                         placeholder="johndoe"
                         disabled={form.formState.isSubmitting}
+                        className="text-sm"
                         {...field}
                       />
                       {username !== initialData.username && (
                         <div className="absolute right-3 top-1/2 -translate-y-1/2">
                           {isCheckingUsername ? (
-                            <Loader2 className="h-4 w-4 animate-spin text-slate-400" />
+                            <Loader2 className="h-3 w-3 sm:h-4 sm:w-4 animate-spin text-slate-400" />
                           ) : usernameAvailable === true ? (
-                            <CheckCircle2 className="h-4 w-4 text-green-600" />
+                            <CheckCircle2 className="h-3 w-3 sm:h-4 sm:w-4 text-green-600" />
                           ) : usernameAvailable === false ? (
-                            <XCircle className="h-4 w-4 text-red-600" />
+                            <XCircle className="h-3 w-3 sm:h-4 sm:w-4 text-red-600" />
                           ) : null}
                         </div>
                       )}
                     </div>
                   </FormControl>
-                  <FormDescription>
+                  <FormDescription className="text-xs">
                     Your unique username. Can only contain letters, numbers, and underscores.
                   </FormDescription>
                   {usernameAvailable === false && (
-                    <p className="text-sm text-red-600">
+                    <p className="text-xs sm:text-sm text-red-600">
                       This username is already taken
                     </p>
                   )}
-                  <FormMessage />
+                  <FormMessage className="text-xs" />
                 </FormItem>
               )}
             />
@@ -199,18 +200,19 @@ export function ProfileSettingsForm({ initialData }: ProfileSettingsFormProps) {
               name="full_name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Full Name</FormLabel>
+                  <FormLabel className="text-xs sm:text-sm">Full Name</FormLabel>
                   <FormControl>
                     <Input
                       placeholder="John Doe"
                       disabled={form.formState.isSubmitting}
+                      className="text-sm"
                       {...field}
                     />
                   </FormControl>
-                  <FormDescription>
+                  <FormDescription className="text-xs">
                     Your full name (optional)
                   </FormDescription>
-                  <FormMessage />
+                  <FormMessage className="text-xs" />
                 </FormItem>
               )}
             />
@@ -221,21 +223,21 @@ export function ProfileSettingsForm({ initialData }: ProfileSettingsFormProps) {
               name="bio"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Bio</FormLabel>
+                  <FormLabel className="text-xs sm:text-sm">Bio</FormLabel>
                   <FormControl>
                     <Textarea
                       placeholder="Tell us about yourself..."
-                      className="min-h-[100px] resize-none"
+                      className="min-h-[80px] sm:min-h-[100px] resize-none text-sm"
                       disabled={form.formState.isSubmitting}
                       {...field}
                     />
                   </FormControl>
-                  <FormDescription>
+                  <FormDescription className="text-xs">
                     Brief description about yourself (max 500 characters)
                   </FormDescription>
                   <div className="flex justify-between items-center">
-                    <FormMessage />
-                    <span className="text-xs text-slate-500">
+                    <FormMessage className="text-xs" />
+                    <span className="text-[10px] sm:text-xs text-slate-500">
                       {(field.value?.length || 0)}/500
                     </span>
                   </div>
@@ -244,12 +246,13 @@ export function ProfileSettingsForm({ initialData }: ProfileSettingsFormProps) {
             />
 
             {/* Submit Button */}
-            <div className="flex justify-end gap-3">
+            <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-3">
               <Button
                 type="button"
                 variant="outline"
                 disabled={form.formState.isSubmitting || !isFormChanged}
                 onClick={() => form.reset()}
+                className="w-full sm:w-auto text-xs sm:text-sm"
               >
                 Cancel
               </Button>
@@ -260,10 +263,11 @@ export function ProfileSettingsForm({ initialData }: ProfileSettingsFormProps) {
                   !isFormChanged ||
                   usernameAvailable === false
                 }
+                className="w-full sm:w-auto text-xs sm:text-sm"
               >
                 {form.formState.isSubmitting ? (
                   <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    <Loader2 className="mr-2 h-3 w-3 sm:h-4 sm:w-4 animate-spin" />
                     Saving...
                   </>
                 ) : (

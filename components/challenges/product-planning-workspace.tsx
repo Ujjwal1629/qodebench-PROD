@@ -324,11 +324,11 @@ export function ProductPlanningWorkspace({ challenge, metadata }: ProductPlannin
             </Card>
 
             {/* Action Buttons */}
-            <div className="flex items-center gap-3">
+            <div className="flex flex-col items-center gap-2">
               <Button
                 onClick={handleValidate}
                 disabled={isValidating}
-                className="bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 text-white shadow-md"
+                className="bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 text-white shadow-md w-full"
                 size="lg"
               >
                 {isValidating ? (
@@ -350,7 +350,7 @@ export function ProductPlanningWorkspace({ challenge, metadata }: ProductPlannin
                 <Button
                   onClick={handleSubmit}
                   disabled={isSubmitting}
-                  className="bg-green-600 hover:bg-green-700 text-white shadow-md"
+                  className="bg-green-600 hover:bg-green-700 text-white shadow-md w-full"
                   size="lg"
                 >
                   {isSubmitting ? (
@@ -373,7 +373,7 @@ export function ProductPlanningWorkspace({ challenge, metadata }: ProductPlannin
                 <Button
                   variant="outline"
                   disabled
-                  className="text-green-600 border-green-600"
+                  className="text-green-600 border-green-600 w-full"
                   size="lg"
                 >
                   <svg className="h-5 w-5 mr-2" fill="currentColor" viewBox="0 0 20 20">

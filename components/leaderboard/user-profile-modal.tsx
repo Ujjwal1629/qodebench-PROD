@@ -45,7 +45,7 @@ export function UserProfileModal({ userId, isOpen, onClose }: UserProfileModalPr
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="sr-only">User Profile</DialogTitle>
         </DialogHeader>
@@ -67,22 +67,22 @@ function ProfileContent({ data, badges }: { data: any; badges: BadgeType[] }) {
   const { profile, categoryCounts, recentActivity } = data;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex items-center gap-4">
-          <Avatar className="h-20 w-20">
+      <div className="flex items-center gap-3 sm:gap-4">
+          <Avatar className="h-16 w-16 sm:h-20 sm:w-20">
             <AvatarImage src={profile.avatar_url || undefined} alt={profile.username} />
-            <AvatarFallback className="bg-blue-600 text-white text-2xl font-semibold">
+            <AvatarFallback className="bg-blue-600 text-white text-xl sm:text-2xl font-semibold">
               {getUserInitials(profile.username, profile.full_name)}
             </AvatarFallback>
           </Avatar>
-          <div className="flex-1">
-            <h2 className="text-2xl font-bold">{profile.username}</h2>
+          <div className="flex-1 min-w-0">
+            <h2 className="text-lg sm:text-2xl font-bold break-words">{profile.username}</h2>
             {profile.full_name && (
-              <p className="text-muted-foreground">{profile.full_name}</p>
+              <p className="text-sm sm:text-base text-muted-foreground break-words">{profile.full_name}</p>
             )}
             {profile.experience_level && (
-              <Badge variant="outline" className="mt-2 capitalize">
+              <Badge variant="outline" className="mt-1 sm:mt-2 capitalize text-xs sm:text-sm">
                 {profile.experience_level}
               </Badge>
             )}
@@ -90,24 +90,24 @@ function ProfileContent({ data, badges }: { data: any; badges: BadgeType[] }) {
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4">
           <StatCard
-            icon={<Trophy className="h-5 w-5 text-blue-600" />}
+            icon={<Trophy className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />}
             label="Total Points"
             value={profile.total_points.toLocaleString()}
           />
           <StatCard
-            icon={<Target className="h-5 w-5 text-green-600" />}
+            icon={<Target className="h-4 w-4 sm:h-5 sm:w-5 text-green-600" />}
             label="Completed"
             value={profile.challenges_completed}
           />
           <StatCard
-            icon={<Flame className="h-5 w-5 text-orange-500" />}
+            icon={<Flame className="h-4 w-4 sm:h-5 sm:w-5 text-orange-500" />}
             label="Current Streak"
             value={profile.current_streak}
           />
           <StatCard
-            icon={<Flame className="h-5 w-5 text-red-600" />}
+            icon={<Flame className="h-4 w-4 sm:h-5 sm:w-5 text-red-600" />}
             label="Longest Streak"
             value={profile.longest_streak}
           />
@@ -116,15 +116,15 @@ function ProfileContent({ data, badges }: { data: any; badges: BadgeType[] }) {
         {/* Category Breakdown */}
         {Object.keys(categoryCounts).length > 0 && (
           <div>
-            <h3 className="font-semibold mb-3">Challenges by Category</h3>
+            <h3 className="text-sm sm:text-base font-semibold mb-2 sm:mb-3">Challenges by Category</h3>
             <div className="grid grid-cols-2 gap-2">
               {Object.entries(categoryCounts).map(([category, count]) => (
                 <div
                   key={category}
-                  className="flex justify-between items-center p-3 rounded-lg bg-slate-50 border"
+                  className="flex justify-between items-center p-2 sm:p-3 rounded-xl bg-slate-50 border"
                 >
-                  <span className="capitalize text-sm">{category}</span>
-                  <Badge variant="secondary">{count as number}</Badge>
+                  <span className="capitalize text-xs sm:text-sm break-words">{category}</span>
+                  <Badge variant="secondary" className="text-xs flex-shrink-0">{count as number}</Badge>
                 </div>
               ))}
             </div>
@@ -160,17 +160,17 @@ function ProfileContent({ data, badges }: { data: any; badges: BadgeType[] }) {
         {/* Recent Activity */}
         {recentActivity.length > 0 && (
           <div>
-            <h3 className="font-semibold mb-3">Recent Activity</h3>
+            <h3 className="text-sm sm:text-base font-semibold mb-2 sm:mb-3">Recent Activity</h3>
             <div className="space-y-2">
               {recentActivity.slice(0, 5).map((activity: any) => (
                 <div
                   key={activity.challenge_id}
-                  className="flex items-center gap-3 p-3 rounded-lg bg-slate-50 border"
+                  className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 rounded-xl bg-slate-50 border"
                 >
-                  <Calendar className="h-4 w-4 text-muted-foreground" />
+                  <Calendar className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm">Completed a challenge</p>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-xs sm:text-sm break-words">Completed a challenge</p>
+                    <p className="text-[10px] sm:text-xs text-muted-foreground">
                       {new Date(activity.completed_at).toLocaleDateString()}
                     </p>
                   </div>
@@ -185,29 +185,29 @@ function ProfileContent({ data, badges }: { data: any; badges: BadgeType[] }) {
 
 function StatCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: string | number }) {
   return (
-    <div className="p-4 rounded-lg bg-slate-50 border">
-      <div className="flex items-center gap-2 mb-1">
+    <div className="p-2 sm:p-4 rounded-xl bg-slate-50 border">
+      <div className="flex items-center gap-1 sm:gap-2 mb-1">
         {icon}
-        <p className="text-xs text-muted-foreground">{label}</p>
+        <p className="text-[10px] sm:text-xs text-muted-foreground break-words">{label}</p>
       </div>
-      <p className="text-2xl font-bold">{value}</p>
+      <p className="text-base sm:text-2xl font-bold break-words">{value}</p>
     </div>
   );
 }
 
 function ProfileSkeleton() {
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Skeleton className="h-20 w-20 rounded-full" />
+    <div className="space-y-4 sm:space-y-6">
+      <div className="flex items-center gap-3 sm:gap-4">
+        <Skeleton className="h-16 w-16 sm:h-20 sm:w-20 rounded-full flex-shrink-0" />
         <div className="flex-1 space-y-2">
-          <Skeleton className="h-8 w-48" />
-          <Skeleton className="h-4 w-32" />
+          <Skeleton className="h-6 sm:h-8 w-32 sm:w-48" />
+          <Skeleton className="h-3 sm:h-4 w-24 sm:w-32" />
         </div>
       </div>
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4">
         {Array.from({ length: 4 }).map((_, i) => (
-          <Skeleton key={i} className="h-24" />
+          <Skeleton key={i} className="h-20 sm:h-24" />
         ))}
       </div>
     </div>

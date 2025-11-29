@@ -136,27 +136,27 @@ export function AvatarUpload({
   };
 
   return (
-    <div className="flex items-start gap-6">
+    <div className="flex flex-col sm:flex-row items-start gap-4 sm:gap-6">
       {/* Avatar Preview */}
-      <div className="relative">
-        <Avatar className="h-24 w-24 border-2 border-slate-200">
+      <div className="relative flex-shrink-0">
+        <Avatar className="h-20 w-20 sm:h-24 sm:w-24 border-2 border-slate-200">
           <AvatarImage src={avatarUrl || undefined} alt={username} />
-          <AvatarFallback className="bg-brand-100 text-brand-700 text-2xl font-semibold">
+          <AvatarFallback className="bg-brand-100 text-brand-700 text-xl sm:text-2xl font-semibold">
             {getUserInitials(username)}
           </AvatarFallback>
         </Avatar>
         {isUploading && (
           <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full">
-            <Loader2 className="h-8 w-8 text-white animate-spin" />
+            <Loader2 className="h-6 w-6 sm:h-8 sm:w-8 text-white animate-spin" />
           </div>
         )}
       </div>
 
       {/* Upload Controls */}
-      <div className="flex-1 space-y-4">
+      <div className="flex-1 w-full space-y-3 sm:space-y-4">
         <div
           className={cn(
-            'border-2 border-dashed rounded-lg p-6 text-center transition-colors',
+            'border-2 border-dashed rounded-lg p-4 sm:p-6 text-center transition-colors',
             dragActive
               ? 'border-brand-500 bg-brand-50'
               : 'border-slate-300 hover:border-brand-400',
@@ -177,11 +177,11 @@ export function AvatarUpload({
           />
           <div className="space-y-2">
             <div className="flex justify-center">
-              <div className="rounded-full bg-slate-100 p-3">
-                <Upload className="h-6 w-6 text-slate-600" />
+              <div className="rounded-full bg-slate-100 p-2 sm:p-3">
+                <Upload className="h-5 w-5 sm:h-6 sm:w-6 text-slate-600" />
               </div>
             </div>
-            <div className="text-sm">
+            <div className="text-xs sm:text-sm">
               <button
                 type="button"
                 onClick={handleClick}
@@ -192,29 +192,30 @@ export function AvatarUpload({
               </button>
               <span className="text-slate-600"> or drag and drop</span>
             </div>
-            <p className="text-xs text-slate-500">
+            <p className="text-[10px] sm:text-xs text-slate-500">
               PNG or JPG up to 5MB
             </p>
           </div>
         </div>
 
         {/* Action Buttons */}
-        <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row gap-2">
           <Button
             type="button"
             variant="outline"
             size="sm"
             onClick={handleClick}
             disabled={isUploading}
+            className="w-full sm:w-auto text-xs sm:text-sm"
           >
             {isUploading ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <Loader2 className="mr-2 h-3 w-3 sm:h-4 sm:w-4 animate-spin" />
                 Uploading...
               </>
             ) : (
               <>
-                <Upload className="mr-2 h-4 w-4" />
+                <Upload className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
                 Upload Photo
               </>
             )}
@@ -226,15 +227,16 @@ export function AvatarUpload({
               size="sm"
               onClick={handleRemove}
               disabled={isRemoving || isUploading}
+              className="w-full sm:w-auto text-xs sm:text-sm"
             >
               {isRemoving ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <Loader2 className="mr-2 h-3 w-3 sm:h-4 sm:w-4 animate-spin" />
                   Removing...
                 </>
               ) : (
                 <>
-                  <X className="mr-2 h-4 w-4" />
+                  <X className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
                   Remove
                 </>
               )}

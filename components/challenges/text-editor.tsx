@@ -32,7 +32,6 @@ export function TextEditor({ value, onChange, placeholder }: TextEditorProps) {
           <span className="font-medium">Words:</span> {wordCount}
           <span className="ml-4 font-medium">Characters:</span> {charCount}
         </span>
-        <span className="italic">Plain text format - no special formatting</span>
       </div>
     </div>
   );

@@ -23,6 +23,27 @@ function generateBasicEvaluation(
   const strengths: string[] = [];
   const improvements: string[] = [];
 
+  // Check if response is just repeating the question
+  const questionText = question.question_text.toLowerCase();
+  const questionWords = questionText.split(/\s+/).filter((w: string) => w.length > 3);
+  const responseWords = trimmedResponse.split(/\s+/);
+  const matchingWords = questionWords.filter((word: string) =>
+    responseWords.includes(word)
+  ).length;
+
+  // If more than 60% of significant words match, it's likely copying the question
+  const matchPercentage = matchingWords / Math.max(questionWords.length, 1);
+  if (matchPercentage > 0.6) {
+    return {
+      score: 0,
+      strengths: [],
+      improvements: [
+        'Your answer appears to be copying the question. Please provide an original answer.',
+        'Demonstrate your understanding by explaining the concept in your own words with examples.',
+      ],
+    };
+  }
+
   // Check for non-answers or poor quality responses
   const poorAnswers = [
     "don't know",
@@ -145,6 +166,11 @@ Key Concepts to Cover: ${question.key_concepts.join(', ')}
 Candidate's Answer:
 ${response}
 
+CRITICAL RULES:
+1. If the answer is just repeating/copying the question text, give a score of 0/10 immediately.
+2. If the answer is nonsensical, gibberish, or clearly copy-pasted irrelevant content, give 0/10.
+3. If the answer is too short (less than 30 words) or lacks substance, give maximum 2/10.
+
 Evaluate the answer based on:
 1. Accuracy and correctness
 2. Coverage of key concepts
@@ -153,13 +179,13 @@ Evaluate the answer based on:
 5. Depth of understanding
 
 SCORING GUIDELINES:
-- 0-2: Incorrect, irrelevant, or shows lack of knowledge (e.g., "don't know", very brief/vague answers)
+- 0-2: Incorrect, irrelevant, copying the question, or shows lack of knowledge (e.g., "don't know", very brief/vague answers)
 - 3-4: Partially correct but missing key concepts or has significant gaps
 - 5-6: Adequate answer covering basic concepts but lacking depth or examples
 - 7-8: Good answer with most key concepts and some depth
 - 9-10: Excellent answer with comprehensive coverage, examples, and deep understanding
 
-BE STRICT: Award low scores (0-2) for answers that show lack of knowledge, are too brief (< 30 words), or contain phrases like "I don't know", "not sure", etc.
+BE STRICT: Award low scores (0-2) for answers that show lack of knowledge, are too brief (< 30 words), contain phrases like "I don't know", "not sure", or are just repeating the question.
 
 Respond in JSON format:
 {

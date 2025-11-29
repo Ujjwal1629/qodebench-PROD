@@ -12,14 +12,14 @@ export const metadata = {
 
 export default async function SettingsPage() {
   return (
-    <div className="space-y-8">
+    <div className="space-y-4 sm:space-y-8 px-3 sm:px-0">
       <div className="flex items-center gap-3">
         <div className="rounded-lg bg-brand-100 p-2">
-          <Settings className="h-6 w-6 text-brand-600" />
+          <Settings className="h-5 w-5 sm:h-6 sm:w-6 text-brand-600" />
         </div>
-        <div>
-          <h1 className="text-4xl font-bold">Settings</h1>
-          <p className="text-muted-foreground">
+        <div className="min-w-0">
+          <h1 className="text-2xl sm:text-4xl font-bold break-words">Settings</h1>
+          <p className="text-sm sm:text-base text-muted-foreground break-words">
             Manage your account settings and preferences
           </p>
         </div>

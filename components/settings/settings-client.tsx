@@ -38,19 +38,22 @@ export function SettingsClient({ profile, email }: SettingsClientProps) {
   };
 
   return (
-    <Tabs defaultValue="profile" className="space-y-6">
+    <Tabs defaultValue="profile" className="space-y-4 sm:space-y-6">
       <TabsList className="grid w-full max-w-md grid-cols-3">
-        <TabsTrigger value="profile" className="flex items-center gap-2">
-          <User className="h-4 w-4" />
-          Profile
+        <TabsTrigger value="profile" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+          <User className="h-3 w-3 sm:h-4 sm:w-4" />
+          <span className="hidden sm:inline">Profile</span>
+          <span className="sm:hidden">Profile</span>
         </TabsTrigger>
-        <TabsTrigger value="account" className="flex items-center gap-2">
-          <Lock className="h-4 w-4" />
-          Account
+        <TabsTrigger value="account" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+          <Lock className="h-3 w-3 sm:h-4 sm:w-4" />
+          <span className="hidden sm:inline">Account</span>
+          <span className="sm:hidden">Account</span>
         </TabsTrigger>
-        <TabsTrigger value="subscription" className="flex items-center gap-2">
-          <Crown className="h-4 w-4" />
-          Subscription
+        <TabsTrigger value="subscription" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+          <Crown className="h-3 w-3 sm:h-4 sm:w-4" />
+          <span className="hidden sm:inline">Subscription</span>
+          <span className="sm:hidden">Sub</span>
         </TabsTrigger>
       </TabsList>
 
@@ -62,30 +65,30 @@ export function SettingsClient({ profile, email }: SettingsClientProps) {
         <AccountSettingsForm currentEmail={email} username={profile.username} />
       </TabsContent>
 
-      <TabsContent value="subscription" className="space-y-6">
+      <TabsContent value="subscription" className="space-y-4 sm:space-y-6">
         <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="flex items-center gap-2">
-                  {isPremium && <Crown className="h-5 w-5 text-primary" />}
+          <CardHeader className="p-4 sm:p-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              <div className="min-w-0">
+                <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                  {isPremium && <Crown className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />}
                   Current Plan
                 </CardTitle>
-                <CardDescription>Your subscription details and billing information</CardDescription>
+                <CardDescription className="text-xs sm:text-sm">Your subscription details and billing information</CardDescription>
               </div>
               {isPremium && (
-                <Badge variant="secondary" className="bg-primary/10 text-primary">
+                <Badge variant="secondary" className="bg-primary/10 text-primary text-xs flex-shrink-0">
                   <Crown className="h-3 w-3 mr-1" />
                   {subscriptionTier === 'launch_offer' ? 'Launch' : 'Pro'}
                 </Badge>
               )}
             </div>
           </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="grid gap-4">
-              <div className="flex justify-between items-center py-3 border-b">
-                <span className="text-sm font-medium">Subscription Tier</span>
-                <span className="text-sm text-muted-foreground capitalize">
+          <CardContent className="space-y-4 sm:space-y-6 p-4 sm:p-6">
+            <div className="grid gap-2 sm:gap-4">
+              <div className="flex flex-col sm:flex-row justify-between sm:items-center py-2 sm:py-3 border-b gap-1">
+                <span className="text-xs sm:text-sm font-medium">Subscription Tier</span>
+                <span className="text-xs sm:text-sm text-muted-foreground capitalize break-words">
                   {subscriptionTier === 'free' ? 'Free Tier' :
                    subscriptionTier === 'launch_offer' ? 'Launch Offer (₹199)' :
                    subscriptionTier === 'monthly' ? 'Monthly (₹999)' :
@@ -94,61 +97,61 @@ export function SettingsClient({ profile, email }: SettingsClientProps) {
                 </span>
               </div>
 
-              <div className="flex justify-between items-center py-3 border-b">
-                <span className="text-sm font-medium">Status</span>
-                <Badge variant={profile.subscription_status === 'active' || profile.subscription_status === 'trial' ? 'default' : 'secondary'}>
+              <div className="flex flex-col sm:flex-row justify-between sm:items-center py-2 sm:py-3 border-b gap-1">
+                <span className="text-xs sm:text-sm font-medium">Status</span>
+                <Badge variant={profile.subscription_status === 'active' || profile.subscription_status === 'trial' ? 'default' : 'secondary'} className="text-xs w-fit">
                   {profile.subscription_status || 'active'}
                 </Badge>
               </div>
 
               {profile.subscription_end_date && (
-                <div className="flex justify-between items-center py-3 border-b">
-                  <span className="text-sm font-medium">
+                <div className="flex flex-col sm:flex-row justify-between sm:items-center py-2 sm:py-3 border-b gap-1">
+                  <span className="text-xs sm:text-sm font-medium">
                     {subscriptionTier === 'launch_offer' ? 'Offer Expires' : 'Renews On'}
                   </span>
-                  <span className="text-sm text-muted-foreground">
+                  <span className="text-xs sm:text-sm text-muted-foreground break-words">
                     {formatDate(profile.subscription_end_date)}
                   </span>
                 </div>
               )}
 
               {subscriptionTier === 'free' && (
-                <div className="p-4 bg-muted rounded-lg">
-                  <p className="text-sm text-muted-foreground mb-3">
+                <div className="p-3 sm:p-4 bg-muted rounded-lg">
+                  <p className="text-xs sm:text-sm text-muted-foreground mb-2 sm:mb-3">
                     Upgrade to premium to unlock:
                   </p>
-                  <ul className="text-sm space-y-2">
+                  <ul className="text-xs sm:text-sm space-y-1.5 sm:space-y-2">
                     <li className="flex items-center gap-2">
-                      <Crown className="h-4 w-4 text-primary" />
-                      All challenges (beginner to advanced)
+                      <Crown className="h-3 w-3 sm:h-4 sm:w-4 text-primary flex-shrink-0" />
+                      <span className="break-words">All challenges (beginner to advanced)</span>
                     </li>
                     <li className="flex items-center gap-2">
-                      <Crown className="h-4 w-4 text-primary" />
-                      Interview prep mode with AI evaluation
+                      <Crown className="h-3 w-3 sm:h-4 sm:w-4 text-primary flex-shrink-0" />
+                      <span className="break-words">Interview prep mode with AI evaluation</span>
                     </li>
                     <li className="flex items-center gap-2">
-                      <Crown className="h-4 w-4 text-primary" />
-                      Unlimited attempts and AI feedback
+                      <Crown className="h-3 w-3 sm:h-4 sm:w-4 text-primary flex-shrink-0" />
+                      <span className="break-words">Unlimited attempts and AI feedback</span>
                     </li>
                   </ul>
                 </div>
               )}
             </div>
 
-            <div className="flex gap-3">
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
               <Button
                 onClick={() => router.push('/dashboard/settings/subscription')}
                 variant="outline"
-                className="flex-1"
+                className="flex-1 text-xs sm:text-sm"
               >
                 Manage Subscription
               </Button>
               {subscriptionTier === 'free' && (
                 <Button
                   onClick={() => router.push('/pricing')}
-                  className="flex-1"
+                  className="flex-1 text-xs sm:text-sm"
                 >
-                  <Crown className="mr-2 h-4 w-4" />
+                  <Crown className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
                   Upgrade Now
                 </Button>
               )}

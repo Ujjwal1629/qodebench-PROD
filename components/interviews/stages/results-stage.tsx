@@ -163,68 +163,55 @@ export default function ResultsStage({ sessionId }: ResultsStageProps) {
   }));
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6 px-3 sm:px-0">
       {/* Overall Score Card */}
-      <Card className="p-8 bg-gradient-to-r from-blue-50 to-purple-50">
-        <div className="flex items-center justify-between">
-          <div>
-            <div className="flex items-center gap-3 mb-2">
-              <Award className="h-8 w-8 text-amber-500" />
-              <h1 className="text-3xl font-bold">Interview Complete!</h1>
+      <Card className="p-4 sm:p-6 md:p-8 bg-gradient-to-r from-blue-50 to-purple-50">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 sm:gap-6">
+          <div className="w-full md:w-auto">
+            <div className="flex items-center gap-2 sm:gap-3 mb-2">
+              <Award className="h-6 w-6 sm:h-7 sm:w-7 md:h-8 md:w-8 text-amber-500" />
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">Interview Complete!</h1>
             </div>
-            <p className="text-lg text-muted-foreground mb-4">
+            <p className="text-sm sm:text-base md:text-lg text-muted-foreground mb-3 sm:mb-4">
               Congratulations on completing all stages of the interview
             </p>
-            <div className="flex items-center gap-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
               <div>
-                <p className="text-sm text-muted-foreground">Overall Score</p>
-                <p className={`text-5xl font-bold ${getPerformanceColor(report.overall_score)}`}>
+                <p className="text-xs sm:text-sm text-muted-foreground">Overall Score</p>
+                <p className={`text-3xl sm:text-4xl md:text-5xl font-bold ${getPerformanceColor(report.overall_score)}`}>
                   {report.overall_score.toFixed(1)}/10
                 </p>
               </div>
               <div>
                 <Badge
                   variant="outline"
-                  className={`text-lg px-4 py-2 ${getPerformanceBadge(report.performance_level)}`}
+                  className={`text-sm sm:text-base md:text-lg px-3 py-1.5 sm:px-4 sm:py-2 ${getPerformanceBadge(report.performance_level)}`}
                 >
                   {report.performance_level.replace('-', ' ').toUpperCase()}
                 </Badge>
               </div>
             </div>
           </div>
-          <div className="flex flex-col gap-3 text-right">
-            <Link href={`/dashboard/interviews/${sessionId}/report`}>
-              <Button size="lg" className="w-full">
-                <ExternalLink className="h-5 w-5 mr-2" />
+          <div className="flex flex-col gap-2 sm:gap-3 w-full md:w-auto">
+            <Link href={`/dashboard/interviews/${sessionId}/report`} className="w-full">
+              <Button size="lg" className="w-full text-sm sm:text-base">
+                <ExternalLink className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                 View Detailed Report
               </Button>
             </Link>
-            <Button onClick={handleDownloadPDF} size="lg" variant="outline" disabled={isGeneratingPDF}>
-              {isGeneratingPDF ? (
-                <>
-                  <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-                  Generating...
-                </>
-              ) : (
-                <>
-                  <Download className="h-5 w-5 mr-2" />
-                  Download PDF
-                </>
-              )}
-            </Button>
           </div>
         </div>
       </Card>
 
       {/* Charts Section */}
-      <div className="grid lg:grid-cols-2 gap-6">
+      <div className="grid lg:grid-cols-2 gap-3 sm:gap-4 md:gap-6">
         {/* Bar Chart */}
-        <Card className="p-6">
-          <div className="flex items-center gap-2 mb-4">
-            <BarChart3 className="h-5 w-5 text-blue-600" />
-            <h2 className="text-xl font-bold">Score Breakdown by Stage</h2>
+        <Card className="p-3 sm:p-4 md:p-6">
+          <div className="flex items-center gap-2 mb-3 sm:mb-4">
+            <BarChart3 className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
+            <h2 className="text-base sm:text-lg md:text-xl font-bold">Score Breakdown by Stage</h2>
           </div>
-          <ResponsiveContainer width="100%" height={300}>
+          <ResponsiveContainer width="100%" height={250}>
             <BarChart data={barChartData}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis
@@ -233,9 +220,9 @@ export default function ResultsStage({ sessionId }: ResultsStageProps) {
                 textAnchor="end"
                 height={80}
                 interval={0}
-                style={{ fontSize: '12px' }}
+                style={{ fontSize: '10px' }}
               />
-              <YAxis domain={[0, 10]} />
+              <YAxis domain={[0, 10]} style={{ fontSize: '10px' }} />
               <Tooltip />
               <Bar dataKey="score" fill="#3b82f6" radius={[8, 8, 0, 0]} />
             </BarChart>
@@ -243,17 +230,17 @@ export default function ResultsStage({ sessionId }: ResultsStageProps) {
         </Card>
 
         {/* Radar Chart */}
-        <Card className="p-6">
-          <div className="flex items-center gap-2 mb-4">
-            <TrendingUp className="h-5 w-5 text-purple-600" />
-            <h2 className="text-xl font-bold">Performance Radar</h2>
+        <Card className="p-3 sm:p-4 md:p-6">
+          <div className="flex items-center gap-2 mb-3 sm:mb-4">
+            <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 text-purple-600" />
+            <h2 className="text-base sm:text-lg md:text-xl font-bold">Performance Radar</h2>
           </div>
-          <ResponsiveContainer width="100%" height={300}>
+          <ResponsiveContainer width="100%" height={250}>
             <RadarChart data={radarChartData}>
               <PolarGrid />
               <PolarAngleAxis
                 dataKey="stage"
-                style={{ fontSize: '11px' }}
+                style={{ fontSize: '9px' }}
               />
               <PolarRadiusAxis angle={90} domain={[0, 100]} />
               <Radar
@@ -263,105 +250,56 @@ export default function ResultsStage({ sessionId }: ResultsStageProps) {
                 fill="#8b5cf6"
                 fillOpacity={0.6}
               />
-              <Legend />
+              <Legend wrapperStyle={{ fontSize: '11px' }} />
             </RadarChart>
           </ResponsiveContainer>
         </Card>
       </div>
 
       {/* Strengths and Improvements */}
-      <div className="grid lg:grid-cols-2 gap-6">
+      <div className="grid lg:grid-cols-2 gap-3 sm:gap-4 md:gap-6">
         {/* Strengths */}
-        <Card className="p-6 bg-green-50 border-green-200">
-          <div className="flex items-center gap-2 mb-4">
-            <TrendingUp className="h-5 w-5 text-green-600" />
-            <h2 className="text-xl font-bold text-green-900">Key Strengths</h2>
+        <Card className="p-3 sm:p-4 md:p-6 bg-green-50 border-green-200">
+          <div className="flex items-center gap-2 mb-3 sm:mb-4">
+            <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 text-green-600" />
+            <h2 className="text-base sm:text-lg md:text-xl font-bold text-green-900">Key Strengths</h2>
           </div>
-          <ul className="space-y-2">
+          <ul className="space-y-1.5 sm:space-y-2">
             {report.strengths.map((strength, idx) => (
               <li key={idx} className="flex items-start gap-2">
-                <CheckCircle2 className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
-                <span className="text-green-900">{strength}</span>
+                <CheckCircle2 className="h-4 w-4 sm:h-5 sm:w-5 text-green-600 mt-0.5 flex-shrink-0" />
+                <span className="text-green-900 text-xs sm:text-sm">{strength}</span>
               </li>
             ))}
           </ul>
         </Card>
 
         {/* Improvements */}
-        <Card className="p-6 bg-amber-50 border-amber-200">
-          <div className="flex items-center gap-2 mb-4">
-            <TrendingDown className="h-5 w-5 text-amber-600" />
-            <h2 className="text-xl font-bold text-amber-900">Areas for Improvement</h2>
+        <Card className="p-3 sm:p-4 md:p-6 bg-amber-50 border-amber-200">
+          <div className="flex items-center gap-2 mb-3 sm:mb-4">
+            <TrendingDown className="h-4 w-4 sm:h-5 sm:w-5 text-amber-600" />
+            <h2 className="text-base sm:text-lg md:text-xl font-bold text-amber-900">Areas for Improvement</h2>
           </div>
-          <ul className="space-y-2">
+          <ul className="space-y-1.5 sm:space-y-2">
             {report.improvements.map((improvement, idx) => (
               <li key={idx} className="flex items-start gap-2">
-                <FileText className="h-5 w-5 text-amber-600 mt-0.5 flex-shrink-0" />
-                <span className="text-amber-900">{improvement}</span>
+                <FileText className="h-4 w-4 sm:h-5 sm:w-5 text-amber-600 mt-0.5 flex-shrink-0" />
+                <span className="text-amber-900 text-xs sm:text-sm">{improvement}</span>
               </li>
             ))}
           </ul>
         </Card>
       </div>
 
-      {/* Detailed Feedback by Stage */}
-      <Card className="p-6">
-        <h2 className="text-xl font-bold mb-4">Detailed Feedback by Stage</h2>
-        <div className="space-y-6">
-          {report.detailed_feedback.map((stageFeedback, idx) => (
-            <div key={idx} className="border-b pb-6 last:border-b-0">
-              <h3 className="text-lg font-semibold mb-3 capitalize">
-                {stageFeedback.stage.replace(/_/g, ' ')}
-              </h3>
-              <div className="space-y-4">
-                {stageFeedback.responses.map((response, rIdx) => (
-                  <div key={rIdx} className="bg-slate-50 p-4 rounded-lg">
-                    <div className="flex items-center justify-between mb-2">
-                      <p className="font-medium text-sm">{response.question_text}</p>
-                      <Badge
-                        variant="secondary"
-                        className={getPerformanceColor(response.score)}
-                      >
-                        {response.score.toFixed(1)}/10
-                      </Badge>
-                    </div>
-                    <div className="grid md:grid-cols-2 gap-3 mt-3">
-                      <div>
-                        <p className="text-xs font-semibold text-green-700 mb-1">Strengths:</p>
-                        <ul className="text-xs text-green-800 space-y-0.5">
-                          {response.feedback.strengths.map((s, sIdx) => (
-                            <li key={sIdx}>• {s}</li>
-                          ))}
-                        </ul>
-                      </div>
-                      <div>
-                        <p className="text-xs font-semibold text-amber-700 mb-1">
-                          Improvements:
-                        </p>
-                        <ul className="text-xs text-amber-800 space-y-0.5">
-                          {response.feedback.improvements.map((i, iIdx) => (
-                            <li key={iIdx}>• {i}</li>
-                          ))}
-                        </ul>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-      </Card>
-
       {/* Stage Scores Summary */}
-      <Card className="p-6">
-        <h2 className="text-xl font-bold mb-4">Stage-wise Performance</h2>
-        <div className="space-y-3">
+      <Card className="p-3 sm:p-4 md:p-6">
+        <h2 className="text-base sm:text-lg md:text-xl font-bold mb-3 sm:mb-4">Stage-wise Performance</h2>
+        <div className="space-y-2 sm:space-y-3">
           {report.stage_scores.map((stage, idx) => (
             <div key={idx}>
-              <div className="flex items-center justify-between mb-2">
-                <span className="font-medium">{stage.title}</span>
-                <span className={`font-bold ${getPerformanceColor(stage.score)}`}>
+              <div className="flex items-center justify-between mb-1.5 sm:mb-2">
+                <span className="font-medium text-xs sm:text-sm">{stage.title}</span>
+                <span className={`font-bold text-xs sm:text-sm ${getPerformanceColor(stage.score)}`}>
                   {stage.score.toFixed(1)}/{stage.maxScore}
                 </span>
               </div>
@@ -372,22 +310,9 @@ export default function ResultsStage({ sessionId }: ResultsStageProps) {
       </Card>
 
       {/* Footer Actions */}
-      <div className="flex items-center justify-center gap-4">
-        <Button variant="outline" onClick={() => window.location.href = '/dashboard/interviews'}>
+      <div className="flex items-center justify-center pb-4">
+        <Button variant="outline" onClick={() => window.location.href = '/dashboard/interviews'} className="w-full sm:w-auto text-xs sm:text-sm">
           Back to Interviews
-        </Button>
-        <Button onClick={handleDownloadPDF} disabled={isGeneratingPDF}>
-          {isGeneratingPDF ? (
-            <>
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              Generating PDF...
-            </>
-          ) : (
-            <>
-              <Download className="h-4 w-4 mr-2" />
-              Download Report
-            </>
-          )}
         </Button>
       </div>
     </div>

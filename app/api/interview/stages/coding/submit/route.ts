@@ -180,13 +180,75 @@ export async function POST(request: NextRequest) {
     const supabase = await createClient();
 
     const body = await request.json();
-    const { sessionId, challengeId, code, language, timeTaken } = body;
+    const { sessionId, challengeId, code, language, timeTaken, hasPastedCode } = body;
 
     if (!sessionId || !challengeId || !code) {
       return NextResponse.json(
         { error: 'Missing required fields' },
         { status: 400 }
       );
+    }
+
+    // If pasting was detected, immediately return 0/10 score
+    if (hasPastedCode === true) {
+      console.log('Pasting detected for session:', sessionId);
+
+      // Still save submission but with 0 score
+      const { error: submissionError } = await supabase
+        .from('interview_coding_submissions')
+        .insert({
+          session_id: sessionId,
+          challenge_id: challengeId,
+          submitted_code: code,
+          test_results: [],
+          tests_passed: 0,
+          tests_total: 0,
+          code_quality_score: 0,
+          ai_feedback: {
+            feedback: 'Pasting detected. Pasting code is not allowed during the interview.',
+          },
+          time_taken_seconds: timeTaken || 0,
+          final_score: 0,
+        });
+
+      if (submissionError) {
+        console.error('Error saving submission:', submissionError);
+      }
+
+      // Update session with 0 score
+      const { data: session } = await supabase
+        .from('interview_sessions')
+        .select('stage_scores, stage_completion_times')
+        .eq('id', sessionId)
+        .single();
+
+      const updatedStageScores = {
+        ...(session?.stage_scores || {}),
+        stage_3: 0,
+      };
+
+      const updatedCompletionTimes = {
+        ...(session?.stage_completion_times || {}),
+        stage_3_coding: new Date().toISOString(),
+      };
+
+      await supabase
+        .from('interview_sessions')
+        .update({
+          current_stage: 'stage_4_text_qa',
+          stage_scores: updatedStageScores,
+          stage_completion_times: updatedCompletionTimes,
+        })
+        .eq('id', sessionId);
+
+      return NextResponse.json({
+        finalScore: 0,
+        testCaseScore: 0,
+        qualityScore: 0,
+        passedCount: 0,
+        totalTests: 0,
+        qualityFeedback: 'Pasting detected. Your score is 0/10 for this challenge.',
+      });
     }
 
     // Verify session

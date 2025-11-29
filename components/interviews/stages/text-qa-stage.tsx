@@ -206,43 +206,43 @@ export default function TextQAStage({ sessionId, experienceLevel, onComplete }: 
 
   if (!hasStarted) {
     return (
-      <Card className="p-8 max-w-3xl mx-auto">
-        <div className="text-center space-y-6">
-          <div className="bg-purple-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto">
-            <BookOpen className="h-10 w-10 text-purple-600" />
+      <Card className="p-4 sm:p-8 max-w-3xl mx-auto">
+        <div className="text-center space-y-4 sm:space-y-6">
+          <div className="bg-purple-100 w-16 h-16 sm:w-20 sm:h-20 rounded-full flex items-center justify-center mx-auto">
+            <BookOpen className="h-8 w-8 sm:h-10 sm:w-10 text-purple-600" />
           </div>
           <div>
-            <h2 className="text-2xl font-bold mb-2">Stage 4: Technical Concepts Q&A</h2>
-            <p className="text-muted-foreground">
+            <h2 className="text-xl sm:text-2xl font-bold mb-2">Stage 4: Technical Concepts Q&A</h2>
+            <p className="text-sm sm:text-base text-muted-foreground px-4">
               Demonstrate your understanding of core technical concepts
             </p>
           </div>
 
-          <div className="bg-slate-50 p-6 rounded-lg space-y-3 text-left">
-            <h3 className="font-semibold text-lg mb-4">What to expect:</h3>
-            <div className="flex items-start gap-3">
-              <BookOpen className="h-5 w-5 text-purple-600 mt-0.5" />
+          <div className="bg-slate-50 p-4 sm:p-6 rounded-lg space-y-3 text-left">
+            <h3 className="font-semibold text-base sm:text-lg mb-3 sm:mb-4">What to expect:</h3>
+            <div className="flex items-start gap-2 sm:gap-3">
+              <BookOpen className="h-4 w-4 sm:h-5 sm:w-5 text-purple-600 mt-0.5 flex-shrink-0" />
               <div>
-                <p className="font-medium">Questions</p>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm sm:text-base font-medium">Questions</p>
+                <p className="text-xs sm:text-sm text-muted-foreground">
                   {questions.length} technical concept questions
                 </p>
               </div>
             </div>
-            <div className="flex items-start gap-3">
-              <Clock className="h-5 w-5 text-blue-600 mt-0.5" />
+            <div className="flex items-start gap-2 sm:gap-3">
+              <Clock className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600 mt-0.5 flex-shrink-0" />
               <div>
-                <p className="font-medium">Time Limit</p>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm sm:text-base font-medium">Time Limit</p>
+                <p className="text-xs sm:text-sm text-muted-foreground">
                   {Math.floor(totalTime / 60)} minutes
                 </p>
               </div>
             </div>
-            <div className="flex items-start gap-3">
-              <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5" />
+            <div className="flex items-start gap-2 sm:gap-3">
+              <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5 text-amber-600 mt-0.5 flex-shrink-0" />
               <div>
-                <p className="font-medium">Tips</p>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm sm:text-base font-medium">Tips</p>
+                <p className="text-xs sm:text-sm text-muted-foreground">
                   Write clear, concise answers covering key concepts and real-world examples
                 </p>
               </div>
@@ -261,35 +261,35 @@ export default function TextQAStage({ sessionId, experienceLevel, onComplete }: 
   const progress = (answeredCount / questions.length) * 100;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3 sm:space-y-4">
       {/* Header with Timer and Progress */}
-      <Card className="p-4">
-        <div className="flex items-center justify-between mb-3">
+      <Card className="p-3 sm:p-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-3">
           <div>
-            <h2 className="text-xl font-bold">Technical Concepts Q&A</h2>
-            <Badge variant="secondary" className="capitalize mt-1">
+            <h2 className="text-lg sm:text-xl font-bold">Technical Concepts Q&A</h2>
+            <Badge variant="secondary" className="capitalize mt-1 text-xs">
               {experienceLevel} Level
             </Badge>
           </div>
-          <div className="flex items-center gap-4">
-            <div className="text-right">
-              <p className="text-sm text-muted-foreground">Answered</p>
-              <p className="text-lg font-bold">
+          <div className="flex items-center gap-3 sm:gap-4 w-full sm:w-auto justify-between sm:justify-end">
+            <div className="text-center sm:text-right">
+              <p className="text-xs sm:text-sm text-muted-foreground">Answered</p>
+              <p className="text-base sm:text-lg font-bold">
                 {answeredCount}/{questions.length}
               </p>
             </div>
-            <div className="text-right">
-              <div className="flex items-center gap-2">
-                <Clock className="h-5 w-5 text-blue-600" />
+            <div className="text-center sm:text-right">
+              <div className="flex items-center gap-1 sm:gap-2">
+                <Clock className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
                 <span
-                  className={`text-2xl font-bold ${
+                  className={`text-xl sm:text-2xl font-bold ${
                     timeLeft < 300 ? 'text-red-600' : 'text-blue-600'
                   }`}
                 >
                   {formatTime(timeLeft)}
                 </span>
               </div>
-              <p className="text-xs text-muted-foreground">Time Remaining</p>
+              <p className="text-[10px] sm:text-xs text-muted-foreground">Time Remaining</p>
             </div>
           </div>
         </div>
@@ -297,23 +297,23 @@ export default function TextQAStage({ sessionId, experienceLevel, onComplete }: 
       </Card>
 
       {/* Question Card */}
-      <Card className="p-6">
+      <Card className="p-4 sm:p-6">
         <div className="mb-4">
-          <div className="flex items-center justify-between mb-4">
-            <Badge variant="outline">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0 mb-3 sm:mb-4">
+            <Badge variant="outline" className="text-xs">
               Question {currentQuestionIndex + 1} of {questions.length}
             </Badge>
-            <Badge variant="secondary">{currentQuestion.question_type}</Badge>
+            <Badge variant="secondary" className="text-xs">{currentQuestion.question_type}</Badge>
           </div>
-          <h3 className="text-lg font-semibold mb-4">{currentQuestion.question_text}</h3>
+          <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4">{currentQuestion.question_text}</h3>
 
-          <div className="bg-blue-50 p-4 rounded-lg mb-4">
-            <p className="text-sm font-medium mb-2 text-blue-900">
+          <div className="bg-blue-50 p-3 sm:p-4 rounded-lg mb-3 sm:mb-4">
+            <p className="text-xs sm:text-sm font-medium mb-2 text-blue-900">
               Key concepts to cover:
             </p>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-1.5 sm:gap-2">
               {currentQuestion.key_concepts.map((concept, idx) => (
-                <Badge key={idx} variant="secondary" className="text-xs">
+                <Badge key={idx} variant="secondary" className="text-[10px] sm:text-xs">
                   {concept}
                 </Badge>
               ))}
@@ -321,23 +321,24 @@ export default function TextQAStage({ sessionId, experienceLevel, onComplete }: 
           </div>
 
           {/* Voice Input Section */}
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <label className="font-medium text-sm">Your Answer</label>
+          <div className="space-y-2 sm:space-y-3">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+              <label className="font-medium text-xs sm:text-sm">Your Answer</label>
               <Button
                 variant={isRecording ? 'destructive' : 'outline'}
                 size="sm"
                 onClick={handleToggleVoice}
                 disabled={isSubmitting || isTranscribing}
+                className="w-full sm:w-auto text-xs sm:text-sm"
               >
                 {isRecording ? (
                   <>
-                    <MicOff className="h-4 w-4 mr-2" />
+                    <MicOff className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
                     Stop Recording
                   </>
                 ) : (
                   <>
-                    <Mic className="h-4 w-4 mr-2" />
+                    <Mic className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
                     Start Voice Input
                   </>
                 )}
@@ -393,23 +394,25 @@ export default function TextQAStage({ sessionId, experienceLevel, onComplete }: 
         </div>
 
         {/* Navigation */}
-        <div className="flex items-center justify-between border-t pt-4">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between border-t pt-3 sm:pt-4 gap-3">
           <Button
             onClick={() => setCurrentQuestionIndex((prev) => Math.max(0, prev - 1))}
             disabled={currentQuestionIndex === 0 || isSubmitting}
             variant="outline"
+            className="w-full sm:w-auto order-2 sm:order-1"
+            size="sm"
           >
-            <ChevronLeft className="h-4 w-4 mr-2" />
+            <ChevronLeft className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
             Previous
           </Button>
 
-          <div className="flex gap-2">
+          <div className="flex gap-1.5 sm:gap-2 overflow-x-auto justify-center py-1 order-1 sm:order-2">
             {questions.map((_, idx) => (
               <button
                 key={idx}
                 onClick={() => setCurrentQuestionIndex(idx)}
                 disabled={isSubmitting}
-                className={`w-8 h-8 rounded-full text-sm font-medium transition-colors ${
+                className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full text-xs sm:text-sm font-medium transition-colors flex-shrink-0 ${
                   idx === currentQuestionIndex
                     ? 'bg-blue-600 text-white'
                     : responses[questions[idx].id]
@@ -426,15 +429,17 @@ export default function TextQAStage({ sessionId, experienceLevel, onComplete }: 
             <Button
               onClick={handleSubmit}
               disabled={isSubmitting || answeredCount < questions.length}
+              className="w-full sm:w-auto order-3"
+              size="sm"
             >
               {isSubmitting ? (
                 <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  <Loader2 className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2 animate-spin" />
                   Submitting...
                 </>
               ) : (
                 <>
-                  <Send className="h-4 w-4 mr-2" />
+                  <Send className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
                   Submit Answers
                 </>
               )}
@@ -445,21 +450,23 @@ export default function TextQAStage({ sessionId, experienceLevel, onComplete }: 
                 setCurrentQuestionIndex((prev) => Math.min(questions.length - 1, prev + 1))
               }
               disabled={isSubmitting}
+              className="w-full sm:w-auto order-3"
+              size="sm"
             >
               Next
-              <ChevronRight className="h-4 w-4 ml-2" />
+              <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4 ml-1 sm:ml-2" />
             </Button>
           )}
         </div>
       </Card>
 
       {/* Quick Tips */}
-      <Card className="p-4 bg-amber-50 border-amber-200">
-        <div className="flex items-start gap-3">
-          <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5" />
+      <Card className="p-3 sm:p-4 bg-amber-50 border-amber-200">
+        <div className="flex items-start gap-2 sm:gap-3">
+          <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5 text-amber-600 mt-0.5 flex-shrink-0" />
           <div>
-            <p className="font-medium text-amber-900 mb-1">Writing Tips</p>
-            <ul className="text-sm text-amber-800 space-y-1">
+            <p className="text-sm sm:text-base font-medium text-amber-900 mb-1">Writing Tips</p>
+            <ul className="text-xs sm:text-sm text-amber-800 space-y-0.5 sm:space-y-1">
               <li>• Cover all key concepts mentioned in the blue box</li>
               <li>• Include real-world examples or use cases</li>
               <li>• Explain trade-offs and considerations</li>

@@ -61,6 +61,7 @@ export default function CodingStage({ sessionId, experienceLevel, onComplete }: 
   const [testResults, setTestResults] = useState<TestResult[]>([]);
   const [consoleOutput, setConsoleOutput] = useState<string[]>([]);
   const [hasStarted, setHasStarted] = useState(false);
+  const [hasPastedCode, setHasPastedCode] = useState(false);
 
   // Fetch coding challenge
   useEffect(() => {
@@ -152,6 +153,11 @@ export default function CodingStage({ sessionId, experienceLevel, onComplete }: 
   const handleSubmit = async () => {
     if (isSubmitting) return;
 
+    // Warn user if they pasted code
+    if (hasPastedCode) {
+      toast.error('You pasted code during this challenge. Your score will be 0/10.');
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -160,6 +166,7 @@ export default function CodingStage({ sessionId, experienceLevel, onComplete }: 
         challengeId: challenge?.id,
         codeLength: code.length,
         language: challenge?.language,
+        hasPastedCode,
       });
 
       const response = await fetch('/api/interview/stages/coding/submit', {
@@ -171,6 +178,7 @@ export default function CodingStage({ sessionId, experienceLevel, onComplete }: 
           code,
           language: challenge?.language,
           timeTaken: (challenge?.time_limit_minutes || 30) * 60 - timeLeft,
+          hasPastedCode, // Send paste detection flag
         }),
       });
 
@@ -184,7 +192,12 @@ export default function CodingStage({ sessionId, experienceLevel, onComplete }: 
 
       const data = await response.json();
       console.log('Submit success:', data);
-      toast.success('Stage 3 completed successfully!');
+
+      if (hasPastedCode) {
+        toast.success('Stage 3 submitted - Score: 0/10 (Pasting detected)');
+      } else {
+        toast.success('Stage 3 completed successfully!');
+      }
 
       // Reset submitting state before calling onComplete
       setIsSubmitting(false);
@@ -209,41 +222,41 @@ export default function CodingStage({ sessionId, experienceLevel, onComplete }: 
 
   if (!hasStarted) {
     return (
-      <Card className="p-8 max-w-3xl mx-auto">
-        <div className="text-center space-y-6">
-          <div className="bg-green-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto">
-            <Code2 className="h-10 w-10 text-green-600" />
+      <Card className="p-4 sm:p-8 max-w-3xl mx-auto">
+        <div className="text-center space-y-4 sm:space-y-6">
+          <div className="bg-green-100 w-16 h-16 sm:w-20 sm:h-20 rounded-full flex items-center justify-center mx-auto">
+            <Code2 className="h-8 w-8 sm:h-10 sm:w-10 text-green-600" />
           </div>
           <div>
-            <h2 className="text-2xl font-bold mb-2">Stage 3: Live Coding Challenge</h2>
-            <p className="text-muted-foreground">
+            <h2 className="text-xl sm:text-2xl font-bold mb-2">Stage 3: Live Coding Challenge</h2>
+            <p className="text-sm sm:text-base text-muted-foreground px-4">
               Solve a real-world coding problem with test cases
             </p>
           </div>
 
-          <div className="bg-slate-50 p-6 rounded-lg space-y-3 text-left">
-            <h3 className="font-semibold text-lg mb-4">Challenge: {challenge.title}</h3>
-            <div className="flex items-start gap-3">
-              <Clock className="h-5 w-5 text-blue-600 mt-0.5" />
+          <div className="bg-slate-50 p-4 sm:p-6 rounded-lg space-y-3 text-left">
+            <h3 className="font-semibold text-base sm:text-lg mb-3 sm:mb-4">Challenge: {challenge.title}</h3>
+            <div className="flex items-start gap-2 sm:gap-3">
+              <Clock className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600 mt-0.5 flex-shrink-0" />
               <div>
-                <p className="font-medium">Time Limit</p>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm sm:text-base font-medium">Time Limit</p>
+                <p className="text-xs sm:text-sm text-muted-foreground">
                   {challenge.time_limit_minutes} minutes
                 </p>
               </div>
             </div>
-            <div className="flex items-start gap-3">
-              <Code2 className="h-5 w-5 text-green-600 mt-0.5" />
+            <div className="flex items-start gap-2 sm:gap-3">
+              <Code2 className="h-4 w-4 sm:h-5 sm:w-5 text-green-600 mt-0.5 flex-shrink-0" />
               <div>
-                <p className="font-medium">Language</p>
-                <p className="text-sm text-muted-foreground capitalize">{challenge.language}</p>
+                <p className="text-sm sm:text-base font-medium">Language</p>
+                <p className="text-xs sm:text-sm text-muted-foreground capitalize">{challenge.language}</p>
               </div>
             </div>
-            <div className="flex items-start gap-3">
-              <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5" />
+            <div className="flex items-start gap-2 sm:gap-3">
+              <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5 text-amber-600 mt-0.5 flex-shrink-0" />
               <div>
-                <p className="font-medium">Test Cases</p>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm sm:text-base font-medium">Test Cases</p>
+                <p className="text-xs sm:text-sm text-muted-foreground">
                   Some test cases are hidden until submission
                 </p>
               </div>
@@ -262,46 +275,61 @@ export default function CodingStage({ sessionId, experienceLevel, onComplete }: 
   const visibleTests = testResults.filter(r => !r.isHidden).length;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3 sm:space-y-4 px-3 sm:px-0">
       {/* Header with Timer */}
-      <Card className="p-4">
-        <div className="flex items-center justify-between">
+      <Card className="p-3 sm:p-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div>
-            <h2 className="text-xl font-bold">{challenge.title}</h2>
-            <Badge variant="secondary" className="capitalize mt-1">
+            <h2 className="text-lg sm:text-xl font-bold">{challenge.title}</h2>
+            <Badge variant="secondary" className="capitalize mt-1 text-xs">
               {challenge.language}
             </Badge>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3 sm:gap-4 w-full sm:w-auto justify-between sm:justify-end">
             {testResults.length > 0 && (
-              <div className="text-right">
-                <p className="text-sm text-muted-foreground">Tests Passed</p>
-                <p className="text-lg font-bold">
+              <div className="text-center sm:text-right">
+                <p className="text-xs sm:text-sm text-muted-foreground">Tests Passed</p>
+                <p className="text-base sm:text-lg font-bold">
                   {passedTests}/{visibleTests}
                 </p>
               </div>
             )}
-            <div className="text-right">
-              <div className="flex items-center gap-2">
-                <Clock className="h-5 w-5 text-blue-600" />
+            <div className="text-center sm:text-right">
+              <div className="flex items-center gap-1 sm:gap-2">
+                <Clock className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
                 <span
-                  className={`text-2xl font-bold ${
+                  className={`text-xl sm:text-2xl font-bold ${
                     timeLeft < 300 ? 'text-red-600' : 'text-blue-600'
                   }`}
                 >
                   {formatTime(timeLeft)}
                 </span>
               </div>
-              <p className="text-xs text-muted-foreground">Time Remaining</p>
+              <p className="text-[10px] sm:text-xs text-muted-foreground">Time Remaining</p>
             </div>
           </div>
         </div>
       </Card>
 
+      {/* Paste Warning Banner */}
+      {hasPastedCode && (
+        <Card className="p-3 sm:p-4 bg-red-50 border-red-300">
+          <div className="flex items-start gap-2 sm:gap-3">
+            <AlertCircle className="h-5 w-5 text-red-600 mt-0.5 flex-shrink-0" />
+            <div>
+              <p className="font-semibold text-red-900 text-sm sm:text-base">Pasting Detected</p>
+              <p className="text-red-800 text-xs sm:text-sm mt-1">
+                You attempted to paste code. This is not allowed during the interview. Your score for this challenge will be 0/10.
+              </p>
+            </div>
+          </div>
+        </Card>
+      )}
+
       {/* Main Content - Split View */}
-      <div className="grid lg:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
         {/* Left: Problem Description */}
-        <Card className="p-6">
+        <Card className="p-4 sm:p-6">
           <Tabs defaultValue="description">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="description">Description</TabsTrigger>
@@ -334,25 +362,26 @@ export default function CodingStage({ sessionId, experienceLevel, onComplete }: 
         </Card>
 
         {/* Right: Code Editor + Results */}
-        <div className="space-y-4">
-          <Card className="p-4">
-            <div className="mb-2 flex items-center justify-between">
-              <p className="text-sm font-medium">Your Solution</p>
-              <div className="flex gap-2">
+        <div className="space-y-3 sm:space-y-4">
+          <Card className="p-3 sm:p-4">
+            <div className="mb-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0">
+              <p className="text-xs sm:text-sm font-medium">Your Solution</p>
+              <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                 <Button
                   onClick={handleRunTests}
                   disabled={isRunning || isSubmitting}
                   size="sm"
                   variant="outline"
+                  className="w-full sm:w-auto text-xs sm:text-sm"
                 >
                   {isRunning ? (
                     <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      <Loader2 className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2 animate-spin" />
                       Running...
                     </>
                   ) : (
                     <>
-                      <Play className="h-4 w-4 mr-2" />
+                      <Play className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
                       Run Tests
                     </>
                   )}
@@ -361,15 +390,16 @@ export default function CodingStage({ sessionId, experienceLevel, onComplete }: 
                   onClick={handleSubmit}
                   disabled={isSubmitting || isRunning}
                   size="sm"
+                  className="w-full sm:w-auto text-xs sm:text-sm"
                 >
                   {isSubmitting ? (
                     <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      <Loader2 className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2 animate-spin" />
                       Submitting...
                     </>
                   ) : (
                     <>
-                      <Send className="h-4 w-4 mr-2" />
+                      <Send className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
                       Submit
                     </>
                   )}
@@ -377,7 +407,7 @@ export default function CodingStage({ sessionId, experienceLevel, onComplete }: 
               </div>
             </div>
             <div
-              className="border rounded-lg overflow-hidden"
+              className="border rounded-lg overflow-hidden overflow-x-auto"
               onCopy={(e) => {
                 e.preventDefault();
                 toast.error('Copying is disabled during the interview');
@@ -388,52 +418,56 @@ export default function CodingStage({ sessionId, experienceLevel, onComplete }: 
               }}
               onPaste={(e) => {
                 e.preventDefault();
-                toast.error('Pasting is disabled during the interview');
+                setHasPastedCode(true);
+                toast.error('Pasting detected! Your score will be 0/10 for this challenge.');
               }}
             >
-              <CodeMirror
-                value={code}
-                height="400px"
-                theme={oneDark}
-                extensions={[javascript({ jsx: true, typescript: challenge.language === 'typescript' })]}
-                onChange={(value) => setCode(value)}
-              />
+              <div className="min-w-0">
+                <CodeMirror
+                  value={code}
+                  height="300px"
+                  theme={oneDark}
+                  extensions={[javascript({ jsx: true, typescript: challenge.language === 'typescript' })]}
+                  onChange={(value) => setCode(value)}
+                  className="text-xs sm:text-sm"
+                />
+              </div>
             </div>
           </Card>
 
           {/* Test Results */}
           {testResults.length > 0 && (
-            <Card className="p-4">
-              <h3 className="font-semibold mb-3">Test Results</h3>
+            <Card className="p-3 sm:p-4">
+              <h3 className="text-sm sm:text-base font-semibold mb-2 sm:mb-3">Test Results</h3>
               <div className="space-y-2 max-h-[200px] overflow-y-auto">
                 {testResults
                   .filter(r => !r.isHidden)
                   .map((result, idx) => (
                     <div
                       key={idx}
-                      className={`p-3 rounded-lg text-sm ${
+                      className={`p-2 sm:p-3 rounded-lg text-xs sm:text-sm ${
                         result.passed ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'
                       }`}
                     >
-                      <div className="flex items-center gap-2 mb-1">
+                      <div className="flex items-center gap-1.5 sm:gap-2 mb-1">
                         {result.passed ? (
-                          <CheckCircle2 className="h-4 w-4 text-green-600" />
+                          <CheckCircle2 className="h-3 w-3 sm:h-4 sm:w-4 text-green-600 flex-shrink-0" />
                         ) : (
-                          <XCircle className="h-4 w-4 text-red-600" />
+                          <XCircle className="h-3 w-3 sm:h-4 sm:w-4 text-red-600 flex-shrink-0" />
                         )}
-                        <span className="font-medium">Test {idx + 1}</span>
+                        <span className="font-medium text-xs sm:text-sm">Test {idx + 1}</span>
                       </div>
-                      <p className="text-muted-foreground text-xs">
+                      <p className="text-muted-foreground text-[10px] sm:text-xs break-all">
                         Input: {JSON.stringify(result.input)}
                       </p>
-                      <p className="text-muted-foreground text-xs">
+                      <p className="text-muted-foreground text-[10px] sm:text-xs break-all">
                         Expected: {JSON.stringify(result.expected)}
                       </p>
-                      <p className="text-muted-foreground text-xs">
+                      <p className="text-muted-foreground text-[10px] sm:text-xs break-all">
                         Got: {JSON.stringify(result.actual)}
                       </p>
                       {result.error && (
-                        <p className="text-red-600 text-xs mt-1">{result.error}</p>
+                        <p className="text-red-600 text-[10px] sm:text-xs mt-1 break-all">{result.error}</p>
                       )}
                     </div>
                   ))}
@@ -443,11 +477,11 @@ export default function CodingStage({ sessionId, experienceLevel, onComplete }: 
 
           {/* Console Output */}
           {consoleOutput.length > 0 && (
-            <Card className="p-4">
-              <h3 className="font-semibold mb-2">Console Output</h3>
-              <div className="bg-black text-green-400 p-3 rounded font-mono text-xs max-h-[150px] overflow-y-auto">
+            <Card className="p-3 sm:p-4">
+              <h3 className="text-sm sm:text-base font-semibold mb-2">Console Output</h3>
+              <div className="bg-black text-green-400 p-2 sm:p-3 rounded font-mono text-[10px] sm:text-xs max-h-[150px] overflow-y-auto overflow-x-auto">
                 {consoleOutput.map((line, idx) => (
-                  <div key={idx}>{line}</div>
+                  <div key={idx} className="break-all">{line}</div>
                 ))}
               </div>
             </Card>

@@ -172,15 +172,15 @@ export function ValidationResultsModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[90vh] p-0 gap-0 overflow-hidden">
+      <DialogContent className="max-w-3xl max-h-[85vh] p-0 gap-0 overflow-hidden w-[95vw] sm:w-full rounded-2xl">
         {/* Header with Score */}
-        <DialogHeader className={`p-6 border-b bg-gradient-to-r ${getScoreColor()}`}>
-          <div className="flex items-center justify-between">
-            <div className="flex-1">
-              <DialogTitle className="text-2xl font-bold text-white mb-2">
+        <DialogHeader className={`p-4 sm:p-6 border-b bg-gradient-to-r ${getScoreColor()} rounded-t-2xl`}>
+          <div className="flex flex-col sm:flex-row items-center sm:items-center gap-4 sm:justify-between">
+            <div className="flex-1 text-center sm:text-left">
+              <DialogTitle className="text-lg sm:text-2xl font-bold text-white mb-1 sm:mb-2">
                 {getHeaderTitle()}
               </DialogTitle>
-              <p className="text-sm text-white/90">
+              <p className="text-xs sm:text-sm text-white/90">
                 {getHeaderSubtitle()}
               </p>
             </div>
@@ -190,41 +190,41 @@ export function ValidationResultsModal({
               initial={{ scale: 0, rotate: -180 }}
               animate={{ scale: 1, rotate: 0 }}
               transition={{ type: 'spring', stiffness: 200, delay: 0.2 }}
-              className={`relative ${getScoreBorderColor()} border-4 rounded-full w-28 h-28 flex items-center justify-center shadow-2xl`}
+              className={`relative ${getScoreBorderColor()} border-4 rounded-full w-20 h-20 sm:w-28 sm:h-28 flex items-center justify-center shadow-2xl flex-shrink-0`}
             >
               <div className="text-center">
                 <motion.div
                   key={animatedScore}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="text-4xl font-bold"
+                  className="text-2xl sm:text-4xl font-bold"
                 >
                   {animatedScore}
                 </motion.div>
-                <div className="text-xs font-semibold opacity-75">/{maxPoints}</div>
+                <div className="text-[10px] sm:text-xs font-semibold opacity-75">/{maxPoints}</div>
               </div>
             </motion.div>
           </div>
 
           {/* Test Summary Bar */}
           {testResults && (
-            <div className="mt-4 bg-white/10 backdrop-blur-sm rounded-lg p-3 flex items-center justify-between text-white">
+            <div className="mt-4 bg-white/10 backdrop-blur-sm rounded-lg p-2 sm:p-3 flex flex-col sm:flex-row items-center sm:justify-between gap-2 sm:gap-0 text-white">
               <div className="flex items-center gap-2">
-                <Trophy className="h-5 w-5" />
-                <span className="font-semibold">Test Results:</span>
+                <Trophy className="h-4 w-4 sm:h-5 sm:w-5" />
+                <span className="text-sm sm:text-base font-semibold">Test Results:</span>
               </div>
-              <div className="flex items-center gap-4 text-sm">
+              <div className="flex items-center gap-3 sm:gap-4 text-xs sm:text-sm">
                 <div className="flex items-center gap-1">
-                  <CheckCircle2 className="h-4 w-4" />
+                  <CheckCircle2 className="h-3 w-3 sm:h-4 sm:w-4" />
                   <span className="font-bold">{testResults.passed}</span>
                   <span className="opacity-75">passed</span>
                 </div>
                 <div className="flex items-center gap-1">
-                  <XCircle className="h-4 w-4" />
+                  <XCircle className="h-3 w-3 sm:h-4 sm:w-4" />
                   <span className="font-bold">{testResults.failed}</span>
                   <span className="opacity-75">failed</span>
                 </div>
-                <div className="font-mono bg-white/20 px-2 py-1 rounded">
+                <div className="font-mono bg-white/20 px-2 py-1 rounded text-xs sm:text-sm">
                   {testResults.passed}/{testResults.total}
                 </div>
               </div>
@@ -233,83 +233,83 @@ export function ValidationResultsModal({
         </DialogHeader>
 
         {/* Scrollable Content - Test Cases */}
-        <ScrollArea className="h-[calc(90vh-320px)] p-6">
-          <div className="space-y-4">
+        <ScrollArea className="max-h-[45vh] overflow-y-auto p-3 sm:p-6">
+          <div className="space-y-3 sm:space-y-4">
             {testResults && testResults.details.map((test, index) => (
               <motion.div
                 key={index}
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.1 * index }}
-                className={`rounded-xl border-2 p-5 ${
+                className={`rounded-xl border-2 p-3 sm:p-5 ${
                   test.passed
                     ? 'bg-green-50 border-green-200'
                     : 'bg-red-50 border-red-200'
                 }`}
               >
                 {/* Test Header */}
-                <div className="flex items-start gap-3 mb-4">
-                  <div className={`p-2 rounded-lg ${
+                <div className="flex items-start gap-2 sm:gap-3 mb-3 sm:mb-4">
+                  <div className={`p-1.5 sm:p-2 rounded-lg flex-shrink-0 ${
                     test.passed ? 'bg-green-500' : 'bg-red-500'
                   }`}>
                     {test.passed ? (
-                      <CheckCircle2 className="h-5 w-5 text-white" />
+                      <CheckCircle2 className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
                     ) : (
-                      <XCircle className="h-5 w-5 text-white" />
+                      <XCircle className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
                     )}
                   </div>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className={`text-xs font-bold px-2 py-0.5 rounded ${
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1 flex-wrap">
+                      <span className={`text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded ${
                         test.passed
                           ? 'bg-green-200 text-green-800'
                           : 'bg-red-200 text-red-800'
                       }`}>
                         Test #{index + 1}
                       </span>
-                      <span className={`text-xs font-semibold ${
+                      <span className={`text-[10px] sm:text-xs font-semibold ${
                         test.passed ? 'text-green-700' : 'text-red-700'
                       }`}>
                         {test.passed ? 'PASSED' : 'FAILED'}
                       </span>
                     </div>
-                    <h4 className="font-semibold text-gray-900">
+                    <h4 className="text-sm sm:text-base font-semibold text-gray-900">
                       {test.description}
                     </h4>
                   </div>
                 </div>
 
                 {/* Test Details */}
-                <div className="space-y-3 ml-14">
+                <div className="space-y-2 sm:space-y-3 ml-0 sm:ml-14">
                   {/* Input */}
-                  <div className="bg-white rounded-lg p-3 border border-gray-200">
-                    <div className="text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">
+                  <div className="bg-white rounded-lg p-2 sm:p-3 border border-gray-200">
+                    <div className="text-[10px] sm:text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">
                       Input:
                     </div>
-                    <code className="text-sm text-gray-900 font-mono">
+                    <code className="text-xs sm:text-sm text-gray-900 font-mono break-all">
                       {JSON.stringify(test.input)}
                     </code>
                   </div>
 
                   {/* Expected vs Actual */}
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="bg-white rounded-lg p-3 border border-green-200">
-                      <div className="text-xs font-semibold text-green-600 mb-1 uppercase tracking-wide">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
+                    <div className="bg-white rounded-lg p-2 sm:p-3 border border-green-200">
+                      <div className="text-[10px] sm:text-xs font-semibold text-green-600 mb-1 uppercase tracking-wide">
                         Expected:
                       </div>
-                      <code className="text-sm text-gray-900 font-mono break-all">
+                      <code className="text-xs sm:text-sm text-gray-900 font-mono break-all">
                         {JSON.stringify(test.expected)}
                       </code>
                     </div>
-                    <div className={`bg-white rounded-lg p-3 border ${
+                    <div className={`bg-white rounded-lg p-2 sm:p-3 border ${
                       test.passed ? 'border-green-200' : 'border-red-200'
                     }`}>
-                      <div className={`text-xs font-semibold mb-1 uppercase tracking-wide ${
+                      <div className={`text-[10px] sm:text-xs font-semibold mb-1 uppercase tracking-wide ${
                         test.passed ? 'text-green-600' : 'text-red-600'
                       }`}>
                         Your Output:
                       </div>
-                      <code className="text-sm text-gray-900 font-mono break-all">
+                      <code className="text-xs sm:text-sm text-gray-900 font-mono break-all">
                         {test.actual !== null && test.actual !== undefined
                           ? JSON.stringify(test.actual)
                           : 'null'}
@@ -319,11 +319,11 @@ export function ValidationResultsModal({
 
                   {/* Error Message */}
                   {test.error && (
-                    <div className="bg-red-100 border border-red-300 rounded-lg p-3">
-                      <div className="text-xs font-semibold text-red-800 mb-1 uppercase tracking-wide">
+                    <div className="bg-red-100 border border-red-300 rounded-lg p-2 sm:p-3">
+                      <div className="text-[10px] sm:text-xs font-semibold text-red-800 mb-1 uppercase tracking-wide">
                         Error:
                       </div>
-                      <code className="text-sm text-red-700 font-mono">
+                      <code className="text-xs sm:text-sm text-red-700 font-mono break-all">
                         {test.error}
                       </code>
                     </div>
@@ -735,11 +735,12 @@ export function ValidationResultsModal({
         </ScrollArea>
 
         {/* Footer with Actions */}
-        <DialogFooter className="p-6 border-t bg-gray-50 flex-row justify-between items-center">
+        <DialogFooter className="p-3 sm:p-6 border-t bg-gray-50 flex-col sm:flex-row gap-3 sm:gap-4 justify-between items-stretch sm:items-center rounded-b-2xl">
           <Button
             variant="outline"
             onClick={onTryAgain}
-            className="border-2"
+            className="border-2 w-full sm:w-auto rounded-xl"
+            size="default"
           >
             Try Again
           </Button>
@@ -748,17 +749,17 @@ export function ValidationResultsModal({
             <Button
               onClick={onSubmit}
               disabled={isSubmitting}
-              className="bg-gradient-to-r from-green-600 to-emerald-700 hover:from-green-700 hover:to-emerald-800 text-white shadow-md"
-              size="lg"
+              className="bg-gradient-to-r from-green-600 to-emerald-700 hover:from-green-700 hover:to-emerald-800 text-white shadow-md w-full sm:w-auto rounded-xl"
+              size="default"
             >
               {isSubmitting ? (
                 <>
-                  <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                  <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 mr-2 animate-spin" />
                   Submitting...
                 </>
               ) : (
                 <>
-                  <CheckCircle2 className="h-5 w-5 mr-2" />
+                  <CheckCircle2 className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                   Submit Challenge
                 </>
               )}

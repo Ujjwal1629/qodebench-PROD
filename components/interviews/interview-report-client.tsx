@@ -59,20 +59,20 @@ export function InterviewReportClient({ data }: { data: ReportData }) {
   const performance = getPerformanceLevel(overallScore);
 
   return (
-    <div className="container max-w-7xl space-y-8 py-8">
+    <div className="container max-w-7xl space-y-6 sm:space-y-8 py-4 sm:py-8 px-3 sm:px-4">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="space-y-1">
-          <div className="flex items-center gap-3">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="space-y-1 w-full sm:w-auto">
+          <div className="flex items-center gap-2 sm:gap-3">
             <Link href="/dashboard/interviews">
-              <Button variant="ghost" size="sm">
-                <ArrowLeft className="mr-2 h-4 w-4" />
+              <Button variant="ghost" size="sm" className="text-xs sm:text-sm">
+                <ArrowLeft className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
                 Back to Interviews
               </Button>
             </Link>
           </div>
-          <h1 className="text-3xl font-bold tracking-tight">Interview Performance Report</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight">Interview Performance Report</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">
             Completed{' '}
             {session.completed_at
               ? formatDistanceToNow(new Date(session.completed_at), { addSuffix: true })
@@ -80,34 +80,34 @@ export function InterviewReportClient({ data }: { data: ReportData }) {
           </p>
         </div>
 
-        <Button variant="outline" size="sm">
-          <Download className="mr-2 h-4 w-4" />
+        <Button variant="outline" size="sm" className="w-full sm:w-auto text-xs sm:text-sm">
+          <Download className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
           Download PDF
         </Button>
       </div>
 
       {/* Overall Score Card */}
       <Card className="border-2">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Award className="h-6 w-6 text-yellow-600" />
+        <CardHeader className="p-4 sm:p-6">
+          <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+            <Award className="h-5 w-5 sm:h-6 sm:w-6 text-yellow-600" />
             Overall Performance
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="grid gap-6 md:grid-cols-2">
-            <div className="space-y-4">
+        <CardContent className="p-4 sm:p-6">
+          <div className="grid gap-4 sm:gap-6 md:grid-cols-2">
+            <div className="space-y-3 sm:space-y-4">
               <div>
                 <div className="flex items-baseline gap-2">
-                  <span className="text-5xl font-bold">{overallScore.toFixed(1)}</span>
-                  <span className="text-2xl text-muted-foreground">/ 10</span>
+                  <span className="text-3xl sm:text-4xl md:text-5xl font-bold">{overallScore.toFixed(1)}</span>
+                  <span className="text-lg sm:text-xl md:text-2xl text-muted-foreground">/ 10</span>
                 </div>
-                <p className={`mt-2 text-lg font-semibold ${performance.color}`}>{performance.label}</p>
+                <p className={`mt-2 text-base sm:text-lg font-semibold ${performance.color}`}>{performance.label}</p>
               </div>
 
-              <Progress value={overallScore * 10} className="h-3" />
+              <Progress value={overallScore * 10} className="h-2 sm:h-3" />
 
-              <div className="grid grid-cols-2 gap-4 text-sm">
+              <div className="grid grid-cols-2 gap-3 sm:gap-4 text-xs sm:text-sm">
                 <div>
                   <p className="text-muted-foreground">Experience Level</p>
                   <p className="font-medium capitalize">{session.experience_level || 'Junior'}</p>
@@ -127,8 +127,8 @@ export function InterviewReportClient({ data }: { data: ReportData }) {
               </div>
             </div>
 
-            <div className="space-y-3">
-              <h3 className="font-semibold">Stage Scores</h3>
+            <div className="space-y-2 sm:space-y-3">
+              <h3 className="font-semibold text-sm sm:text-base">Stage Scores</h3>
               {[
                 { name: 'MCQ', score: stageScores.stage_1 || 0, weight: '15%' },
                 { name: 'Voice Q&A', score: stageScores.stage_2 || 0, weight: '15%' },
@@ -136,16 +136,16 @@ export function InterviewReportClient({ data }: { data: ReportData }) {
                 { name: 'Text Q&A', score: stageScores.stage_4 || 0, weight: '15%' },
                 { name: 'Discussion', score: stageScores.stage_5 || 0, weight: '20%' },
               ].map((stage) => (
-                <div key={stage.name} className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="min-w-[100px] text-sm font-medium">{stage.name}</span>
-                    <Badge variant="outline" className="text-xs">
+                <div key={stage.name} className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+                    <span className="min-w-[60px] sm:min-w-[100px] text-xs sm:text-sm font-medium truncate">{stage.name}</span>
+                    <Badge variant="outline" className="text-[10px] sm:text-xs flex-shrink-0">
                       {stage.weight}
                     </Badge>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <Progress value={stage.score * 10} className="h-2 w-24" />
-                    <span className="min-w-[50px] text-right text-sm font-medium">
+                  <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+                    <Progress value={stage.score * 10} className="h-1.5 sm:h-2 w-16 sm:w-24" />
+                    <span className="min-w-[40px] sm:min-w-[50px] text-right text-xs sm:text-sm font-medium">
                       {stage.score.toFixed(1)}/10
                     </span>
                   </div>
@@ -157,37 +157,39 @@ export function InterviewReportClient({ data }: { data: ReportData }) {
       </Card>
 
       {/* Detailed Breakdown Tabs */}
-      <Tabs defaultValue="mcq" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="mcq">MCQ</TabsTrigger>
-          <TabsTrigger value="voice">Voice Q&A</TabsTrigger>
-          <TabsTrigger value="coding">Coding</TabsTrigger>
-          <TabsTrigger value="text">Text Q&A</TabsTrigger>
-          <TabsTrigger value="discussion">Discussion</TabsTrigger>
-        </TabsList>
+      <Tabs defaultValue="mcq" className="space-y-4 sm:space-y-6">
+        <div className="overflow-x-auto">
+          <TabsList className="grid w-full grid-cols-5 min-w-[500px]">
+            <TabsTrigger value="mcq" className="text-xs sm:text-sm">MCQ</TabsTrigger>
+            <TabsTrigger value="voice" className="text-xs sm:text-sm">Voice Q&A</TabsTrigger>
+            <TabsTrigger value="coding" className="text-xs sm:text-sm">Coding</TabsTrigger>
+            <TabsTrigger value="text" className="text-xs sm:text-sm">Text Q&A</TabsTrigger>
+            <TabsTrigger value="discussion" className="text-xs sm:text-sm">Discussion</TabsTrigger>
+          </TabsList>
+        </div>
 
         {/* MCQ Tab */}
-        <TabsContent value="mcq" className="space-y-4">
+        <TabsContent value="mcq" className="space-y-3 sm:space-y-4 mt-0">
           <MCQBreakdown answers={mcqAnswers} score={stageScores.stage_1 || 0} />
         </TabsContent>
 
         {/* Voice QA Tab */}
-        <TabsContent value="voice" className="space-y-4">
+        <TabsContent value="voice" className="space-y-3 sm:space-y-4 mt-0">
           <VoiceQABreakdown responses={voiceQAResponses} score={stageScores.stage_2 || 0} />
         </TabsContent>
 
         {/* Coding Tab */}
-        <TabsContent value="coding" className="space-y-4">
+        <TabsContent value="coding" className="space-y-3 sm:space-y-4 mt-0">
           <CodingBreakdown submissions={codingSubmissions} score={stageScores.stage_3 || 0} />
         </TabsContent>
 
         {/* Text QA Tab */}
-        <TabsContent value="text" className="space-y-4">
+        <TabsContent value="text" className="space-y-3 sm:space-y-4 mt-0">
           <TextQABreakdown responses={textQAResponses} score={stageScores.stage_4 || 0} />
         </TabsContent>
 
         {/* Discussion Tab */}
-        <TabsContent value="discussion" className="space-y-4">
+        <TabsContent value="discussion" className="space-y-3 sm:space-y-4 mt-0">
           <DiscussionBreakdown responses={discussionResponses} score={stageScores.stage_5 || 0} />
         </TabsContent>
       </Tabs>
@@ -205,16 +207,16 @@ function MCQBreakdown({ answers, score }: { answers: any[]; score: number }) {
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center justify-between">
+      <CardHeader className="p-4 sm:p-6">
+        <CardTitle className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-base sm:text-lg">
           <span>Multiple Choice Questions</span>
-          <Badge variant={score >= 7 ? 'default' : score >= 5 ? 'secondary' : 'destructive'}>
+          <Badge variant={score >= 7 ? 'default' : score >= 5 ? 'secondary' : 'destructive'} className="text-xs sm:text-sm w-fit">
             {correctCount}/{totalCount} Correct
           </Badge>
         </CardTitle>
-        <CardDescription>{accuracy.toFixed(0)}% Accuracy</CardDescription>
+        <CardDescription className="text-xs sm:text-sm">{accuracy.toFixed(0)}% Accuracy</CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-3 sm:space-y-4 p-4 sm:p-6">
         {answers.map((answer, index) => (
           <MCQQuestionCard key={answer.id} answer={answer} index={index} />
         ))}
@@ -228,34 +230,34 @@ function MCQQuestionCard({ answer, index }: { answer: any; index: number }) {
   const question = answer.interview_mcq_questions;
 
   return (
-    <div className="rounded-lg border p-4">
-      <div className="flex items-start gap-3">
+    <div className="rounded-lg border p-3 sm:p-4">
+      <div className="flex items-start gap-2 sm:gap-3">
         <div
-          className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full ${
+          className={`flex h-6 w-6 sm:h-8 sm:w-8 flex-shrink-0 items-center justify-center rounded-full ${
             answer.is_correct ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
           }`}
         >
-          {answer.is_correct ? <CheckCircle2 className="h-5 w-5" /> : <XCircle className="h-5 w-5" />}
+          {answer.is_correct ? <CheckCircle2 className="h-4 w-4 sm:h-5 sm:w-5" /> : <XCircle className="h-4 w-4 sm:h-5 sm:w-5" />}
         </div>
 
-        <div className="flex-1 space-y-2">
-          <div className="flex items-start justify-between gap-4">
-            <p className="font-medium">
+        <div className="flex-1 space-y-2 min-w-0">
+          <div className="flex items-start justify-between gap-2 sm:gap-4">
+            <p className="font-medium text-xs sm:text-sm break-words">
               {index + 1}. {question?.question_text || 'Question not found'}
             </p>
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setIsExpanded(!isExpanded)}
-              className="flex-shrink-0"
+              className="flex-shrink-0 h-8 w-8 p-0"
             >
-              {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+              {isExpanded ? <ChevronUp className="h-3 w-3 sm:h-4 sm:w-4" /> : <ChevronDown className="h-3 w-3 sm:h-4 sm:w-4" />}
             </Button>
           </div>
 
           {isExpanded && question && (
-            <div className="space-y-3 pt-2">
-              <div className="grid gap-2">
+            <div className="space-y-2 sm:space-y-3 pt-2">
+              <div className="grid gap-1.5 sm:gap-2">
                 {['a', 'b', 'c', 'd'].map((option) => {
                   const isSelected = answer.selected_option === option;
                   const isCorrect = question.correct_option === option;
@@ -263,7 +265,7 @@ function MCQQuestionCard({ answer, index }: { answer: any; index: number }) {
                   return (
                     <div
                       key={option}
-                      className={`rounded-md border p-3 ${
+                      className={`rounded-md border p-2 sm:p-3 ${
                         isCorrect
                           ? 'border-green-500 bg-green-50 dark:bg-green-950/20'
                           : isSelected
@@ -271,11 +273,11 @@ function MCQQuestionCard({ answer, index }: { answer: any; index: number }) {
                           : 'border-border'
                       }`}
                     >
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium uppercase">{option}.</span>
-                        <span>{question[`option_${option}`]}</span>
-                        {isCorrect && <CheckCircle2 className="ml-auto h-4 w-4 text-green-600" />}
-                        {isSelected && !isCorrect && <XCircle className="ml-auto h-4 w-4 text-red-600" />}
+                      <div className="flex items-center gap-1.5 sm:gap-2">
+                        <span className="font-medium uppercase text-xs sm:text-sm flex-shrink-0">{option}.</span>
+                        <span className="text-xs sm:text-sm break-words min-w-0">{question[`option_${option}`]}</span>
+                        {isCorrect && <CheckCircle2 className="ml-auto h-3 w-3 sm:h-4 sm:w-4 text-green-600 flex-shrink-0" />}
+                        {isSelected && !isCorrect && <XCircle className="ml-auto h-3 w-3 sm:h-4 sm:w-4 text-red-600 flex-shrink-0" />}
                       </div>
                     </div>
                   );
@@ -283,9 +285,9 @@ function MCQQuestionCard({ answer, index }: { answer: any; index: number }) {
               </div>
 
               {question.explanation && (
-                <div className="rounded-md bg-muted p-3">
-                  <p className="text-sm font-medium">Explanation:</p>
-                  <p className="mt-1 text-sm text-muted-foreground">{question.explanation}</p>
+                <div className="rounded-md bg-muted p-2 sm:p-3">
+                  <p className="text-xs sm:text-sm font-medium">Explanation:</p>
+                  <p className="mt-1 text-xs sm:text-sm text-muted-foreground break-words">{question.explanation}</p>
                 </div>
               )}
             </div>
@@ -301,16 +303,16 @@ function VoiceQABreakdown({ responses, score }: { responses: any[]; score: numbe
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center justify-between">
+      <CardHeader className="p-4 sm:p-6">
+        <CardTitle className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-base sm:text-lg">
           <span>Voice & Behavioral Questions</span>
-          <Badge variant={score >= 7 ? 'default' : score >= 5 ? 'secondary' : 'destructive'}>
+          <Badge variant={score >= 7 ? 'default' : score >= 5 ? 'secondary' : 'destructive'} className="text-xs sm:text-sm w-fit">
             {avgScore.toFixed(1)}/10 Avg
           </Badge>
         </CardTitle>
-        <CardDescription>{responses.length} questions answered</CardDescription>
+        <CardDescription className="text-xs sm:text-sm">{responses.length} questions answered</CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-3 sm:space-y-4 p-4 sm:p-6">
         {responses.map((response, index) => (
           <ResponseCard key={response.id} response={response} index={index} />
         ))}
@@ -322,16 +324,16 @@ function VoiceQABreakdown({ responses, score }: { responses: any[]; score: numbe
 function TextQABreakdown({ responses, score }: { responses: any[]; score: number }) {
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center justify-between">
+      <CardHeader className="p-4 sm:p-6">
+        <CardTitle className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-base sm:text-lg">
           <span>Text Q&A - Technical Concepts</span>
-          <Badge variant={score >= 7 ? 'default' : score >= 5 ? 'secondary' : 'destructive'}>
+          <Badge variant={score >= 7 ? 'default' : score >= 5 ? 'secondary' : 'destructive'} className="text-xs sm:text-sm w-fit">
             {score.toFixed(1)}/10
           </Badge>
         </CardTitle>
-        <CardDescription>{responses.length} questions answered</CardDescription>
+        <CardDescription className="text-xs sm:text-sm">{responses.length} questions answered</CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-3 sm:space-y-4 p-4 sm:p-6">
         {responses.map((response, index) => (
           <ResponseCard key={response.id} response={response} index={index} />
         ))}
@@ -343,16 +345,16 @@ function TextQABreakdown({ responses, score }: { responses: any[]; score: number
 function DiscussionBreakdown({ responses, score }: { responses: any[]; score: number }) {
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center justify-between">
+      <CardHeader className="p-4 sm:p-6">
+        <CardTitle className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-base sm:text-lg">
           <span>System Design Discussion</span>
-          <Badge variant={score >= 7 ? 'default' : score >= 5 ? 'secondary' : 'destructive'}>
+          <Badge variant={score >= 7 ? 'default' : score >= 5 ? 'secondary' : 'destructive'} className="text-xs sm:text-sm w-fit">
             {score.toFixed(1)}/10
           </Badge>
         </CardTitle>
-        <CardDescription>{responses.length} questions answered</CardDescription>
+        <CardDescription className="text-xs sm:text-sm">{responses.length} questions answered</CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-3 sm:space-y-4 p-4 sm:p-6">
         {responses.map((response, index) => (
           <ResponseCard key={response.id} response={response} index={index} />
         ))}
@@ -375,16 +377,16 @@ function ResponseCard({ response, index }: { response: any; index: number }) {
     score >= 7 ? 'text-green-600' : score >= 5 ? 'text-yellow-600' : 'text-red-600';
 
   return (
-    <div className="rounded-lg border p-4">
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex-1">
-          <div className="flex items-start gap-3">
-            <span className="text-2xl font-bold {scoreColor}">{score.toFixed(1)}</span>
-            <div className="flex-1">
-              <p className="font-medium">
+    <div className="rounded-lg border p-3 sm:p-4">
+      <div className="flex items-start justify-between gap-2 sm:gap-4">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-start gap-2 sm:gap-3">
+            <span className={`text-lg sm:text-xl md:text-2xl font-bold ${scoreColor} flex-shrink-0`}>{score.toFixed(1)}</span>
+            <div className="flex-1 min-w-0">
+              <p className="font-medium text-xs sm:text-sm break-words">
                 {index + 1}. {question?.question_text || 'Question not found'}
               </p>
-              <p className="mt-1 text-sm text-muted-foreground">
+              <p className="mt-1 text-[10px] sm:text-xs md:text-sm text-muted-foreground break-words">
                 {response.response_text?.substring(0, 150)}
                 {response.response_text?.length > 150 && '...'}
               </p>
@@ -396,28 +398,28 @@ function ResponseCard({ response, index }: { response: any; index: number }) {
           variant="ghost"
           size="sm"
           onClick={() => setIsExpanded(!isExpanded)}
-          className="flex-shrink-0"
+          className="flex-shrink-0 h-8 w-8 p-0"
         >
-          {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+          {isExpanded ? <ChevronUp className="h-3 w-3 sm:h-4 sm:w-4" /> : <ChevronDown className="h-3 w-3 sm:h-4 sm:w-4" />}
         </Button>
       </div>
 
       {isExpanded && (
-        <div className="mt-4 space-y-4 border-t pt-4">
+        <div className="mt-3 sm:mt-4 space-y-3 sm:space-y-4 border-t pt-3 sm:pt-4">
           <div>
-            <p className="text-sm font-medium">Your Response:</p>
-            <p className="mt-1 whitespace-pre-wrap rounded-md bg-muted p-3 text-sm">{response.response_text}</p>
+            <p className="text-xs sm:text-sm font-medium">Your Response:</p>
+            <p className="mt-1 whitespace-pre-wrap rounded-md bg-muted p-2 sm:p-3 text-[10px] sm:text-xs md:text-sm break-words">{response.response_text}</p>
           </div>
 
           {evaluation.strengths && evaluation.strengths.length > 0 && (
             <div>
-              <p className="flex items-center gap-2 text-sm font-medium text-green-600">
-                <CheckCircle2 className="h-4 w-4" />
+              <p className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm font-medium text-green-600">
+                <CheckCircle2 className="h-3 w-3 sm:h-4 sm:w-4" />
                 Strengths
               </p>
-              <ul className="mt-2 space-y-1 pl-6">
+              <ul className="mt-2 space-y-1 pl-4 sm:pl-6">
                 {evaluation.strengths.map((strength: string, i: number) => (
-                  <li key={i} className="text-sm text-muted-foreground">
+                  <li key={i} className="text-[10px] sm:text-xs md:text-sm text-muted-foreground break-words">
                     • {strength}
                   </li>
                 ))}
@@ -427,13 +429,13 @@ function ResponseCard({ response, index }: { response: any; index: number }) {
 
           {evaluation.improvements && evaluation.improvements.length > 0 && (
             <div>
-              <p className="flex items-center gap-2 text-sm font-medium text-orange-600">
-                <TrendingUp className="h-4 w-4" />
+              <p className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm font-medium text-orange-600">
+                <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4" />
                 Areas for Improvement
               </p>
-              <ul className="mt-2 space-y-1 pl-6">
+              <ul className="mt-2 space-y-1 pl-4 sm:pl-6">
                 {evaluation.improvements.map((improvement: string, i: number) => (
-                  <li key={i} className="text-sm text-muted-foreground">
+                  <li key={i} className="text-[10px] sm:text-xs md:text-sm text-muted-foreground break-words">
                     • {improvement}
                   </li>
                 ))}
@@ -452,7 +454,7 @@ function CodingBreakdown({ submissions, score }: { submissions: any[]; score: nu
   if (!submission) {
     return (
       <Card>
-        <CardContent className="py-8 text-center text-muted-foreground">
+        <CardContent className="py-6 sm:py-8 text-center text-muted-foreground text-xs sm:text-sm">
           No coding submission found
         </CardContent>
       </Card>
@@ -467,41 +469,41 @@ function CodingBreakdown({ submissions, score }: { submissions: any[]; score: nu
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center justify-between">
-          <span>{challenge?.title || 'Coding Challenge'}</span>
-          <Badge variant={score >= 7 ? 'default' : score >= 5 ? 'secondary' : 'destructive'}>
+      <CardHeader className="p-4 sm:p-6">
+        <CardTitle className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-base sm:text-lg">
+          <span className="break-words">{challenge?.title || 'Coding Challenge'}</span>
+          <Badge variant={score >= 7 ? 'default' : score >= 5 ? 'secondary' : 'destructive'} className="text-xs sm:text-sm w-fit">
             {score.toFixed(1)}/10
           </Badge>
         </CardTitle>
-        <CardDescription>{challenge?.description}</CardDescription>
+        <CardDescription className="text-xs sm:text-sm break-words">{challenge?.description}</CardDescription>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-4 sm:space-y-6 p-4 sm:p-6">
         {/* Test Results */}
         <div>
-          <div className="flex items-center justify-between">
-            <h3 className="font-semibold">Test Cases</h3>
-            <span className="text-sm text-muted-foreground">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1 sm:gap-0">
+            <h3 className="font-semibold text-sm sm:text-base">Test Cases</h3>
+            <span className="text-xs sm:text-sm text-muted-foreground">
               {passedTests}/{totalTests} Passed
             </span>
           </div>
-          <Progress value={(passedTests / totalTests) * 100} className="mt-2 h-2" />
+          <Progress value={(passedTests / totalTests) * 100} className="mt-2 h-1.5 sm:h-2" />
 
-          <div className="mt-4 space-y-2">
+          <div className="mt-3 sm:mt-4 space-y-1.5 sm:space-y-2">
             {testResults.map((result: any, index: number) => (
               <div
                 key={index}
-                className={`flex items-center justify-between rounded-md border p-3 ${
+                className={`flex items-center justify-between rounded-md border p-2 sm:p-3 ${
                   result.passed
                     ? 'border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950/20'
                     : 'border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950/20'
                 }`}
               >
-                <span className="text-sm font-medium">Test Case {index + 1}</span>
+                <span className="text-xs sm:text-sm font-medium">Test Case {index + 1}</span>
                 {result.passed ? (
-                  <CheckCircle2 className="h-5 w-5 text-green-600" />
+                  <CheckCircle2 className="h-4 w-4 sm:h-5 sm:w-5 text-green-600" />
                 ) : (
-                  <XCircle className="h-5 w-5 text-red-600" />
+                  <XCircle className="h-4 w-4 sm:h-5 sm:w-5 text-red-600" />
                 )}
               </div>
             ))}
@@ -511,15 +513,15 @@ function CodingBreakdown({ submissions, score }: { submissions: any[]; score: nu
         {/* Code Quality */}
         <div>
           <div className="flex items-center justify-between">
-            <h3 className="font-semibold">Code Quality</h3>
-            <span className="text-sm font-medium">{codeQuality.toFixed(1)}/10</span>
+            <h3 className="font-semibold text-sm sm:text-base">Code Quality</h3>
+            <span className="text-xs sm:text-sm font-medium">{codeQuality.toFixed(1)}/10</span>
           </div>
-          <Progress value={codeQuality * 10} className="mt-2 h-2" />
+          <Progress value={codeQuality * 10} className="mt-2 h-1.5 sm:h-2" />
 
           {submission.ai_feedback && (
-            <div className="mt-4 rounded-md bg-muted p-4">
-              <p className="text-sm font-medium">AI Feedback:</p>
-              <p className="mt-2 text-sm text-muted-foreground">
+            <div className="mt-3 sm:mt-4 rounded-md bg-muted p-3 sm:p-4">
+              <p className="text-xs sm:text-sm font-medium">AI Feedback:</p>
+              <p className="mt-2 text-[10px] sm:text-xs md:text-sm text-muted-foreground break-words">
                 {typeof submission.ai_feedback === 'string'
                   ? submission.ai_feedback
                   : submission.ai_feedback.feedback || JSON.stringify(submission.ai_feedback)}
@@ -530,9 +532,9 @@ function CodingBreakdown({ submissions, score }: { submissions: any[]; score: nu
 
         {/* Submitted Code */}
         <div>
-          <h3 className="mb-2 font-semibold">Your Solution</h3>
-          <pre className="overflow-x-auto rounded-md bg-muted p-4 text-sm">
-            <code>{submission.submitted_code}</code>
+          <h3 className="mb-2 font-semibold text-sm sm:text-base">Your Solution</h3>
+          <pre className="overflow-x-auto rounded-md bg-muted p-3 sm:p-4 text-[10px] sm:text-xs">
+            <code className="break-all">{submission.submitted_code}</code>
           </pre>
         </div>
       </CardContent>
@@ -624,25 +626,25 @@ function InsightsSection({ data, overallScore }: { data: ReportData; overallScor
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <BarChart3 className="h-5 w-5" />
+      <CardHeader className="p-4 sm:p-6">
+        <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+          <BarChart3 className="h-4 w-4 sm:h-5 sm:w-5" />
           Insights & Recommendations
         </CardTitle>
-        <CardDescription>Personalized feedback based on your performance</CardDescription>
+        <CardDescription className="text-xs sm:text-sm">Personalized feedback based on your performance</CardDescription>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-4 sm:space-y-6 p-4 sm:p-6">
         {strengths.length > 0 && (
           <div>
-            <h3 className="mb-3 flex items-center gap-2 text-lg font-semibold text-green-600">
-              <TrendingUp className="h-5 w-5" />
+            <h3 className="mb-2 sm:mb-3 flex items-center gap-1.5 sm:gap-2 text-base sm:text-lg font-semibold text-green-600">
+              <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5" />
               Your Strengths
             </h3>
-            <ul className="space-y-2">
+            <ul className="space-y-1.5 sm:space-y-2">
               {strengths.map((insight, index) => (
-                <li key={index} className="flex gap-3">
-                  <CheckCircle2 className="mt-0.5 h-5 w-5 flex-shrink-0 text-green-600" />
-                  <span className="text-sm">{insight.text}</span>
+                <li key={index} className="flex gap-2 sm:gap-3">
+                  <CheckCircle2 className="mt-0.5 h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0 text-green-600" />
+                  <span className="text-xs sm:text-sm break-words">{insight.text}</span>
                 </li>
               ))}
             </ul>
@@ -651,15 +653,15 @@ function InsightsSection({ data, overallScore }: { data: ReportData; overallScor
 
         {improvements.length > 0 && (
           <div>
-            <h3 className="mb-3 flex items-center gap-2 text-lg font-semibold text-orange-600">
-              <TrendingUp className="h-5 w-5" />
+            <h3 className="mb-2 sm:mb-3 flex items-center gap-1.5 sm:gap-2 text-base sm:text-lg font-semibold text-orange-600">
+              <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5" />
               Areas to Improve
             </h3>
-            <ul className="space-y-2">
+            <ul className="space-y-1.5 sm:space-y-2">
               {improvements.map((insight, index) => (
-                <li key={index} className="flex gap-3">
-                  <TrendingDown className="mt-0.5 h-5 w-5 flex-shrink-0 text-orange-600" />
-                  <span className="text-sm">{insight.text}</span>
+                <li key={index} className="flex gap-2 sm:gap-3">
+                  <TrendingDown className="mt-0.5 h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0 text-orange-600" />
+                  <span className="text-xs sm:text-sm break-words">{insight.text}</span>
                 </li>
               ))}
             </ul>
@@ -668,21 +670,21 @@ function InsightsSection({ data, overallScore }: { data: ReportData; overallScor
 
         <Separator />
 
-        <div className="space-y-3">
-          <h3 className="font-semibold">Recommended Next Steps</h3>
-          <div className="grid gap-3">
+        <div className="space-y-2 sm:space-y-3">
+          <h3 className="font-semibold text-sm sm:text-base">Recommended Next Steps</h3>
+          <div className="grid gap-2 sm:gap-3">
             <Link href="/dashboard/learning">
-              <Button variant="outline" className="w-full justify-start">
+              <Button variant="outline" className="w-full justify-start text-xs sm:text-sm h-9 sm:h-10">
                 Explore Learning Modules
               </Button>
             </Link>
             <Link href="/dashboard/challenges">
-              <Button variant="outline" className="w-full justify-start">
+              <Button variant="outline" className="w-full justify-start text-xs sm:text-sm h-9 sm:h-10">
                 Practice Coding Challenges
               </Button>
             </Link>
             <Link href="/dashboard/interviews">
-              <Button variant="outline" className="w-full justify-start">
+              <Button variant="outline" className="w-full justify-start text-xs sm:text-sm h-9 sm:h-10">
                 Take Another Mock Interview
               </Button>
             </Link>

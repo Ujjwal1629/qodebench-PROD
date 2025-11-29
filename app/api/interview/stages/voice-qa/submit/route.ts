@@ -39,6 +39,12 @@ export async function POST(request: NextRequest) {
               {
                 role: 'system',
                 content: `You are an expert interviewer evaluating behavioral interview responses.
+
+CRITICAL RULES:
+1. If the answer is just repeating/copying the question text, give a score of 0/10 immediately.
+2. If the answer is nonsensical, gibberish, or clearly copy-pasted content, give 0/10.
+3. If the answer is too short (less than 30 words) or lacks substance, give maximum 3/10.
+
 Evaluate based on the STAR method, clarity, relevance, and depth.
 Score from 0-10.
 Respond in JSON: {"score": number, "strengths": string[], "improvements": string[]}`,
@@ -62,11 +68,11 @@ Evaluate this response.`,
         } catch (aiError) {
           console.error('OpenAI evaluation error:', aiError);
           // Fallback to basic scoring
-          evaluation = generateBasicEvaluation(userResponse);
+          evaluation = generateBasicEvaluation(userResponse, question.question_text);
         }
       } else {
         // Fallback evaluation when OpenAI is not available
-        evaluation = generateBasicEvaluation(userResponse);
+        evaluation = generateBasicEvaluation(userResponse, question.question_text);
       }
 
       return {
@@ -128,11 +134,46 @@ Evaluate this response.`,
 }
 
 // Fallback evaluation function when OpenAI is not available
-function generateBasicEvaluation(response: string): any {
+function generateBasicEvaluation(response: string, questionText?: string): any {
   const wordCount = response.trim().split(/\s+/).length;
 
+  // Check if response is just repeating the question
+  if (questionText) {
+    const questionWords = questionText.toLowerCase().split(/\s+/);
+    const responseWords = response.toLowerCase().split(/\s+/);
+    const matchingWords = questionWords.filter(word =>
+      word.length > 3 && responseWords.includes(word)
+    ).length;
+
+    // If more than 60% of significant words match, it's likely copying the question
+    const matchPercentage = matchingWords / Math.max(questionWords.length, 1);
+    if (matchPercentage > 0.6) {
+      return {
+        score: 0,
+        strengths: [],
+        improvements: [
+          'Your answer appears to be copying the question. Please provide an original, thoughtful response.',
+          'Use the STAR method: describe a real Situation, Task, Action, and Result from your experience.',
+        ],
+      };
+    }
+  }
+
+  // Check for very short or nonsensical responses
+  if (wordCount < 30) {
+    return {
+      score: 1,
+      strengths: [],
+      improvements: [
+        'Response is too brief. Behavioral questions require detailed answers with specific examples.',
+        'Use the STAR method: Situation, Task, Action, Result',
+        'Aim for at least 100-200 words with concrete examples',
+      ],
+    };
+  }
+
   // Basic scoring based on response length and structure
-  let score = 5; // Base score
+  let score = 4; // Base score (lowered from 5)
 
   if (wordCount > 100) score += 2;
   if (wordCount > 200) score += 1;

@@ -160,11 +160,11 @@ export default function VoiceQAStage({ sessionId, experienceLevel, onComplete }:
   const progress = ((currentIndex + 1) / questions.length) * 100;
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="max-w-4xl mx-auto space-y-4 sm:space-y-6 px-3 sm:px-0">
       {/* Progress */}
-      <Card className="p-6">
+      <Card className="p-4 sm:p-6">
         <div className="space-y-2">
-          <div className="flex justify-between text-sm">
+          <div className="flex flex-col sm:flex-row justify-between gap-1 sm:gap-0 text-xs sm:text-sm">
             <span className="font-medium">Stage 2: Behavioral Q&A</span>
             <span className="text-muted-foreground">
               Question {currentIndex + 1} of {questions.length}
@@ -175,20 +175,20 @@ export default function VoiceQAStage({ sessionId, experienceLevel, onComplete }:
       </Card>
 
       {/* Question */}
-      <Card className="p-8">
-        <div className="space-y-6">
+      <Card className="p-4 sm:p-8">
+        <div className="space-y-4 sm:space-y-6">
           <div>
-            <div className="flex items-center gap-2 mb-4">
-              <Badge variant="outline" className="capitalize">
+            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-3 sm:mb-4">
+              <Badge variant="outline" className="capitalize text-xs">
                 {currentQuestion.question_type}
               </Badge>
-              <Badge variant="secondary">
+              <Badge variant="secondary" className="text-xs">
                 Question {currentIndex + 1}/{questions.length}
               </Badge>
             </div>
 
-            <div className="flex items-start justify-between gap-4">
-              <h2 className="text-2xl font-semibold leading-relaxed">
+            <div className="flex items-start justify-between gap-2 sm:gap-4">
+              <h2 className="text-lg sm:text-xl md:text-2xl font-semibold leading-relaxed">
                 {currentQuestion.question_text}
               </h2>
               <Button
@@ -196,17 +196,18 @@ export default function VoiceQAStage({ sessionId, experienceLevel, onComplete }:
                 size="icon"
                 onClick={handleSpeakQuestion}
                 title="Listen to question"
+                className="flex-shrink-0"
               >
-                <Volume2 className="h-5 w-5" />
+                <Volume2 className="h-4 w-4 sm:h-5 sm:w-5" />
               </Button>
             </div>
           </div>
 
           {/* Key Points to Cover */}
           {currentQuestion.expected_points && currentQuestion.expected_points.length > 0 && (
-            <div className="bg-blue-50 p-4 rounded-lg">
-              <p className="font-medium text-sm text-blue-900 mb-2">Key points to cover:</p>
-              <ul className="text-sm text-blue-800 space-y-1">
+            <div className="bg-blue-50 p-3 sm:p-4 rounded-lg">
+              <p className="font-medium text-xs sm:text-sm text-blue-900 mb-2">Key points to cover:</p>
+              <ul className="text-xs sm:text-sm text-blue-800 space-y-1">
                 {currentQuestion.expected_points.slice(0, 3).map((point, idx) => (
                   <li key={idx}>• {point}</li>
                 ))}
@@ -215,23 +216,24 @@ export default function VoiceQAStage({ sessionId, experienceLevel, onComplete }:
           )}
 
           {/* Answer Input with Voice */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between mb-2">
-              <label className="font-medium">Your Answer</label>
+          <div className="space-y-3 sm:space-y-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 mb-2">
+              <label className="font-medium text-sm sm:text-base">Your Answer</label>
               <Button
                 variant={isRecording ? 'destructive' : 'outline'}
                 size="sm"
                 onClick={handleToggleVoice}
                 disabled={isTranscribing}
+                className="w-full sm:w-auto text-xs sm:text-sm"
               >
                 {isRecording ? (
                   <>
-                    <MicOff className="h-4 w-4 mr-2" />
+                    <MicOff className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
                     Stop Recording
                   </>
                 ) : (
                   <>
-                    <Mic className="h-4 w-4 mr-2" />
+                    <Mic className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
                     Start Voice Input
                   </>
                 )}
@@ -286,9 +288,9 @@ export default function VoiceQAStage({ sessionId, experienceLevel, onComplete }:
             </div>
 
             {/* STAR Method Guide */}
-            <div className="bg-amber-50 p-4 rounded-lg">
-              <p className="font-medium text-sm text-amber-900 mb-2">💡 STAR Method Tip:</p>
-              <ul className="text-sm text-amber-800 space-y-1">
+            <div className="bg-amber-50 p-3 sm:p-4 rounded-lg">
+              <p className="font-medium text-xs sm:text-sm text-amber-900 mb-2">💡 STAR Method Tip:</p>
+              <ul className="text-xs sm:text-sm text-amber-800 space-y-0.5 sm:space-y-1">
                 <li><strong>S</strong>ituation: Describe the context</li>
                 <li><strong>T</strong>ask: Explain your responsibility</li>
                 <li><strong>A</strong>ction: Detail what you did</li>
@@ -297,11 +299,11 @@ export default function VoiceQAStage({ sessionId, experienceLevel, onComplete }:
             </div>
 
             {/* Navigation */}
-            <div className="flex justify-between pt-4">
-              <div className="text-sm text-muted-foreground">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-4 border-t">
+              <div className="text-xs sm:text-sm text-muted-foreground text-center sm:text-left order-2 sm:order-1">
                 {currentResponse.trim() ? (
-                  <span className="text-green-600 flex items-center gap-1">
-                    <CheckCircle2 className="h-4 w-4" />
+                  <span className="text-green-600 flex items-center justify-center sm:justify-start gap-1">
+                    <CheckCircle2 className="h-3 w-3 sm:h-4 sm:w-4" />
                     Answer provided
                   </span>
                 ) : (
@@ -312,6 +314,7 @@ export default function VoiceQAStage({ sessionId, experienceLevel, onComplete }:
                 onClick={handleNext}
                 disabled={!currentResponse.trim() || isSubmitting}
                 size="lg"
+                className="w-full sm:w-auto order-1 sm:order-2"
               >
                 {isSubmitting ? (
                   <>
@@ -333,9 +336,9 @@ export default function VoiceQAStage({ sessionId, experienceLevel, onComplete }:
       </Card>
 
       {/* Tips */}
-      <Card className="p-6 bg-gradient-to-br from-blue-50 to-purple-50">
-        <h3 className="font-semibold mb-3">Interview Tips</h3>
-        <ul className="text-sm space-y-2 text-slate-700">
+      <Card className="p-4 sm:p-6 bg-gradient-to-br from-blue-50 to-purple-50">
+        <h3 className="font-semibold mb-2 sm:mb-3 text-sm sm:text-base">Interview Tips</h3>
+        <ul className="text-xs sm:text-sm space-y-1 sm:space-y-2 text-slate-700">
           <li>• Use the STAR method: Situation, Task, Action, Result</li>
           <li>• Be specific with examples from your experience</li>
           <li>• Focus on your personal contributions and learnings</li>
