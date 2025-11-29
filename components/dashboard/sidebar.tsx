@@ -34,7 +34,7 @@ export function Sidebar({ user }: SidebarProps) {
         {/* Logo */}
         <div className="flex h-16 items-center border-b border-slate-200 px-6">
           {!sidebarCollapsed && (
-            <Link href="/dashboard" className="flex items-center gap-2">
+            <Link href="/" className="flex items-center gap-2">
               <Image
                 src="/qodeb.png"
                 alt="QodeBench Logo"
@@ -46,7 +46,7 @@ export function Sidebar({ user }: SidebarProps) {
             </Link>
           )}
           {sidebarCollapsed && (
-            <Link href="/dashboard" className="flex items-center justify-center w-full">
+            <Link href="/" className="flex items-center justify-center w-full">
               <Image
                 src="/qodeb.png"
                 alt="QodeBench"
