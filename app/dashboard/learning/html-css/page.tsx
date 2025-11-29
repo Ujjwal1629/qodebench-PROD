@@ -263,7 +263,7 @@ export default async function HTMLCSSLearningPage() {
   // OPTIMIZED: Render with Suspense boundaries for better perceived performance
   // The header and lessons will load independently with loading states
   return (
-    <div className="container py-8 space-y-8">
+    <div className="container space-y-8">
       {/* Header Section with Progress - Wrapped in Suspense */}
       <Suspense fallback={<LearningModuleHeaderSkeleton />}>
         <ModuleHeader userId={user.id} learningPath={learningPath} />

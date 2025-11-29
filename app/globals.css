@@ -239,6 +239,11 @@
     animation: blink 1s infinite;
   }
 
+  /* Animation delay utilities */
+  .delay-700 {
+    animation-delay: 700ms;
+  }
+
   /* Custom Scrollbar Utilities */
   .scrollbar-thin::-webkit-scrollbar {
     width: 8px;

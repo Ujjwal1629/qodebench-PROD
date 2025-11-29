@@ -238,7 +238,7 @@ export function OfficeChallengeLayout({ challenge }: OfficeChallengeLayoutProps)
       </header>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-3 sm:px-6 py-4 sm:py-8">
+      <main className="max-w-7xl mx-auto py-4 sm:py-8">
         <div className="flex flex-col lg:grid lg:grid-cols-5 gap-4 sm:gap-8">
           {/* Left Column - Challenge Info (2 columns) */}
           <div className="lg:col-span-2 space-y-4 sm:space-y-6">
