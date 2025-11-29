@@ -79,7 +79,7 @@ export function InterviewCategoryCards({
 
           {/* Features */}
           <div className="space-y-1 text-xs text-slate-600">
-            <p>✓ 40 MERN stack questions</p>
+            <p>✓ {prepTotal} MERN stack questions</p>
             <p>✓ Flashcards & practice modes</p>
             <p>✓ AI-powered feedback</p>
           </div>

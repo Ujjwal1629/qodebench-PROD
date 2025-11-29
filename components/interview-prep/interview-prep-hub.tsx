@@ -13,6 +13,7 @@ export function InterviewPrepHub() {
   const [selectedLevel, setSelectedLevel] = useState<InterviewPrepLevel>('fresher');
   const [progress, setProgress] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [totalQuestions, setTotalQuestions] = useState<number>(0);
 
   useEffect(() => {
     // Fetch user progress
@@ -22,6 +23,7 @@ export function InterviewPrepHub() {
         if (response.ok) {
           const data = await response.json();
           setProgress(data);
+          setTotalQuestions(data.totalQuestions || 0);
         }
       } catch (error) {
         console.error('Error fetching progress:', error);
@@ -50,7 +52,7 @@ export function InterviewPrepHub() {
             100% Free
           </Badge>
           <Badge variant="outline">
-            40 MERN Stack Questions
+            {loading ? '...' : totalQuestions} MERN Stack Questions
           </Badge>
         </div>
         <p className="text-lg text-slate-600 max-w-3xl">
@@ -91,9 +93,9 @@ export function InterviewPrepHub() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {topics.map((topic) => {
-              const topicProgressData = progress?.topicProgress?.[topic] || { total: 0, attempted: 0, percentage: 0 };
-              // Filter for fresher level
-              const fresherCount = Math.ceil(topicProgressData.total / 2); // Approximate half are fresher
+              const topicProgressData = progress?.topicProgress?.[topic] || { total: 0, attempted: 0, percentage: 0, fresherTotal: 0, experiencedTotal: 0 };
+              const fresherCount = topicProgressData.fresherTotal || 0;
+              // For attempted, we need to filter by level - for now use approximation
               const fresherAttempted = Math.ceil(topicProgressData.attempted / 2);
 
               return (
@@ -124,9 +126,9 @@ export function InterviewPrepHub() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {topics.map((topic) => {
-              const topicProgressData = progress?.topicProgress?.[topic] || { total: 0, attempted: 0, percentage: 0 };
-              // Filter for experienced level
-              const experiencedCount = Math.floor(topicProgressData.total / 2); // Approximate half are experienced
+              const topicProgressData = progress?.topicProgress?.[topic] || { total: 0, attempted: 0, percentage: 0, fresherTotal: 0, experiencedTotal: 0 };
+              const experiencedCount = topicProgressData.experiencedTotal || 0;
+              // For attempted, we need to filter by level - for now use approximation
               const experiencedAttempted = Math.floor(topicProgressData.attempted / 2);
 
               return (

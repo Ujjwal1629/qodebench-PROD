@@ -77,17 +77,24 @@ export async function GET(request: NextRequest) {
     }
 
     // Calculate topic progress
-    const topicProgress: Record<string, { total: number; attempted: number; percentage: number }> = {};
+    const topicProgress: Record<string, { total: number; attempted: number; percentage: number; fresherTotal: number; experiencedTotal: number }> = {};
 
     const topics: InterviewPrepTopic[] = ['javascript', 'react', 'node', 'mongodb', 'fullstack', 'system-design'];
 
     topics.forEach(topic => {
       const total = allQuestions?.filter(q => q.topic === topic).length || 0;
+      const fresherTotal = allQuestions?.filter(q => q.topic === topic && q.level === 'fresher').length || 0;
+      const experiencedTotal = allQuestions?.filter(q => q.topic === topic && q.level === 'experienced').length || 0;
       const attempted = byTopic[topic] || 0;
       const percentage = total > 0 ? Math.round((attempted / total) * 100) : 0;
 
-      topicProgress[topic] = { total, attempted, percentage };
+      topicProgress[topic] = { total, attempted, percentage, fresherTotal, experiencedTotal };
     });
+
+    // Calculate total questions count
+    const totalQuestions = allQuestions?.length || 0;
+    const totalFresherQuestions = allQuestions?.filter(q => q.level === 'fresher').length || 0;
+    const totalExperiencedQuestions = allQuestions?.filter(q => q.level === 'experienced').length || 0;
 
     // Get recent attempts (limit to 10)
     const recentAttempts = attempts?.slice(0, 10) || [];
@@ -96,6 +103,9 @@ export async function GET(request: NextRequest) {
       stats,
       recentAttempts,
       topicProgress,
+      totalQuestions,
+      totalFresherQuestions,
+      totalExperiencedQuestions,
     });
 
   } catch (error) {
