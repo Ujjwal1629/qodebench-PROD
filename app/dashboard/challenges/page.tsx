@@ -56,6 +56,9 @@ export default async function ChallengesPage() {
           <Badge variant="outline" className="px-3 py-1 text-sm">
             <span className="text-slate-600">4 Categories Available</span>
           </Badge>
+          <Badge variant="default" className="px-3 py-1 text-sm bg-gradient-to-r from-blue-500 to-purple-600">
+            <span className="text-white">🎯 New Challenges Every Week</span>
+          </Badge>
         </div>
       </div>
 

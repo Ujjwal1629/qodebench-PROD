@@ -26,7 +26,7 @@ const footerLinks = {
 };
 
 const socialLinks = [
-  { name: "Twitter", href: "https://twitter.com/qodebench", icon: Twitter },
+  { name: "Twitter", href: "https://x.com/QodebenchT", icon: Twitter },
   { name: "GitHub", href: "https://github.com/Qodebench-Technologies", icon: Github },
   { name: "LinkedIn", href: "https://www.linkedin.com/company/qodebench-technologies/", icon: Linkedin },
 ];

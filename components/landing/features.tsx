@@ -7,7 +7,7 @@ const features = [
     icon: Code2,
     title: "100+ Real-World Challenges",
     description:
-      "Master Python, JavaScript, React, Next.js, and Node.js through practical coding challenges that mirror actual development work",
+      "Master Python, JavaScript, React, Next.js, and Node.js through practical coding challenges that mirror actual development work. New challenges added every week!",
   },
   {
     icon: FileText,

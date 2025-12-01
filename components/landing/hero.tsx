@@ -71,10 +71,10 @@ export function Hero() {
               </div>
               <div className="bg-white/60 backdrop-blur-sm border border-brand-200/50 rounded-xl p-4 shadow-sm">
                 <div className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-brand-600 to-purple-600 bg-clip-text text-transparent">
-                  7
+                  Weekly
                 </div>
                 <div className="text-xs md:text-sm text-slate-600 font-medium mt-1">
-                  Career Levels
+                  New Challenges
                 </div>
               </div>
               <div className="bg-white/60 backdrop-blur-sm border border-brand-200/50 rounded-xl p-4 shadow-sm">
