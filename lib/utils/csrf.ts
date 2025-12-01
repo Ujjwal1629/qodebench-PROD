@@ -164,6 +164,7 @@ const CSRF_EXEMPT_PATHS = [
   '/api/ai', // AI routes (companion, hints, feedback, validate)
   '/api/challenges', // Challenge routes (submit, validate)
   '/api/interview', // Interview routes
+  '/api/interview-prep', // Interview prep routes (questions, submit)
   '/api/learning', // Learning routes
   '/api/admin', // Admin routes
   '/api/profile', // Profile routes

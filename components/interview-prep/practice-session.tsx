@@ -27,6 +27,11 @@ export function PracticeSession() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [startTime, setStartTime] = useState(Date.now());
+  const [followUpAnswer, setFollowUpAnswer] = useState('');
+  const [showFollowUpInput, setShowFollowUpInput] = useState(false);
+  const [followUpSubmitted, setFollowUpSubmitted] = useState(false);
+  const [followUpFeedback, setFollowUpFeedback] = useState<string>('');
+  const [isSubmittingFollowUp, setIsSubmittingFollowUp] = useState(false);
 
   useEffect(() => {
     // Fetch questions
@@ -95,6 +100,10 @@ export function PracticeSession() {
       setUserAnswer('');
       setShowModelAnswer(false);
       setFeedback(null);
+      setFollowUpAnswer('');
+      setShowFollowUpInput(false);
+      setFollowUpSubmitted(false);
+      setFollowUpFeedback('');
       setStartTime(Date.now());
     }
   };
@@ -105,12 +114,50 @@ export function PracticeSession() {
       setUserAnswer('');
       setShowModelAnswer(false);
       setFeedback(null);
+      setFollowUpAnswer('');
+      setShowFollowUpInput(false);
+      setFollowUpSubmitted(false);
+      setFollowUpFeedback('');
       setStartTime(Date.now());
     }
   };
 
   const handleShowModelAnswer = () => {
     setShowModelAnswer(true);
+  };
+
+  const handleSubmitFollowUp = async () => {
+    if (!followUpAnswer.trim() || !feedback) {
+      return;
+    }
+
+    setIsSubmittingFollowUp(true);
+
+    try {
+      const response = await fetch('/api/interview-prep/submit-followup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          questionId: questions[currentIndex].id,
+          originalAnswer: userAnswer,
+          followUpQuestion: feedback.follow_up_question,
+          followUpAnswer: followUpAnswer.trim(),
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to submit follow-up answer');
+      }
+
+      const data = await response.json();
+      setFollowUpFeedback(data.feedback);
+      setFollowUpSubmitted(true);
+    } catch (err) {
+      console.error('Error submitting follow-up answer:', err);
+      alert('Failed to submit follow-up answer. Please try again.');
+    } finally {
+      setIsSubmittingFollowUp(false);
+    }
   };
 
   if (loading) {
@@ -255,11 +302,74 @@ export function PracticeSession() {
                   <p className="text-blue-800 leading-relaxed">{feedback.ai_feedback}</p>
                 </div>
                 {feedback.follow_up_question && (
-                  <div>
-                    <h3 className="font-semibold text-blue-900 mb-2">Follow-up Question</h3>
-                    <p className="text-blue-800 leading-relaxed italic">
-                      {feedback.follow_up_question}
-                    </p>
+                  <div className="space-y-3">
+                    <div>
+                      <h3 className="font-semibold text-blue-900 mb-2">Follow-up Question</h3>
+                      <p className="text-blue-800 leading-relaxed italic">
+                        {feedback.follow_up_question}
+                      </p>
+                    </div>
+
+                    {!showFollowUpInput && !followUpSubmitted && (
+                      <Button
+                        onClick={() => setShowFollowUpInput(true)}
+                        variant="outline"
+                        size="sm"
+                        className="bg-white hover:bg-blue-50"
+                      >
+                        Answer Follow-up
+                      </Button>
+                    )}
+
+                    {showFollowUpInput && !followUpSubmitted && (
+                      <div className="space-y-2">
+                        <Textarea
+                          placeholder="Type your follow-up answer here..."
+                          value={followUpAnswer}
+                          onChange={(e) => setFollowUpAnswer(e.target.value)}
+                          rows={4}
+                          className="resize-none bg-white"
+                        />
+                        <div className="flex gap-2">
+                          <Button
+                            onClick={handleSubmitFollowUp}
+                            disabled={!followUpAnswer.trim() || isSubmittingFollowUp}
+                            size="sm"
+                            className="bg-gradient-to-r from-brand-500 to-purple-500 hover:from-brand-600 hover:to-purple-600"
+                          >
+                            {isSubmittingFollowUp ? (
+                              <>
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                                Evaluating...
+                              </>
+                            ) : (
+                              <>
+                                <Send className="h-4 w-4 mr-2" />
+                                Submit Follow-up
+                              </>
+                            )}
+                          </Button>
+                          <Button
+                            onClick={() => {
+                              setShowFollowUpInput(false);
+                              setFollowUpAnswer('');
+                            }}
+                            variant="outline"
+                            size="sm"
+                            disabled={isSubmittingFollowUp}
+                          >
+                            Skip
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+
+                    {followUpSubmitted && followUpFeedback && (
+                      <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                        <h4 className="font-semibold text-purple-900 mb-2">Follow-up Feedback</h4>
+                        <p className="text-purple-800 leading-relaxed">{followUpFeedback}</p>
+                      </div>
+                    )}
                   </div>
                 )}
               </CardContent>
