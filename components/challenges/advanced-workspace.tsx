@@ -239,37 +239,37 @@ export function AdvancedWorkspace({ challenge, metadata }: AdvancedWorkspaceProp
         {/* Main Editor Area */}
         <main className="flex-1 flex flex-col overflow-hidden">
           {/* Editor */}
-          <div className="flex-1 p-3 pb-1 lg:p-6 overflow-hidden">
+          <div className="flex-1 p-3 pb-1 lg:p-6 overflow-auto flex flex-col">
             <FlexibleEditor
               responseFormat={responseFormat}
               value={code}
               onChange={setCode}
               placeholder="Write your solution here..."
-              className="lg:h-full border border-gray-200 rounded-sm"
+              className="h-full border border-gray-200 rounded-sm"
               starterCode={starterCode}
               onReset={() => setCode(starterCode)}
             />
           </div>
 
           {/* Action Bar */}
-          <div className="sticky bottom-0 border-t border-gray-200 px-3 py-2.5 lg:px-6 lg:py-4 bg-white shadow-lg z-30">
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
+          <div className="flex-shrink-0 border-t border-gray-200 px-3 py-2.5 lg:px-6 lg:py-4 bg-white shadow-lg z-30">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
               {/* Test & Deploy Button */}
               <Button
                 onClick={handleValidate}
                 disabled={isValidating}
-                className="bg-gradient-to-r from-purple-500 to-purple-700 hover:from-purple-600 hover:to-purple-800 text-white shadow-md transition-all hover:shadow-lg w-full sm:w-auto"
+                className="bg-gradient-to-r from-purple-500 to-purple-700 hover:from-purple-600 hover:to-purple-800 text-white shadow-md transition-all hover:shadow-lg whitespace-nowrap"
                 size="default"
               >
                 {isValidating ? (
                   <>
-                    <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 mr-2 animate-spin" />
+                    <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 mr-2 animate-spin flex-shrink-0" />
                     <span className="hidden sm:inline">Testing Deployment...</span>
                     <span className="sm:hidden">Testing...</span>
                   </>
                 ) : (
                   <>
-                    <svg className="h-4 w-4 sm:h-5 sm:w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="h-4 w-4 sm:h-5 sm:w-5 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                     <span className="hidden sm:inline">Test & Deploy</span>
@@ -283,17 +283,17 @@ export function AdvancedWorkspace({ challenge, metadata }: AdvancedWorkspaceProp
                 <Button
                   onClick={handleSubmit}
                   disabled={isSubmitting}
-                  className="bg-green-600 hover:bg-green-700 text-white shadow-md w-full sm:w-auto"
+                  className="bg-green-600 hover:bg-green-700 text-white shadow-md whitespace-nowrap"
                   size="default"
                 >
                   {isSubmitting ? (
                     <>
-                      <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 mr-2 animate-spin" />
+                      <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 mr-2 animate-spin flex-shrink-0" />
                       Submitting...
                     </>
                   ) : (
                     <>
-                      <svg className="h-4 w-4 sm:h-5 sm:w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="h-4 w-4 sm:h-5 sm:w-5 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                       </svg>
                       Submit Challenge
@@ -307,10 +307,10 @@ export function AdvancedWorkspace({ challenge, metadata }: AdvancedWorkspaceProp
                 <Button
                   variant="outline"
                   disabled
-                  className="text-green-600 border-green-600 w-full sm:w-auto"
+                  className="text-green-600 border-green-600 whitespace-nowrap"
                   size="default"
                 >
-                  <svg className="h-4 w-4 sm:h-5 sm:w-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                  <svg className="h-4 w-4 sm:h-5 sm:w-5 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                   </svg>
                   Submitted

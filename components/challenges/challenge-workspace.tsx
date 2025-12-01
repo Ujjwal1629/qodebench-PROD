@@ -422,42 +422,42 @@ function CodeChallengeLayout({ challenge }: ChallengeWorkspaceProps) {
         </div>
 
         {/* Main Editor Area - 75% */}
-        <main className="lg:flex-1 flex flex-col overflow-hidden">
+        <main className="flex-1 flex flex-col overflow-hidden">
           {/* Editor */}
-          <div className="lg:flex-1 p-3 pb-1 lg:p-6 overflow-hidden">
+          <div className="flex-1 p-3 pb-1 lg:p-6 overflow-auto flex flex-col">
             <FlexibleEditor
               responseFormat={responseFormat}
               value={code}
               onChange={setCode}
               placeholder="Write your solution here..."
-              className="lg:h-full border border-gray-200 rounded-sm"
+              className="h-full border border-gray-200 rounded-sm"
               starterCode={starterCode}
               onReset={() => setCode(starterCode)}
             />
           </div>
 
           {/* Action Bar - Fixed at bottom */}
-          <div className="sticky bottom-0 border-t border-gray-200 px-3 py-2.5 lg:px-6 lg:py-4 bg-white shadow-lg">
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
+          <div className="flex-shrink-0 border-t border-gray-200 px-3 py-2.5 lg:px-6 lg:py-4 bg-white shadow-lg">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
               {/* Test & Deploy Button */}
               <Button
                 onClick={handleValidate}
                 disabled={isValidating}
-                className="bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white shadow-md transition-all hover:shadow-lg"
+                className="bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white shadow-md transition-all hover:shadow-lg whitespace-nowrap"
                 size="default"
               >
                 {isValidating ? (
                   <>
-                    <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 mr-2 animate-spin" />
+                    <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 mr-2 animate-spin flex-shrink-0" />
                     <span className="hidden sm:inline">Testing Deployment...</span>
                     <span className="sm:hidden">Validating...</span>
                   </>
                 ) : (
                   <>
-                    <svg className="h-4 w-4 sm:h-5 sm:w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="h-4 w-4 sm:h-5 sm:w-5 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
-                    Validate
+                    <span>Validate</span>
                   </>
                 )}
               </Button>
@@ -467,20 +467,20 @@ function CodeChallengeLayout({ challenge }: ChallengeWorkspaceProps) {
                 <Button
                   onClick={handleSubmit}
                   disabled={isSubmitting}
-                  className="bg-green-600 hover:bg-green-700 text-white shadow-md"
+                  className="bg-green-600 hover:bg-green-700 text-white shadow-md whitespace-nowrap"
                   size="default"
                 >
                   {isSubmitting ? (
                     <>
-                      <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 mr-2 animate-spin" />
-                      Submitting...
+                      <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 mr-2 animate-spin flex-shrink-0" />
+                      <span>Submitting...</span>
                     </>
                   ) : (
                     <>
-                      <svg className="h-4 w-4 sm:h-5 sm:w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="h-4 w-4 sm:h-5 sm:w-5 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                       </svg>
-                      Submit
+                      <span>Submit</span>
                     </>
                   )}
                 </Button>
@@ -491,19 +491,19 @@ function CodeChallengeLayout({ challenge }: ChallengeWorkspaceProps) {
                 <Button
                   variant="outline"
                   disabled
-                  className="text-green-600 border-green-600"
+                  className="text-green-600 border-green-600 whitespace-nowrap"
                   size="default"
                 >
-                  <svg className="h-4 w-4 sm:h-5 sm:w-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                  <svg className="h-4 w-4 sm:h-5 sm:w-5 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                   </svg>
-                  Submitted
+                  <span>Submitted</span>
                 </Button>
               )}
 
               {/* Auto-save indicator (at the end) */}
-              <div className="flex items-center justify-center sm:justify-start gap-1.5 text-xs text-gray-500 sm:ml-auto">
-                <div className={`h-1.5 w-1.5 rounded-full ${isSaving ? 'bg-orange-400' : 'bg-green-500'}`}></div>
+              <div className="flex items-center gap-1.5 text-xs text-gray-500 ml-auto whitespace-nowrap">
+                <div className={`h-1.5 w-1.5 rounded-full ${isSaving ? 'bg-orange-400' : 'bg-green-500'} flex-shrink-0`}></div>
                 <span>{isSaving ? 'Saving...' : 'Saved'}</span>
               </div>
             </div>
