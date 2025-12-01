@@ -1,10 +1,11 @@
 'use client';
 
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, ArrowRight, Lightbulb, Users, Clock, Award, Target, CheckCircle2, MessageSquare } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Lightbulb, Users, Clock, Award, Target, CheckCircle2, MessageSquare, Loader2 } from 'lucide-react';
 import { ChallengeMarkdownRenderer } from '@/components/challenges/challenge-markdown-renderer';
 
 interface ProductPlanningOverviewProps {
@@ -23,6 +24,7 @@ interface ProductPlanningOverviewProps {
 
 export function ProductPlanningOverview({ challenge }: ProductPlanningOverviewProps) {
   const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
 
   const getDifficultyColor = () => {
     switch (challenge.difficulty?.toLowerCase()) {
@@ -154,12 +156,25 @@ export function ProductPlanningOverview({ challenge }: ProductPlanningOverviewPr
           {/* Footer with Action */}
           <div className="px-6 py-4 bg-slate-50 border-t border-slate-200">
             <Button
-              onClick={() => router.push(`/dashboard/challenges/${challenge.slug}/workspace`)}
+              onClick={() => {
+                setIsLoading(true);
+                router.push(`/dashboard/challenges/${challenge.slug}/workspace`);
+              }}
               size="lg"
+              disabled={isLoading}
               className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white gap-2"
             >
-              Start Challenge
-              <ArrowRight className="h-4 w-4" />
+              {isLoading ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Loading...
+                </>
+              ) : (
+                <>
+                  Start Challenge
+                  <ArrowRight className="h-4 w-4" />
+                </>
+              )}
             </Button>
           </div>
         </Card>

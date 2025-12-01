@@ -1,10 +1,11 @@
 'use client';
 
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, ArrowRight, Zap, Building2, Clock, Award, Target, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Zap, Building2, Clock, Award, Target, CheckCircle2, Loader2 } from 'lucide-react';
 import { ChallengeMarkdownRenderer } from '@/components/challenges/challenge-markdown-renderer';
 
 interface AdvancedChallengeOverviewProps {
@@ -23,6 +24,7 @@ interface AdvancedChallengeOverviewProps {
 
 export function AdvancedChallengeOverview({ challenge }: AdvancedChallengeOverviewProps) {
   const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
 
   const getDifficultyColor = () => {
     switch (challenge.difficulty?.toLowerCase()) {
@@ -142,12 +144,25 @@ export function AdvancedChallengeOverview({ challenge }: AdvancedChallengeOvervi
           {/* Footer with Action */}
           <div className="px-6 py-4 bg-slate-50 border-t border-slate-200">
             <Button
-              onClick={() => router.push(`/dashboard/challenges/${challenge.slug}/brief`)}
+              onClick={() => {
+                setIsLoading(true);
+                router.push(`/dashboard/challenges/${challenge.slug}/brief`);
+              }}
               size="lg"
+              disabled={isLoading}
               className="w-full sm:w-auto bg-purple-600 hover:bg-purple-700 text-white gap-2"
             >
-              Start Challenge
-              <ArrowRight className="h-4 w-4" />
+              {isLoading ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Loading...
+                </>
+              ) : (
+                <>
+                  Start Challenge
+                  <ArrowRight className="h-4 w-4" />
+                </>
+              )}
             </Button>
           </div>
         </Card>
