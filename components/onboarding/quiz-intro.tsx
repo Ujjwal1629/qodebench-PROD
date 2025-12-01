@@ -8,9 +8,10 @@ import { Brain, TrendingUp, Target, Clock, ArrowRight } from 'lucide-react';
 interface QuizIntroProps {
   onStart: () => void;
   onSkip: () => void;
+  isSkipping?: boolean;
 }
 
-export function QuizIntro({ onStart, onSkip }: QuizIntroProps) {
+export function QuizIntro({ onStart, onSkip, isSkipping = false }: QuizIntroProps) {
   return (
     <div className="min-h-screen flex items-center justify-center p-4 pt-24 pb-8">
       <Card className="w-full max-w-2xl">
@@ -91,12 +92,12 @@ export function QuizIntro({ onStart, onSkip }: QuizIntroProps) {
         </CardContent>
 
         <CardFooter className="flex flex-col sm:flex-row gap-3">
-          <Button size="lg" onClick={onStart} className="gap-2 flex-1">
+          <Button size="lg" onClick={onStart} disabled={isSkipping} className="gap-2 flex-1">
             Start Assessment
             <ArrowRight className="h-4 w-4" />
           </Button>
-          <Button size="lg" variant="ghost" onClick={onSkip} className="flex-1">
-            Skip for Now
+          <Button size="lg" variant="ghost" onClick={onSkip} disabled={isSkipping} className="flex-1">
+            {isSkipping ? 'Loading...' : 'Skip for Now'}
           </Button>
         </CardFooter>
 

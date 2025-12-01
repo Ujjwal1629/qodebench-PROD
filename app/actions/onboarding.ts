@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server';
 import { cookies } from 'next/headers';
+import { revalidatePath } from 'next/cache';
 
 export async function submitQuizResults(
   score: number,
@@ -34,9 +35,13 @@ export async function submitQuizResults(
       return { error: 'Failed to save quiz results' };
     }
 
-    // Clear profile cache so middleware fetches fresh data on next request
+    // Clear profile cache and revalidate paths for faster navigation
     const cookieStore = await cookies();
     cookieStore.delete('__profile_cache');
+
+    // Revalidate dashboard and onboarding paths
+    revalidatePath('/dashboard');
+    revalidatePath('/onboarding/quiz');
 
     return { success: true };
   } catch (error) {
@@ -70,9 +75,13 @@ export async function skipOnboarding() {
       return { error: 'Failed to skip onboarding' };
     }
 
-    // Clear profile cache so middleware fetches fresh data on next request
+    // Clear profile cache and revalidate paths for faster navigation
     const cookieStore = await cookies();
     cookieStore.delete('__profile_cache');
+
+    // Revalidate dashboard and onboarding paths
+    revalidatePath('/dashboard');
+    revalidatePath('/onboarding/quiz');
 
     return { success: true };
   } catch (error) {

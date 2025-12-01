@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import { OnboardingQuiz } from '@/components/onboarding/onboarding-quiz';
 
 export const metadata = {
@@ -6,5 +7,9 @@ export const metadata = {
 };
 
 export default function OnboardingQuizPage() {
-  return <OnboardingQuiz />;
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+      <OnboardingQuiz />
+    </Suspense>
+  );
 }

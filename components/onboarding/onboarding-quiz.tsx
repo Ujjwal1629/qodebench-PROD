@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { QuizCard } from '@/components/onboarding/quiz-card';
 import { QuizProgress } from '@/components/onboarding/quiz-progress';
@@ -10,10 +10,12 @@ import { quizQuestions, getExperienceLevelFromScore } from '@/lib/quiz-questions
 import { ArrowRight, ArrowLeft } from 'lucide-react';
 import { submitQuizResults, skipOnboarding } from '@/app/actions/onboarding';
 import { useToast } from '@/hooks/use-toast';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 export function OnboardingQuiz() {
-  const [showIntro, setShowIntro] = useState(true);
+  const searchParams = useSearchParams();
+  const step = searchParams.get('step') || 'intro';
+
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<(number | null)[]>(Array(quizQuestions.length).fill(null));
   const [showResults, setShowResults] = useState(false);
@@ -46,7 +48,8 @@ export function OnboardingQuiz() {
   };
 
   const handleStart = () => {
-    setShowIntro(false);
+    // Use URL-based navigation to preserve browser history
+    router.push('/onboarding/quiz?step=quiz');
   };
 
   const handleSkip = async () => {
@@ -63,7 +66,8 @@ export function OnboardingQuiz() {
         description: 'You can always take the assessment later from dashboard.',
       });
 
-      // Redirect to dashboard
+      // Optimized navigation with cache refresh
+      router.refresh();
       router.push('/dashboard');
     } catch (error) {
       console.error('Error skipping onboarding:', error);
@@ -94,8 +98,8 @@ export function OnboardingQuiz() {
         throw new Error(error);
       }
 
-      // Show results
-      setShowResults(true);
+      // Navigate to results screen
+      router.push('/onboarding/quiz?step=results');
 
       // Don't auto-redirect - let user click the button
       // User will click button in QuizResults component
@@ -112,12 +116,12 @@ export function OnboardingQuiz() {
   };
 
   // Show intro screen
-  if (showIntro) {
-    return <QuizIntro onStart={handleStart} onSkip={handleSkip} />;
+  if (step === 'intro') {
+    return <QuizIntro onStart={handleStart} onSkip={handleSkip} isSkipping={isSubmitting} />;
   }
 
   // Show results screen
-  if (showResults) {
+  if (step === 'results') {
     const correctAnswers = answers.filter(
       (answer, index) => answer === quizQuestions[index].correctAnswer
     ).length;
