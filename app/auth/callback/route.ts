@@ -18,6 +18,28 @@ export async function GET(request: NextRequest) {
   const type = searchParams.get('type');
   const next = searchParams.get('next') ?? '/dashboard';
 
+  // Handle OAuth errors (e.g., multiple accounts with same email)
+  const error = searchParams.get('error');
+  const errorDescription = searchParams.get('error_description');
+
+  if (error) {
+    logger.security('OAuth callback error', { error, errorDescription });
+
+    // Redirect to signin with error message
+    const signinUrl = new URL('/signin', origin);
+
+    // Handle specific error: multiple accounts with same email
+    if (error === 'server_error' && errorDescription?.includes('Multiple accounts')) {
+      signinUrl.searchParams.set('error', 'account_exists');
+      signinUrl.searchParams.set('message', 'An account with this email already exists. Please sign in with your original method (email/password or another provider).');
+    } else {
+      signinUrl.searchParams.set('error', 'auth_failed');
+      signinUrl.searchParams.set('message', 'Authentication failed. Please try again or use a different sign-in method.');
+    }
+
+    return NextResponse.redirect(signinUrl);
+  }
+
   if (code) {
     const cookieStore = await cookies();
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;

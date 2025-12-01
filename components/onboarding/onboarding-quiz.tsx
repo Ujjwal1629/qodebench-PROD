@@ -12,13 +12,51 @@ import { submitQuizResults, skipOnboarding } from '@/app/actions/onboarding';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter, useSearchParams } from 'next/navigation';
 
+// Wrapper component to handle sessionStorage on client side only
+function QuizResultsWrapper() {
+  const [mounted, setMounted] = useState(false);
+  const [resultsData, setResultsData] = useState<any>(null);
+  const router = useRouter();
+
+  useEffect(() => {
+    setMounted(true);
+
+    // Read results from sessionStorage
+    const storedResults = sessionStorage.getItem('quiz_results');
+
+    if (!storedResults) {
+      // No results found, redirect to intro
+      router.push('/onboarding/quiz');
+      return;
+    }
+
+    setResultsData(JSON.parse(storedResults));
+  }, [router]);
+
+  if (!mounted || !resultsData) {
+    return (
+      <div className="w-full max-w-2xl mx-auto p-8 text-center">
+        <div className="animate-pulse">Loading results...</div>
+      </div>
+    );
+  }
+
+  return (
+    <QuizResults
+      score={resultsData.score}
+      totalQuestions={resultsData.totalQuestions}
+      correctAnswers={resultsData.correctAnswers}
+      experienceLevel={resultsData.experienceLevel}
+    />
+  );
+}
+
 export function OnboardingQuiz() {
   const searchParams = useSearchParams();
   const step = searchParams.get('step') || 'intro';
 
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<(number | null)[]>(Array(quizQuestions.length).fill(null));
-  const [showResults, setShowResults] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
   const router = useRouter();
@@ -91,6 +129,14 @@ export function OnboardingQuiz() {
       const score = Math.round((correctAnswers / quizQuestions.length) * 100);
       const experienceLevel = getExperienceLevelFromScore(score);
 
+      // Store quiz data in sessionStorage before navigation
+      sessionStorage.setItem('quiz_results', JSON.stringify({
+        score,
+        correctAnswers,
+        totalQuestions: quizQuestions.length,
+        experienceLevel
+      }));
+
       // Submit results to database
       const { error } = await submitQuizResults(score, experienceLevel);
 
@@ -99,7 +145,7 @@ export function OnboardingQuiz() {
       }
 
       // Navigate to results screen
-      router.push('/onboarding/quiz?step=results');
+      window.location.href = '/onboarding/quiz?step=results';
 
       // Don't auto-redirect - let user click the button
       // User will click button in QuizResults component
@@ -110,7 +156,6 @@ export function OnboardingQuiz() {
         description: 'Failed to submit quiz results. Please try again.',
         variant: 'destructive',
       });
-    } finally {
       setIsSubmitting(false);
     }
   };
@@ -122,20 +167,9 @@ export function OnboardingQuiz() {
 
   // Show results screen
   if (step === 'results') {
-    const correctAnswers = answers.filter(
-      (answer, index) => answer === quizQuestions[index].correctAnswer
-    ).length;
-    const score = Math.round((correctAnswers / quizQuestions.length) * 100);
-    const experienceLevel = getExperienceLevelFromScore(score);
-
     return (
       <div className="min-h-screen flex items-center justify-center p-4 pt-24 pb-8">
-        <QuizResults
-          score={score}
-          totalQuestions={quizQuestions.length}
-          correctAnswers={correctAnswers}
-          experienceLevel={experienceLevel}
-        />
+        <QuizResultsWrapper />
       </div>
     );
   }

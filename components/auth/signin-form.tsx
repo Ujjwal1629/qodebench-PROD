@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -13,6 +13,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { OAuthButtons } from '@/components/auth/oauth-buttons';
 import { AlertCircle, CheckCircle } from 'lucide-react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 
 const signInSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
@@ -25,6 +26,7 @@ export function SignInForm() {
   const { signIn } = useAuth();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const searchParams = useSearchParams();
 
   const form = useForm<SignInFormValues>({
     resolver: zodResolver(signInSchema),
@@ -33,6 +35,16 @@ export function SignInForm() {
       password: '',
     },
   });
+
+  // Check for OAuth error in URL params
+  useEffect(() => {
+    const error = searchParams.get('error');
+    const message = searchParams.get('message');
+
+    if (error && message) {
+      setErrorMessage(decodeURIComponent(message));
+    }
+  }, [searchParams]);
 
   const onSubmit = async (values: SignInFormValues) => {
     // Clear any previous messages

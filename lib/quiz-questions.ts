@@ -142,11 +142,11 @@ export const quizQuestions: QuizQuestion[] = [
 
 // Function to calculate experience level based on score
 export function getExperienceLevelFromScore(score: number): 'intern' | 'junior' | 'mid' | 'senior' | null {
-  if (score < 40) {
-    return null; // Failed - should go to learning module
-  } else if (score >= 40 && score < 70) {
+  if (score < 60) {
+    return 'intern'; // Below 60% - should focus on learning
+  } else if (score >= 60 && score < 75) {
     return 'junior';
-  } else if (score >= 70 && score < 90) {
+  } else if (score >= 75 && score < 90) {
     return 'mid';
   } else {
     return 'senior';
@@ -157,30 +157,35 @@ export function getExperienceLevelFromScore(score: number): 'intern' | 'junior' 
 export function getRecommendationMessage(score: number): {
   title: string;
   message: string;
+  guidance: string;
   shouldRedirectToLearning: boolean;
 } {
-  if (score < 40) {
+  if (score < 60) {
     return {
-      title: 'Let\'s Start with the Basics!',
-      message: 'We recommend starting with our learning module to build a strong foundation in full-stack development.',
+      title: 'Assessment Complete',
+      message: 'Based on your assessment, we recommend starting with our comprehensive learning modules to build a solid foundation. Take your time to master the fundamentals—every expert was once a beginner.',
+      guidance: '📚 Recommended Path: Start with Learning Modules to strengthen your foundation, then move to Beginner Challenges.',
       shouldRedirectToLearning: true,
     };
-  } else if (score >= 40 && score < 70) {
+  } else if (score >= 60 && score < 75) {
     return {
-      title: 'Good Start!',
-      message: 'You have a solid foundation! We\'ll recommend junior-level challenges to help you grow your skills.',
+      title: 'Assessment Complete',
+      message: 'Good work! You have a solid understanding of the basics. You\'re ready to start practicing with real-world coding challenges while continuing to learn.',
+      guidance: '💡 Recommended Path: Begin with Beginner Challenges and explore Learning Modules to fill any knowledge gaps.',
       shouldRedirectToLearning: false,
     };
-  } else if (score >= 70 && score < 90) {
+  } else if (score >= 75 && score < 90) {
     return {
-      title: 'Great Job!',
-      message: 'You have strong full-stack knowledge! We\'ll show you mid-level challenges to advance your expertise.',
+      title: 'Assessment Complete',
+      message: 'Excellent performance! Your technical knowledge is strong. You\'re ready to tackle intermediate and advanced challenges that mirror real development work.',
+      guidance: '🚀 Recommended Path: Jump into Intermediate & Advanced Challenges. Use Learning Modules for specific topics as needed.',
       shouldRedirectToLearning: false,
     };
   } else {
     return {
-      title: 'Excellent!',
-      message: 'You\'re a full-stack expert! We\'ll challenge you with our hardest problems to keep you sharp.',
+      title: 'Assessment Complete',
+      message: 'Outstanding results! Your expertise is impressive. You\'re well-equipped to handle our most challenging problems and can use this platform to sharpen your skills further.',
+      guidance: '⭐ Recommended Path: Tackle Advanced Challenges to push your limits. Explore all tiers to find new learning opportunities.',
       shouldRedirectToLearning: false,
     };
   }

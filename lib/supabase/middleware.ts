@@ -195,7 +195,9 @@ export async function updateSession(request: NextRequest) {
       }
 
       // Redirect away from quiz if user already completed it (but allow retaking if they skipped)
-      if (onboardingData && onboardingData.onboarding_completed && onboardingData.quiz_score !== null && request.nextUrl.pathname.startsWith('/onboarding/quiz')) {
+      // IMPORTANT: Allow viewing results page (step=results) even after completing quiz
+      const isViewingResults = request.nextUrl.searchParams.get('step') === 'results';
+      if (onboardingData && onboardingData.onboarding_completed && onboardingData.quiz_score !== null && request.nextUrl.pathname.startsWith('/onboarding/quiz') && !isViewingResults) {
         const url = request.nextUrl.clone();
         url.pathname = '/dashboard';
         return NextResponse.redirect(url);
