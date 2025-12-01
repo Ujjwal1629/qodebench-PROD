@@ -66,10 +66,9 @@ export function DeleteAccountDialog({ username }: DeleteAccountDialogProps) {
           description: result.message || 'Your account has been deleted',
         });
         setOpen(false);
-        // Redirect to home page after a short delay
-        setTimeout(() => {
-          router.push('/');
-        }, 1000);
+        // Force a hard redirect to clear all client-side state
+        // Using window.location instead of router.push to ensure clean state
+        window.location.href = '/';
       } else {
         throw new Error(result.error);
       }

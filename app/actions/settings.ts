@@ -1,6 +1,7 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
+import { createClient as createAdminClient } from '@supabase/supabase-js';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 
@@ -419,11 +420,13 @@ export async function deleteAccount(confirmation: string) {
       throw new Error('Not authenticated');
     }
 
+    const userId = user.id;
+
     // Get username for confirmation
     const { data: profile } = await supabase
       .from('profiles')
-      .select('username')
-      .eq('id', user.id)
+      .select('username, avatar_url')
+      .eq('id', userId)
       .single();
 
     if (!profile) {
@@ -435,34 +438,53 @@ export async function deleteAccount(confirmation: string) {
       throw new Error('Username confirmation does not match');
     }
 
-    // Delete avatar from storage if exists
-    const { data: profileData } = await supabase
-      .from('profiles')
-      .select('avatar_url')
-      .eq('id', user.id)
-      .single();
+    // Check for service role key
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-    if (profileData?.avatar_url) {
-      const oldPath = profileData.avatar_url.split('/').pop();
+    if (!supabaseUrl || !supabaseServiceKey) {
+      throw new Error('Account deletion is not configured. Please contact support.');
+    }
+
+    // Step 1: Delete avatar from storage if exists
+    if (profile.avatar_url) {
+      const oldPath = profile.avatar_url.split('/').pop();
       if (oldPath) {
         await supabase.storage
           .from('avatars')
-          .remove([`${user.id}/${oldPath}`]);
+          .remove([`${userId}/${oldPath}`]);
       }
     }
 
-    // Note: We're not actually deleting the user account from auth.users
-    // Instead, we'll mark the profile as deleted or deactivated
-    // For complete deletion, you'd need to use Supabase Admin API
-    // For now, we'll just delete the profile data
-    const { error } = await supabase
+    // Step 2: Delete profile data (this will cascade delete related data via foreign keys)
+    const { error: profileDeleteError } = await supabase
       .from('profiles')
       .delete()
-      .eq('id', user.id);
+      .eq('id', userId);
 
-    if (error) throw error;
+    if (profileDeleteError) {
+      console.error('Error deleting profile:', profileDeleteError);
+      // Continue anyway - we still want to delete the auth user
+    }
 
-    // Sign out the user
+    // Step 3: Create admin client and delete user from auth
+    const adminClient = createAdminClient(supabaseUrl, supabaseServiceKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
+      },
+    });
+
+    const { error: authDeleteError } = await adminClient.auth.admin.deleteUser(
+      userId
+    );
+
+    if (authDeleteError) {
+      console.error('Error deleting auth user:', authDeleteError);
+      throw new Error('Failed to delete user account from authentication system');
+    }
+
+    // Step 4: Sign out the user
     await supabase.auth.signOut();
 
     return {

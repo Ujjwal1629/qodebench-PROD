@@ -37,6 +37,13 @@ export function useAuth() {
 
     if (error) {
       setLoading(false);
+      // Provide more user-friendly error messages
+      if (error.message.toLowerCase().includes('invalid login credentials')) {
+        throw new Error('Invalid email or password. If you don\'t have an account, please sign up.');
+      }
+      if (error.message.toLowerCase().includes('email not confirmed')) {
+        throw new Error('Please verify your email address before signing in. Check your inbox for the verification link.');
+      }
       throw error;
     }
 
