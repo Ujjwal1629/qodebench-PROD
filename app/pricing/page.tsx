@@ -240,7 +240,7 @@ function PricingContent() {
           <ul className="grid md:grid-cols-2 gap-3">
             <li className="flex items-start gap-2 text-sm text-slate-700">
               <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
-              <span>Beginner challenges only</span>
+              <span>All beginner challenges unlocked</span>
             </li>
             <li className="flex items-start gap-2 text-sm text-slate-700">
               <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
@@ -248,7 +248,7 @@ function PricingContent() {
             </li>
             <li className="flex items-start gap-2 text-sm text-slate-700">
               <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
-              <span>5 AI feedback uses per day</span>
+              <span>Interview questions from all tiers</span>
             </li>
           </ul>
         </div>

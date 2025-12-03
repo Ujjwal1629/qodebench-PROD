@@ -93,11 +93,31 @@ export function AILearningCompanion({
         }),
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to get AI response');
-      }
-
       const data = await response.json();
+
+      if (!response.ok) {
+        // Handle daily limit error specifically
+        if (response.status === 429 && data.requiresUpgrade) {
+          const errorMsg: Message = {
+            id: (Date.now() + 1).toString(),
+            role: 'assistant',
+            content: `⚠️ ${data.error}\n\nUpgrade to get unlimited AI assistance! Visit the pricing page to see available plans.`,
+            mode,
+            timestamp: new Date(),
+          };
+          setMessages(prev => [...prev, errorMsg]);
+        } else {
+          const errorMsg: Message = {
+            id: (Date.now() + 1).toString(),
+            role: 'assistant',
+            content: data.error || 'Sorry, I encountered an error. Please try again.',
+            mode,
+            timestamp: new Date(),
+          };
+          setMessages(prev => [...prev, errorMsg]);
+        }
+        return;
+      }
 
       const assistantMsg: Message = {
         id: (Date.now() + 1).toString(),
@@ -113,7 +133,7 @@ export function AILearningCompanion({
       const errorMsg: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: 'Sorry, I encountered an error. Please try again.',
+        content: 'Sorry, something went wrong. Please try again.',
         mode,
         timestamp: new Date(),
       };

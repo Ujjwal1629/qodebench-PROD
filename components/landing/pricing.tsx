@@ -12,7 +12,7 @@ const pricingTiers = [
     yearlyPrice: "₹0",
     description: "Perfect for getting started",
     features: [
-      "Beginner challenges only",
+      "All beginner challenges unlocked",
       "All learning modules (Free forever)",
       "5 AI feedbacks per day",
       "Community access",

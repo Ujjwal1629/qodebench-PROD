@@ -2,7 +2,7 @@ import { Suspense } from 'react';
 import { Metadata } from 'next';
 import Link from 'next/link';
 import { getTierProgress, getChallengesByTier } from '@/app/actions/challenges';
-import { TierCard } from '@/components/challenges/tier-card';
+import { PracticalChallengesTabs } from '@/components/challenges/practical-challenges-tabs';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Code2, ChevronLeft } from 'lucide-react';
@@ -68,9 +68,9 @@ export default async function PracticalChallengesPage() {
           Your Coding Journey
         </h2>
         <p className="text-sm sm:text-base text-slate-700 leading-relaxed">
-          Start with <strong>Beginner</strong> challenges to build your foundation in coding basics
-          like variables, loops, and functions. Then advance to <strong>Intermediate</strong>
-          challenges that focus on real-world feature development and bug fixing scenarios.
+          Choose <strong>Beginner</strong> to master coding basics (all 10 challenges free!)
+          or advance to <strong>Intermediate</strong> for real-world feature development.
+          Use the tabs below to switch between difficulty levels.
         </p>
       </div>
 
@@ -98,21 +98,11 @@ async function TierCards() {
   ]);
 
   return (
-    <div className="grid gap-6">
-      {/* Beginner Tier */}
-      <TierCard
-        tierStats={beginnerData.tierInfo}
-        challenges={beginnerData.challenges}
-        hasActiveSubscription={hasPaidSubscription}
-      />
-
-      {/* Intermediate Tier */}
-      <TierCard
-        tierStats={intermediateData.tierInfo}
-        challenges={intermediateData.challenges}
-        hasActiveSubscription={hasPaidSubscription}
-      />
-    </div>
+    <PracticalChallengesTabs
+      beginnerData={beginnerData}
+      intermediateData={intermediateData}
+      hasActiveSubscription={hasPaidSubscription}
+    />
   );
 }
 

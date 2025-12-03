@@ -80,11 +80,27 @@ export function AIAssistantPanel({
         }),
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to get AI response');
-      }
-
       const data = await response.json();
+
+      if (!response.ok) {
+        // Handle daily limit error
+        if (response.status === 429 && data.requiresUpgrade) {
+          toast.error(data.error || 'Daily AI limit reached. Upgrade for unlimited access!', {
+            duration: 5000,
+          });
+          // Show error in chat too
+          const errorMsg: Message = {
+            id: (Date.now() + 1).toString(),
+            role: 'assistant',
+            content: `⚠️ ${data.error}\n\nUpgrade to get unlimited AI assistance!`,
+            timestamp: new Date(),
+          };
+          setMessages((prev) => [...prev, errorMsg]);
+        } else {
+          toast.error(data.error || 'Failed to get AI response. Please try again.');
+        }
+        return;
+      }
 
       const aiMsg: Message = {
         id: (Date.now() + 1).toString(),
@@ -95,7 +111,7 @@ export function AIAssistantPanel({
       setMessages((prev) => [...prev, aiMsg]);
     } catch (error) {
       console.error('Error getting AI response:', error);
-      toast.error('Failed to get AI response. Please try again.');
+      toast.error('Something went wrong. Please try again.');
     } finally {
       setIsLoading(false);
     }

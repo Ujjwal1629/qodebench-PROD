@@ -96,8 +96,8 @@ export const SUBSCRIPTION_PLANS: Record<Exclude<SubscriptionTier, 'free'>, Subsc
 };
 
 export const FREE_TIER_LIMITS = {
-  dailyAttempts: 10,
-  dailyAIFeedback: 5,
+  dailyAttempts: 999999, // Unlimited attempts for free users
+  dailyAIFeedback: 5, // 5 AI responses per day for free users
 } as const;
 
 export interface UserSubscription {

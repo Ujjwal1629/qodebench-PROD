@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Lightbulb, Loader2 } from 'lucide-react';
+import { Lightbulb, Loader2, AlertCircle, Crown } from 'lucide-react';
+import Link from 'next/link';
 
 interface HintSectionProps {
   challengeId: string;
@@ -17,9 +18,11 @@ interface Hint {
 export function HintSection({ challengeId, currentCode }: HintSectionProps) {
   const [hints, setHints] = useState<Hint[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<{ message: string; requiresUpgrade: boolean } | null>(null);
 
   const getHint = async () => {
     setIsLoading(true);
+    setError(null); // Clear previous errors
     try {
       const response = await fetch('/api/ai/hint', {
         method: 'POST',
@@ -31,14 +34,24 @@ export function HintSection({ challengeId, currentCode }: HintSectionProps) {
         }),
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        throw new Error('Failed to get hint');
+        // Handle specific error cases
+        if (response.status === 429 && data.requiresUpgrade) {
+          // Daily limit reached
+          setError({ message: data.error, requiresUpgrade: true });
+        } else {
+          // Other errors
+          setError({ message: data.error || 'Failed to get hint', requiresUpgrade: false });
+        }
+        return;
       }
 
-      const data = await response.json();
       setHints([...hints, { text: data.hint, level: data.hintLevel }]);
     } catch (error) {
       console.error('Error getting hint:', error);
+      setError({ message: 'Something went wrong. Please try again.', requiresUpgrade: false });
     } finally {
       setIsLoading(false);
     }
@@ -53,7 +66,7 @@ export function HintSection({ challengeId, currentCode }: HintSectionProps) {
         </div>
         <Button
           onClick={getHint}
-          disabled={isLoading}
+          disabled={isLoading || (error?.requiresUpgrade ?? false)}
           size="sm"
           className="gap-2"
         >
@@ -71,7 +84,36 @@ export function HintSection({ challengeId, currentCode }: HintSectionProps) {
         </Button>
       </div>
 
-      {hints.length === 0 ? (
+      {/* Error Message Display */}
+      {error && (
+        <div className={`rounded-lg p-4 ${error.requiresUpgrade ? 'bg-amber-50 border border-amber-200' : 'bg-red-50 border border-red-200'}`}>
+          <div className="flex items-start gap-3">
+            {error.requiresUpgrade ? (
+              <Crown className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
+            ) : (
+              <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
+            )}
+            <div className="flex-1">
+              <p className={`text-sm font-medium ${error.requiresUpgrade ? 'text-amber-900' : 'text-red-900'} mb-1`}>
+                {error.requiresUpgrade ? 'Daily AI Limit Reached' : 'Error'}
+              </p>
+              <p className={`text-sm ${error.requiresUpgrade ? 'text-amber-800' : 'text-red-800'}`}>
+                {error.message}
+              </p>
+              {error.requiresUpgrade && (
+                <Link href="/pricing">
+                  <Button size="sm" variant="outline" className="mt-3 bg-white hover:bg-amber-50 border-amber-300">
+                    <Crown className="h-4 w-4 mr-2" />
+                    View Plans
+                  </Button>
+                </Link>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {hints.length === 0 && !error ? (
         <p className="text-sm text-slate-600">
           Stuck? Click the button above to get a helpful hint from your AI
           mentor!
