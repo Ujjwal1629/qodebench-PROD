@@ -94,6 +94,11 @@ export function useAuth() {
       provider: provider as Provider,
       options: {
         redirectTo: `${window.location.origin}/auth/callback`,
+        queryParams: {
+          // Force account selection for Google
+          // For GitHub, this helps clear cached sessions
+          prompt: 'select_account',
+        },
       },
     });
 
@@ -114,7 +119,8 @@ export function useAuth() {
 
   const signOut = async () => {
     setLoading(true);
-    await supabase.auth.signOut();
+    // Sign out from Supabase (scope: 'local' clears current session only)
+    await supabase.auth.signOut({ scope: 'local' });
     clearAuth();
 
     // Clear any cached data and force reload
