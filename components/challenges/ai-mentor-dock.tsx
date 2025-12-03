@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Bot, Send, Loader2, Lightbulb, Search, MessageCircle, Sparkles, X } from 'lucide-react';
+import { Bot, Send, Loader2, Lightbulb, Search, MessageCircle, Sparkles, X, User } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface Message {
@@ -372,39 +372,44 @@ export function AIMentorDock({
                       className={`flex gap-3 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
                     >
                       {msg.role === 'assistant' && (
-                        <div className="flex-shrink-0">
-                          <div className="bg-gradient-to-br from-sky-500 to-purple-600 p-2 rounded-xl relative">
-                            <Bot className="h-4 w-4 text-white" />
-                            <div className="absolute -top-0.5 -right-0.5 h-2 w-2 bg-green-500 rounded-full border border-white"></div>
-                          </div>
+                        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center">
+                          <Bot className="h-5 w-5 text-white" />
                         </div>
                       )}
                       <div
-                        className={`max-w-[75%] rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-sm ${
-                          msg.role === 'user'
-                            ? 'bg-gradient-to-br from-sky-500 to-blue-600 text-white'
-                            : 'bg-white text-gray-900 border border-gray-200'
+                        className={`flex flex-col gap-1 max-w-[80%] ${
+                          msg.role === 'user' ? 'items-end' : 'items-start'
                         }`}
                       >
-                        <div className="whitespace-pre-wrap">{msg.content}</div>
-                        <div className="text-xs opacity-70 mt-1">
-                          {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        <div
+                          className={`rounded-lg px-4 py-2 ${
+                            msg.role === 'user'
+                              ? 'bg-blue-600 text-white'
+                              : 'bg-slate-100 text-slate-900'
+                          }`}
+                        >
+                          <p className="text-sm whitespace-pre-line">{msg.content}</p>
                         </div>
+                        <span className="text-xs text-slate-500">
+                          {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </span>
                       </div>
+                      {msg.role === 'user' && (
+                        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center">
+                          <User className="h-5 w-5 text-white" />
+                        </div>
+                      )}
                     </div>
                   ))}
                   {isLoading && (
                     <div className="flex gap-3 justify-start">
-                      <div className="flex-shrink-0">
-                        <div className="bg-gradient-to-br from-sky-500 to-purple-600 p-2 rounded-xl relative">
-                          <Bot className="h-4 w-4 text-white animate-pulse" />
-                          <div className="absolute -top-0.5 -right-0.5 h-2 w-2 bg-green-500 rounded-full border border-white animate-ping"></div>
-                        </div>
+                      <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center">
+                        <Bot className="h-5 w-5 text-white" />
                       </div>
-                      <div className="bg-gradient-to-br from-white to-sky-50 border border-sky-200 rounded-2xl px-4 py-3 shadow-sm">
-                        <div className="flex items-center gap-2 text-sm text-gray-700 font-medium">
-                          <Loader2 className="h-4 w-4 animate-spin text-sky-600" />
-                          <span>Senior dev is typing...</span>
+                      <div className="bg-slate-100 rounded-lg px-4 py-3">
+                        <div className="flex items-center gap-2">
+                          <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
+                          <span className="text-sm text-slate-600">Thinking...</span>
                         </div>
                       </div>
                     </div>

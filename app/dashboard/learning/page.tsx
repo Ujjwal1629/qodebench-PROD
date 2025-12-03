@@ -193,7 +193,7 @@ export default function LearningPage() {
               </div>
               <div>
                 <h4 className="font-medium text-slate-900">Quiz-Based Learning</h4>
-                <p className="text-sm text-slate-600">Test your knowledge to unlock new lessons</p>
+                <p className="text-sm text-slate-600">Test your knowledge and track your progress</p>
               </div>
             </div>
           </div>

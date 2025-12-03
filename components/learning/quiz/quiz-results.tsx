@@ -38,8 +38,8 @@ export function QuizResults({ results, onRetry, nextLessonUrl }: QuizResultsProp
           </CardTitle>
           <p className="text-lg text-muted-foreground mt-2">
             {passed
-              ? 'Great job! You scored above 80%. You can move on to the next lesson.'
-              : 'You need to score 80% or higher to unlock the next lesson. Retry the quiz to improve your score.'}
+              ? 'Great job! You demonstrated strong understanding. Ready to move forward?'
+              : 'We recommend scoring 80% or higher to ensure mastery. Retry the quiz to improve your understanding.'}
           </p>
         </CardHeader>
         <CardContent>
@@ -77,7 +77,7 @@ export function QuizResults({ results, onRetry, nextLessonUrl }: QuizResultsProp
               </>
             ) : (
               <Button onClick={onRetry} className="w-full bg-sky-600 hover:bg-sky-700">
-                Retry Quiz to Unlock Next Lesson
+                Retry Quiz to Improve Score
               </Button>
             )}
           </div>

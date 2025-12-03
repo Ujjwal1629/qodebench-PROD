@@ -293,9 +293,7 @@ export function AILearningCompanion({
               messages.map((message) => (
                 <div
                   key={message.id}
-                  className={`flex gap-3 ${
-                    message.role === 'user' ? 'justify-end' : 'justify-start'
-                  }`}
+                  className={`flex gap-3 ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
                 >
                   {message.role === 'assistant' && (
                     <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center">
@@ -307,9 +305,6 @@ export function AILearningCompanion({
                       message.role === 'user' ? 'items-end' : 'items-start'
                     }`}
                   >
-                    {message.role === 'assistant' && message.mode && (
-                      <div>{getModeBadge(message.mode)}</div>
-                    )}
                     <div
                       className={`rounded-lg px-4 py-2 ${
                         message.role === 'user'

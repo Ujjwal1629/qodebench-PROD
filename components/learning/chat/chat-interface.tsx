@@ -109,7 +109,7 @@ export function ChatInterface({ lessonId, lessonTitle, lessonContent }: ChatInte
     setMessages((prev) => [...prev, assistantMessage]);
 
     try {
-      // Start streaming
+      // Get full response at once (like AI Senior Dev)
       const response = await fetch('/api/learning/chat/message', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -121,53 +121,34 @@ export function ChatInterface({ lessonId, lessonTitle, lessonContent }: ChatInte
         }),
       });
 
-      if (!response.ok) throw new Error('Failed to send message');
+      const data = await response.json();
 
-      const reader = response.body?.getReader();
-      const decoder = new TextDecoder();
-
-      if (!reader) throw new Error('No reader available');
-
-      let accumulatedMessage = '';
-      let updateQueue = '';
-      let lastUpdateTime = Date.now();
-      const UPDATE_THROTTLE = 50; // Throttle UI updates to every 50ms for smoother rendering
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        const chunk = decoder.decode(value, { stream: true });
-        accumulatedMessage += chunk;
-        updateQueue += chunk;
-
-        // Throttle updates - only update UI if enough time has passed
-        const now = Date.now();
-        if (now - lastUpdateTime >= UPDATE_THROTTLE || done) {
-          if (updateQueue) {
-            setMessages((prev) =>
-              prev.map((msg) =>
-                msg.id === assistantMessageId
-                  ? { ...msg, message: accumulatedMessage }
-                  : msg
-              )
-            );
-            updateQueue = '';
-            lastUpdateTime = now;
-          }
+      if (!response.ok) {
+        // Handle daily limit error
+        if (response.status === 429 && data.requiresUpgrade) {
+          setMessages((prev) =>
+            prev.map((msg) =>
+              msg.id === assistantMessageId
+                ? { ...msg, message: `⚠️ ${data.error}\n\nUpgrade to get unlimited AI assistance!` }
+                : msg
+            )
+          );
+        } else {
+          throw new Error(data.error || 'Failed to send message');
         }
+        return;
       }
 
-      // Final update with complete message
+      // Update with full response at once
       setMessages((prev) =>
         prev.map((msg) =>
           msg.id === assistantMessageId
-            ? { ...msg, message: accumulatedMessage }
+            ? { ...msg, message: data.message || data.response || '' }
             : msg
         )
       );
     } catch (error) {
-      console.error('Streaming error:', error);
+      console.error('Chat error:', error);
       // Update message with error
       setMessages((prev) =>
         prev.map((msg) =>

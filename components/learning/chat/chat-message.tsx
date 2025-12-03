@@ -145,10 +145,7 @@ export const ChatMessage = memo(function ChatMessage({ message, role, timestamp,
               <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-white to-transparent pointer-events-none"></div>
 
               {/* Scroll down button */}
-              <div className="absolute bottom-2 right-2 flex flex-col items-center z-10">
-                <div className="bg-sky-600 text-white text-xs font-medium px-2 py-1 rounded-md shadow-sm mb-1 whitespace-nowrap">
-                  More below ↓
-                </div>
+              <div className="absolute bottom-2 right-2 z-10">
                 <button
                   onClick={scrollToBottom}
                   className="bg-gradient-to-br from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white rounded-full p-2.5 shadow-lg transition-all hover:scale-110 animate-bounce"
