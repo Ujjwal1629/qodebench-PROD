@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Code2, BookOpen, Mic } from "lucide-react";
+import { LearningPathPreview } from "./learning-path-preview";
 
 export function ProductModules() {
   const modules = [
@@ -59,13 +60,13 @@ export function ProductModules() {
         {/* Section Header */}
         <div className="text-center mb-16 max-w-3xl mx-auto">
           <h2 className="text-4xl md:text-5xl font-bold text-slate-900 mb-4">
-            Three Ways to Master{" "}
+            Three Paths to{" "}
             <span className="bg-gradient-to-r from-brand-500 to-purple-600 bg-clip-text text-transparent">
-              Full-Stack Development
+              Job-Ready Skills
             </span>
           </h2>
           <p className="text-lg text-slate-600">
-            Experience real developer workflows through our three core modules designed to prepare you for the job market.
+            Experience real developer workflows through our three core modules designed to make you job-ready.
           </p>
         </div>
 
@@ -76,7 +77,7 @@ export function ProductModules() {
             return (
               <div
                 key={index}
-                className="group bg-white border border-slate-200 rounded-2xl p-8 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 text-center md:text-left"
+                className="group bg-white border border-slate-200 rounded-2xl p-6 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 text-center md:text-left"
               >
                 {/* Icon */}
                 <div
@@ -130,6 +131,22 @@ export function ProductModules() {
           >
             <Link href="/signup">Get Started Free →</Link>
           </Button>
+        </div>
+
+        {/* Learning Path Section */}
+        <div className="mt-20">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">
+              Your Path to{" "}
+              <span className="bg-gradient-to-r from-brand-500 to-purple-600 bg-clip-text text-transparent">
+                Job-Ready Skills
+              </span>
+            </h2>
+            <p className="text-slate-600">
+              Follow our structured path from learning to real-world practice
+            </p>
+          </div>
+          <LearningPathPreview />
         </div>
       </div>
     </section>

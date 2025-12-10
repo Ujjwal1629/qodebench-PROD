@@ -117,14 +117,14 @@ export function Navbar() {
   };
 
   return (
-    <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ease-out ${
+    <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
       isScrolled ? "py-4 px-4 lg:px-8" : "py-0 px-0"
     }`}>
       <div
-        className={`transition-all duration-500 ease-out ${
+        className={`transition-all duration-300 ${
           isScrolled
-            ? "max-w-7xl mx-auto bg-white/95 backdrop-blur-xl shadow-2xl shadow-slate-900/10 rounded-2xl border border-slate-200"
-            : "bg-white border-b border-slate-200/50"
+            ? "max-w-7xl mx-auto bg-white shadow-lg rounded-2xl border border-slate-200"
+            : "bg-white border-b border-slate-200"
         }`}
       >
         <div className={`flex items-center justify-between h-20 px-8 ${isScrolled ? "" : "max-w-7xl mx-auto"}`}>
@@ -153,7 +153,7 @@ export function Navbar() {
                   className="text-sm font-medium transition-all duration-300 relative group text-slate-600 hover:text-slate-900"
                 >
                   {link.name}
-                  <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-slate-900 transition-all duration-300 group-hover:w-full" />
+                  <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-brand-500 transition-all duration-300 group-hover:w-full" />
                 </a>
               ) : (
                 <Link
@@ -162,7 +162,7 @@ export function Navbar() {
                   className="text-sm font-medium transition-all duration-300 relative group text-slate-600 hover:text-slate-900"
                 >
                   {link.name}
-                  <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-slate-900 transition-all duration-300 group-hover:w-full" />
+                  <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-brand-500 transition-all duration-300 group-hover:w-full" />
                 </Link>
               )
             ))}
@@ -237,7 +237,7 @@ export function Navbar() {
                 </Button>
                 <Button
                   asChild
-                  className="bg-gradient-to-r from-brand-500 to-purple-500 hover:from-brand-600 hover:to-purple-600 text-white transition-all duration-300 font-medium px-6 shadow-lg shadow-brand-500/25 hover:shadow-xl hover:shadow-brand-500/30"
+                  className="bg-gradient-to-r from-brand-500 to-purple-500 hover:from-brand-600 hover:to-purple-600 text-white transition-all duration-300 font-semibold px-6 shadow-lg shadow-brand-500/20 hover:shadow-xl hover:shadow-brand-500/30"
                 >
                   <Link href="/signup">Get Started</Link>
                 </Button>

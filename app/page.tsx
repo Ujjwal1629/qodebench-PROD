@@ -1,27 +1,38 @@
-import { Hero } from "@/components/landing/hero";
+import { HeroConversion } from "@/components/landing/hero-conversion";
 import { ProductModules } from "@/components/landing/product-modules";
-import { WhyQodebench } from "@/components/landing/why-qodebench";
-import { Stats } from "@/components/landing/stats";
-import { Features } from "@/components/landing/features";
-import { Testimonials } from "@/components/landing/testimonials";
-import { HowItWorks } from "@/components/landing/how-it-works";
-import { Pricing } from "@/components/landing/pricing";
+import { ValueProposition } from "@/components/landing/value-proposition";
+import { SocialProof } from "@/components/landing/social-proof";
+import { JourneyAndPricing } from "@/components/landing/journey-and-pricing";
 import { FinalCTA } from "@/components/landing/cta";
 import { Footer } from "@/components/landing/footer";
+import { WhatsAppFloat } from "@/components/landing/whatsapp-float";
 
 export default function Home() {
   return (
     <div className="min-h-screen">
-      <Hero />
+      {/* Section 1: Conversion-Focused Hero with Lead Form */}
+      <HeroConversion />
+
+      {/* Section 2: Product Modules + Learning Path Preview */}
       <ProductModules />
-      <WhyQodebench />
-      <Stats />
-      <Features />
-      <Testimonials />
-      <HowItWorks />
-      <Pricing />
+
+      {/* Section 4: Why + Features (merged) */}
+      <ValueProposition />
+
+      {/* Section 5: Stats + Testimonials (merged) */}
+      <SocialProof />
+
+      {/* Section 6: Journey + Pricing (side-by-side) */}
+      <JourneyAndPricing />
+
+      {/* Section 7: Final CTA */}
       <FinalCTA />
+
+      {/* Section 8: Footer */}
       <Footer />
+
+      {/* WhatsApp Floating Button */}
+      <WhatsAppFloat />
     </div>
   );
 }
