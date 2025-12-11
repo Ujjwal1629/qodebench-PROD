@@ -2,9 +2,11 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { QueryProvider } from "@/components/providers/query-provider";
+import { PageTrackingProvider } from "@/components/providers/page-tracking-provider";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as SonnerToaster } from "sonner";
 import { Navbar } from "@/components/landing/navbar";
+import { LeadCapturePopup } from "@/components/lead-capture-popup";
 import NextTopLoader from "nextjs-toploader";
 
 const inter = Inter({
@@ -55,12 +57,15 @@ export default function RootLayout({
           speed={200}
           shadow="0 0 10px #0ea5e9,0 0 5px #0ea5e9"
         />
-        <QueryProvider>
-          <Navbar />
-          {children}
-          <Toaster />
-          <SonnerToaster position="top-center" richColors />
-        </QueryProvider>
+        <PageTrackingProvider>
+          <QueryProvider>
+            <Navbar />
+            {children}
+            <Toaster />
+            <SonnerToaster position="top-center" richColors />
+            <LeadCapturePopup />
+          </QueryProvider>
+        </PageTrackingProvider>
       </body>
     </html>
   );

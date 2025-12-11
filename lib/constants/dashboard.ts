@@ -7,6 +7,7 @@ import {
   Mic,
   Trophy,
   Gift,
+  Users,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -55,6 +56,12 @@ export const NAV_ITEMS: NavItem[] = [
     href: '/dashboard/leaderboard',
     icon: Trophy,
     description: 'Compete with developers worldwide',
+  },
+  {
+    title: 'Visitors',
+    href: '/dashboard/admin/visitors',
+    icon: Users,
+    description: 'Track visitors and leads (Admin only)',
   },
   // Temporarily hidden for beta - Coming soon
   // {
