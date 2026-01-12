@@ -6,7 +6,7 @@ import { PageTrackingProvider } from "@/components/providers/page-tracking-provi
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as SonnerToaster } from "sonner";
 import { Navbar } from "@/components/landing/navbar";
-import { LeadCapturePopup } from "@/components/lead-capture-popup";
+
 import NextTopLoader from "nextjs-toploader";
 
 const inter = Inter({
@@ -63,7 +63,7 @@ export default function RootLayout({
             {children}
             <Toaster />
             <SonnerToaster position="top-center" richColors />
-            <LeadCapturePopup />
+
           </QueryProvider>
         </PageTrackingProvider>
       </body>
