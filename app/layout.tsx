@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { QueryProvider } from "@/components/providers/query-provider";
@@ -63,6 +64,7 @@ export default function RootLayout({
             {children}
             <Toaster />
             <SonnerToaster position="top-center" richColors />
+            <SpeedInsights />
 
           </QueryProvider>
         </PageTrackingProvider>
