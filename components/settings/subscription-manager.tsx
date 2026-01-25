@@ -107,6 +107,7 @@ export function SubscriptionManager({ subscription, userId }: SubscriptionManage
               {!isFreeTier && <Crown className="h-6 w-6 text-primary" />}
               <div>
                 <CardTitle className="text-2xl">
+                  {/* @ts-ignore - Check for legacy tiers */}
                   {isFreeTier ? 'Free Tier' : SUBSCRIPTION_PLANS[currentTier as keyof typeof SUBSCRIPTION_PLANS]?.name || 'Premium Plan'}
                 </CardTitle>
                 <CardDescription>Your current subscription plan</CardDescription>
