@@ -50,6 +50,22 @@ const pricingTiers = [
     popular: false,
   },
   {
+    name: "Monthly",
+    price: "₹999",
+    originalPrice: "",
+    description: "Flexible monthly plan",
+    features: [
+      "All challenges unlocked",
+      "Mock Interview Prep",
+      "Unlimited AI feedback",
+      "Priority support",
+      "Monthly access",
+    ],
+    cta: "Get Monthly",
+    ctaLink: "/pricing",
+    popular: false,
+  },
+  {
     name: "Premium",
     price: "₹1,999",
     originalPrice: "",

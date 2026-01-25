@@ -114,7 +114,13 @@ function PricingContent() {
 
   const plans = [
     {
-      tier: 'premium' as const,
+      tier: 'monthly' as const,
+      icon: Zap,
+      color: 'from-blue-500 to-cyan-500',
+      borderColor: 'border-blue-200',
+    },
+    {
+      tier: 'quarterly' as const,
       icon: Crown,
       color: 'from-purple-500 to-pink-500',
       borderColor: 'border-purple-200',
@@ -252,7 +258,7 @@ function PricingContent() {
 
                 {/* Features */}
                 <ul className="mt-6 space-y-3">
-                  {planData.features.map((feature, index) => (
+                  {planData.features.map((feature: string, index: number) => (
                     <li key={index} className="flex items-start gap-2 text-sm text-slate-700">
                       <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
                       <span>{feature}</span>

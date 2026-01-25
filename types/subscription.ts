@@ -1,4 +1,4 @@
-export type SubscriptionTier = 'free' | 'premium' | 'launch_offer' | 'monthly' | 'quarterly' | 'yearly';
+export type SubscriptionTier = 'free' | 'launch_offer' | 'monthly' | 'quarterly' | 'yearly';
 
 export type SubscriptionStatus =
   | 'active'
@@ -22,12 +22,29 @@ export interface SubscriptionPlan {
   features: string[];
   popular?: boolean;
   limitedTime?: boolean;
+  badge?: string;
 }
 
-export const SUBSCRIPTION_PLANS: Record<Exclude<SubscriptionTier, 'free' | 'launch_offer' | 'monthly' | 'quarterly' | 'yearly'>, SubscriptionPlan> = {
-  premium: {
-    id: 'premium',
-    name: 'Premium',
+export const SUBSCRIPTION_PLANS: Record<Exclude<SubscriptionTier, 'free' | 'launch_offer' | 'yearly'>, SubscriptionPlan> = {
+  monthly: {
+    id: 'monthly',
+    name: 'Monthly',
+    price: 999,
+    priceInPaise: 99900,
+    duration: 30, // 30 days
+    description: 'Billed monthly',
+    features: [
+      'All challenges unlocked',
+      'Mock Interview Prep',
+      'Unlimited attempts',
+      'Full AI feedback',
+      'Priority support',
+      'Monthly access',
+    ],
+  },
+  quarterly: {
+    id: 'quarterly',
+    name: 'Quarterly',
     price: 1999,
     priceInPaise: 199900,
     duration: 90, // 90 days
@@ -42,6 +59,7 @@ export const SUBSCRIPTION_PLANS: Record<Exclude<SubscriptionTier, 'free' | 'laun
       'Exclusive premium badge',
     ],
     popular: true,
+    badge: 'Best Value',
   },
 };
 

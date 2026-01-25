@@ -153,7 +153,10 @@ export function calculateSubscriptionEndDate(tier: string, startDate: Date = new
   const endDate = new Date(startDate);
 
   switch (tier) {
-    case 'premium':
+    case 'monthly':
+      endDate.setMonth(endDate.getMonth() + 1); // Monthly
+      break;
+    case 'quarterly':
       endDate.setMonth(endDate.getMonth() + 3); // Quarterly
       break;
     default:
