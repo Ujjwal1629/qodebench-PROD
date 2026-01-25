@@ -239,7 +239,7 @@ function PricingContent() {
                       ₹{planData.price}
                     </span>
                     <span className="text-slate-600 ml-2">
-                      / 3 months
+                      {planData.id === 'monthly' ? '/ month' : '/ 3 months'}
                     </span>
                   </div>
                 </div>
@@ -253,7 +253,7 @@ function PricingContent() {
                   disabled={loading !== null}
                   className="w-full bg-gradient-to-r from-brand-500 to-purple-500 hover:from-brand-600 hover:to-purple-600 text-white shadow-lg shadow-brand-500/25"
                 >
-                  {loading === plan.tier ? 'Processing...' : 'Subscribe (3 Months)'}
+                  {loading === plan.tier ? 'Processing...' : `Subscribe (${planData.id === 'monthly' ? 'Monthly' : '3 Months'})`}
                 </Button>
 
                 {/* Features */}

@@ -213,7 +213,11 @@ export function JourneyAndPricing() {
                             {tier.price}
                           </span>
                           <span className="text-sm text-slate-600">
-                            {tier.price !== "₹0" ? "/ 3 months" : "/ forever"}
+                            {tier.name === "Monthly"
+                              ? "/ month"
+                              : tier.price !== "₹0"
+                                ? "/ 3 months"
+                                : "/ forever"}
                           </span>
                         </div>
                       </div>
