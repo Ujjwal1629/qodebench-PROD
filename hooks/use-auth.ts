@@ -47,7 +47,13 @@ export function useAuth() {
       throw error;
     }
 
-    router.push('/dashboard');
+    // Use hard navigation instead of client-side router.push() to ensure cookies are fully set
+    // This prevents race conditions where middleware doesn't see the session on subsequent navigations
+    if (typeof window !== 'undefined') {
+      window.location.href = '/dashboard';
+    } else {
+      router.push('/dashboard');
+    }
   };
 
   const signUp = async (

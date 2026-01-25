@@ -11,7 +11,7 @@ const getUserProfile = cache(async (userId: string) => {
   const supabase = await createClient();
   const { data: profile } = await supabase
     .from('profiles')
-    .select('username, avatar_url, full_name, total_points, subscription_tier, subscription_status')
+    .select('username, avatar_url, full_name, total_points, subscription_tier, subscription_status, is_admin')
     .eq('id', userId)
     .single();
 
@@ -37,6 +37,10 @@ export default async function DashboardLayout({
   // Fetch user profile with caching
   const profile = await getUserProfile(user.id);
 
+  // Check if user is admin (via email env var OR is_admin flag)
+  const adminEmails = (process.env.ADMIN_EMAILS || '').split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
+  const isAdmin = profile?.is_admin || (user.email && adminEmails.includes(user.email.toLowerCase())) || false;
+
   const userData = profile
     ? {
         username: profile.username,
@@ -45,6 +49,7 @@ export default async function DashboardLayout({
         total_points: profile.total_points,
         subscription_tier: profile.subscription_tier,
         subscription_status: profile.subscription_status,
+        is_admin: isAdmin,
       }
     : null;
 
