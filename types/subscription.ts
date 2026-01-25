@@ -1,4 +1,4 @@
-export type SubscriptionTier = 'free' | 'launch_offer' | 'monthly' | 'quarterly' | 'yearly';
+export type SubscriptionTier = 'free' | 'premium' | 'launch_offer' | 'monthly' | 'quarterly' | 'yearly';
 
 export type SubscriptionStatus =
   | 'active'
@@ -24,74 +24,24 @@ export interface SubscriptionPlan {
   limitedTime?: boolean;
 }
 
-export const SUBSCRIPTION_PLANS: Record<Exclude<SubscriptionTier, 'free'>, SubscriptionPlan> = {
-  launch_offer: {
-    id: 'launch_offer',
-    name: 'Launch Offer',
-    price: 199,
-    priceInPaise: 19900,
-    originalPrice: 999, // Show this crossed out
-    duration: 21, // 21 days
-    description: '21-day launch offer',
-    features: [
-      'All Intermediate challenges',
-      'All Office Workflow challenges',
-      'All Advanced challenges',
-      'Mock Interview Prep',
-      'Unlimited attempts',
-      'Full AI feedback',
-    ],
-  },
-  monthly: {
-    id: 'monthly',
-    name: 'Monthly',
-    price: 999,
-    priceInPaise: 99900,
-    duration: 30,
-    description: 'Billed monthly',
-    features: [
-      'All challenge tiers unlocked',
-      'Mock Interview Prep',
-      'Unlimited attempts',
-      'Full AI feedback',
-      'Priority support',
-      'Weekly Code Friday challenges',
-    ],
-    popular: true,
-  },
-  quarterly: {
-    id: 'quarterly',
-    name: '3-Month Offer',
+export const SUBSCRIPTION_PLANS: Record<Exclude<SubscriptionTier, 'free' | 'launch_offer' | 'monthly' | 'quarterly' | 'yearly'>, SubscriptionPlan> = {
+  premium: {
+    id: 'premium',
+    name: 'Premium',
     price: 1999,
     priceInPaise: 199900,
-    duration: 90,
-    description: 'Introductory offer',
+    duration: 90, // 90 days
+    description: 'Billed every 3 months',
     features: [
-      'All challenge tiers unlocked',
-      'Mock Interview Prep',
-      'Unlimited attempts',
-      'Full AI feedback',
-      '3 months full access',
-      'Best value for learning',
-    ],
-    limitedTime: true,
-  },
-  yearly: {
-    id: 'yearly',
-    name: '6-Month Plan',
-    price: 4999,
-    priceInPaise: 499900,
-    duration: 180, // 6 months
-    description: 'Best value for serious learners',
-    features: [
-      'All challenge tiers unlocked',
+      'All challenges unlocked',
       'Mock Interview Prep',
       'Unlimited attempts',
       'Full AI feedback',
       'Priority support',
-      '6 months full access',
+      '3 months access',
       'Exclusive premium badge',
     ],
+    popular: true,
   },
 };
 

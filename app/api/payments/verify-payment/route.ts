@@ -48,6 +48,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate tier
+    // @ts-ignore - We're validating existence at runtime
     if (!SUBSCRIPTION_PLANS[tier]) {
       return NextResponse.json({ error: 'Invalid subscription tier' }, { status: 400 });
     }
@@ -128,6 +129,7 @@ export async function POST(request: NextRequest) {
         start_date: startDate.toISOString(),
         end_date: endDate.toISOString(),
         trial_end_date: trialEndDate?.toISOString() || null,
+        // @ts-ignore
         amount: SUBSCRIPTION_PLANS[tier].priceInPaise,
         currency: 'INR',
         razorpay_order_id: razorpay_order_id,
