@@ -276,14 +276,7 @@ function PricingContent() {
             Frequently Asked Questions
           </h2>
           <div className="space-y-4">
-            <details className="bg-white p-6 rounded-lg border border-slate-200">
-              <summary className="font-semibold text-slate-900 cursor-pointer">
-                What happens after the launch offer ends?
-              </summary>
-              <p className="mt-3 text-slate-600">
-                After 21 days, your launch offer will expire. You can then choose to upgrade to either the 3-Month Offer (₹1999) or 6-Month Plan (₹4999) to continue accessing premium features.
-              </p>
-            </details>
+
 
             <details className="bg-white p-6 rounded-lg border border-slate-200">
               <summary className="font-semibold text-slate-900 cursor-pointer">

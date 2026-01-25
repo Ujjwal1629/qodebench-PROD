@@ -147,7 +147,7 @@ export function DailyLimitReached({
             Upgrade to Premium
           </Button>
           <p className="text-center text-xs text-muted-foreground">
-            Starting at ₹199 for 21-day launch offer • Cancel anytime
+            Unlock unlimited access • Cancel anytime
           </p>
         </div>
       </CardContent>

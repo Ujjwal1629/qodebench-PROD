@@ -20,12 +20,7 @@ export function HeroConversion() {
       <div className="container mx-auto px-6 lg:px-8 relative z-10">
         {/* Top Badge */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-2 bg-gradient-to-r from-green-500/20 to-brand-500/20 border border-green-500/30 px-4 py-2 rounded-full backdrop-blur-sm">
-            <Sparkles className="w-4 h-4 text-green-400" />
-            <span className="text-sm font-semibold text-green-300">
-              🎉 Limited Time: Get Job-Ready at ₹199 for 21 days (90% OFF)
-            </span>
-          </div>
+          {/* Launch offer text removed */}
         </div>
 
         <div className="grid lg:grid-cols-2 gap-12 items-center max-w-7xl mx-auto">

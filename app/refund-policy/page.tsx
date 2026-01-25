@@ -90,8 +90,8 @@ export default function RefundPolicyPage() {
 
             <h3 className="text-xl font-semibold text-slate-900 mt-6">Beta Trial Cancellation</h3>
             <p className="text-slate-600">
-              The 21-day Beta Trial (₹199) can be cancelled at any time. If cancelled within 7 days and
-              usage is under 20%, a full refund will be issued. After 7 days, no refund is available,
+              Subscriptions can be cancelled at any time. If cancelled within 7 days and
+              no premium content was accessed, you are eligible for a full refund. will be issued. After 7 days, no refund is available,
               but you retain access until the 21-day period ends.
             </p>
 

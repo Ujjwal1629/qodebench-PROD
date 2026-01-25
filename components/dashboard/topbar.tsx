@@ -139,10 +139,10 @@ export function TopBar({ pageTitle, user }: TopBarProps) {
                   <p className="text-xs text-slate-500">@{user?.username}</p>
                   <p className="text-xs text-muted-foreground capitalize">
                     {user?.subscription_tier === 'free' ? 'Free Tier' :
-                     user?.subscription_tier === 'launch_offer' ? 'Launch Offer' :
-                     user?.subscription_tier === 'monthly' ? 'Monthly Plan' :
-                     user?.subscription_tier === 'quarterly' ? 'Quarterly Plan' :
-                     user?.subscription_tier === 'yearly' ? 'Yearly Plan' : 'Free Tier'}
+                      user?.subscription_tier === 'monthly' ? 'Monthly' :
+                        user?.subscription_tier === 'monthly' ? 'Monthly Plan' :
+                          user?.subscription_tier === 'quarterly' ? 'Quarterly Plan' :
+                            user?.subscription_tier === 'yearly' ? 'Yearly Plan' : 'Free Tier'}
                   </p>
                 </div>
               </DropdownMenuLabel>

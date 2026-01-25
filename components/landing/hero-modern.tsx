@@ -28,7 +28,7 @@ export function HeroModern() {
             >
               <Sparkles className="w-4 h-4 text-brand-600" />
               <span className="text-sm font-semibold text-slate-700">
-                Launch Offer: Get job-ready in 90 days at ₹199
+                Welcome to QodeBench
               </span>
             </motion.div>
 

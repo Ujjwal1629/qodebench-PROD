@@ -56,7 +56,7 @@ export function Hero() {
             </Button>
           </div>
           <p className="text-sm text-slate-500 mt-4">
-            Start free • Launch offer at ₹199 for 21 days
+            Start free • Premium plans available
           </p>
 
           {/* Outcome Stats */}
