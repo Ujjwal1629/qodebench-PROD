@@ -114,20 +114,7 @@ function PricingContent() {
 
   const plans = [
     {
-      tier: 'launch_offer' as const,
-      icon: Zap,
-      color: 'from-green-500 to-emerald-500',
-      borderColor: 'border-green-200',
-    },
-    {
-      tier: 'quarterly' as const,
-      icon: Rocket,
-      color: 'from-orange-500 to-red-500',
-      borderColor: 'border-orange-200',
-      badge: 'Limited Time',
-    },
-    {
-      tier: 'yearly' as const,
+      tier: 'premium' as const,
       icon: Crown,
       color: 'from-purple-500 to-pink-500',
       borderColor: 'border-purple-200',
@@ -152,12 +139,65 @@ function PricingContent() {
             Choose Your Plan
           </h1>
           <p className="text-xl text-slate-600 max-w-2xl mx-auto">
-            Unlock all challenges, mock interviews, and unlimited AI feedback
+            Start for free or upgrade for unlimited access
           </p>
         </div>
 
         {/* Pricing Cards */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12 max-w-5xl mx-auto">
+        <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto mb-16">
+          {/* Freemium Card */}
+          <div className="relative bg-white rounded-2xl p-6 border-2 border-slate-200 hover:border-slate-300 hover:shadow-xl transition-all duration-300">
+            {/* Icon */}
+            <div className="w-12 h-12 bg-slate-100 rounded-lg flex items-center justify-center mb-4">
+              <Zap className="w-6 h-6 text-slate-600" />
+            </div>
+
+            {/* Plan Name */}
+            <h3 className="text-2xl font-bold text-slate-900 mb-2">
+              Freemium
+            </h3>
+
+            {/* Price */}
+            <div className="mb-4">
+              <div>
+                <span className="text-4xl font-bold text-slate-900">₹0</span>
+                <span className="text-slate-600 ml-2">/ forever</span>
+              </div>
+            </div>
+
+            {/* Description */}
+            <p className="text-slate-600 text-sm mb-6">Perfect for getting started</p>
+
+            {/* CTA Button */}
+            <Button
+              onClick={() => router.push('/signup')}
+              className="w-full bg-white text-slate-900 border-2 border-slate-200 hover:bg-slate-50 hover:border-slate-300"
+            >
+              Get Started Free
+            </Button>
+
+            {/* Features */}
+            <ul className="mt-6 space-y-3">
+              <li className="flex items-start gap-2 text-sm text-slate-700">
+                <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                <span>All beginner challenges unlocked</span>
+              </li>
+              <li className="flex items-start gap-2 text-sm text-slate-700">
+                <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                <span>All Learning modules</span>
+              </li>
+              <li className="flex items-start gap-2 text-sm text-slate-700">
+                <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                <span>5 AI feedbacks per day</span>
+              </li>
+              <li className="flex items-start gap-2 text-sm text-slate-700">
+                <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                <span>Community access</span>
+              </li>
+            </ul>
+          </div>
+
+          {/* Premium Card */}
           {plans.map((plan) => {
             const planData = SUBSCRIPTION_PLANS[plan.tier];
             const Icon = plan.icon;
@@ -165,9 +205,9 @@ function PricingContent() {
             return (
               <div
                 key={plan.tier}
-                className={`relative bg-white rounded-2xl p-6 border-2 ${plan.borderColor} hover:shadow-xl transition-all duration-300`}
+                className={`relative bg-white rounded-2xl p-6 border-2 ${plan.borderColor} hover:shadow-xl transition-all duration-300 transform md:-translate-y-4`}
               >
-                {/* Limited Time Badge */}
+                {/* Badge */}
                 {plan.badge && (
                   <div className="absolute -top-4 left-1/2 -translate-x-1/2">
                     <span className={`bg-gradient-to-r ${plan.color} text-white px-4 py-1 rounded-full text-sm font-semibold shadow-lg`}>
@@ -188,19 +228,12 @@ function PricingContent() {
 
                 {/* Price */}
                 <div className="mb-4">
-                  {planData.originalPrice && (
-                    <div className="mb-1">
-                      <span className="text-2xl text-slate-400 line-through">
-                        ₹{planData.originalPrice}
-                      </span>
-                    </div>
-                  )}
                   <div>
                     <span className="text-4xl font-bold text-slate-900">
                       ₹{planData.price}
                     </span>
                     <span className="text-slate-600 ml-2">
-                      / {plan.tier === 'launch_offer' ? '21 days' : plan.tier === 'quarterly' ? '3 months' : '6 months'}
+                      / 3 months
                     </span>
                   </div>
                 </div>
@@ -212,9 +245,9 @@ function PricingContent() {
                 <Button
                   onClick={() => handleSubscribe(plan.tier)}
                   disabled={loading !== null}
-                  className="w-full bg-gradient-to-r from-brand-500 to-purple-500 hover:from-brand-600 hover:to-purple-600"
+                  className="w-full bg-gradient-to-r from-brand-500 to-purple-500 hover:from-brand-600 hover:to-purple-600 text-white shadow-lg shadow-brand-500/25"
                 >
-                  {loading === plan.tier ? 'Processing...' : 'Subscribe Now'}
+                  {loading === plan.tier ? 'Processing...' : 'Subscribe (3 Months)'}
                 </Button>
 
                 {/* Features */}
@@ -229,28 +262,6 @@ function PricingContent() {
               </div>
             );
           })}
-        </div>
-
-        {/* Free Tier Information */}
-        <div className="max-w-4xl mx-auto bg-slate-100 rounded-2xl p-8 border-2 border-slate-200">
-          <h3 className="text-2xl font-bold text-slate-900 mb-4">Free Tier</h3>
-          <p className="text-slate-700 mb-4">
-            Start learning with our free tier - no credit card required!
-          </p>
-          <ul className="grid md:grid-cols-2 gap-3">
-            <li className="flex items-start gap-2 text-sm text-slate-700">
-              <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
-              <span>All beginner challenges unlocked</span>
-            </li>
-            <li className="flex items-start gap-2 text-sm text-slate-700">
-              <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
-              <span>All Learning modules (Free forever)</span>
-            </li>
-            <li className="flex items-start gap-2 text-sm text-slate-700">
-              <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
-              <span>Interview questions from all tiers</span>
-            </li>
-          </ul>
         </div>
 
         {/* FAQ Section */}

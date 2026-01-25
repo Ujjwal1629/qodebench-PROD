@@ -38,10 +38,12 @@ export async function POST(request: NextRequest) {
     const { tier } = body as { tier: Exclude<SubscriptionTier, 'free'> };
 
     // Validate tier
+    // @ts-ignore - We're validating existence at runtime
     if (!tier || !SUBSCRIPTION_PLANS[tier]) {
       return NextResponse.json({ error: 'Invalid subscription tier' }, { status: 400 });
     }
 
+    // @ts-ignore
     const plan = SUBSCRIPTION_PLANS[tier];
 
     // Generate receipt ID

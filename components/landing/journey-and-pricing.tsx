@@ -33,11 +33,11 @@ const steps = [
   },
 ];
 
+// Determine pricing text based on role - simplified for Freemium/Premium model
 const pricingTiers = [
   {
-    name: "Free",
-    monthlyPrice: "₹0",
-    yearlyPrice: "₹0",
+    name: "Freemium",
+    price: "₹0",
     description: "Perfect for getting started",
     features: [
       "All beginner challenges",
@@ -47,43 +47,29 @@ const pricingTiers = [
     ],
     cta: "Get Started",
     ctaLink: "/signup",
+    popular: false,
   },
   {
-    name: "Launch Offer",
-    monthlyPrice: "₹199",
-    yearlyPrice: "₹199",
-    originalPrice: "₹999",
-    description: "21-day launch offer",
+    name: "Premium",
+    price: "₹1,999",
+    originalPrice: "",
+    description: "Complete platform access, billed quarterly",
     features: [
       "All challenges unlocked",
-      "Interview prep (6 stages)",
+      "Mock Interview Prep",
       "Unlimited AI feedback",
+      "Priority support",
+      "3 months access",
       "Professional reports",
     ],
-    cta: "Get Launch Offer",
+    cta: "Get Premium",
     ctaLink: "/pricing",
     popular: true,
-    badge: "Limited Time",
-  },
-  {
-    name: "Premium Plans",
-    monthlyPrice: "₹1,999",
-    yearlyPrice: "₹4,999",
-    description: "Choose your commitment",
-    features: [
-      "Everything in Launch Offer",
-      "3-Month: ₹1,999",
-      "6-Month: ₹4,999 (Best value)",
-      "Cancel anytime",
-    ],
-    cta: "View All Plans",
-    ctaLink: "/pricing",
+    badge: "Best Value",
   },
 ];
 
 export function JourneyAndPricing() {
-  const [isYearly, setIsYearly] = useState(false);
-
   return (
     <section id="pricing" className="py-16 lg:py-20 bg-slate-50">
       <div className="container mx-auto px-6 lg:px-8">
@@ -166,31 +152,8 @@ export function JourneyAndPricing() {
               </h2>
 
               <p className="text-slate-600 mb-6">
-                Start free or try our launch offer for just ₹199/21 days
+                Start for free or upgrade for lifetime access
               </p>
-
-              {/* Toggle */}
-              <div className="flex items-center gap-4 mb-6">
-                <span className={`text-sm ${!isYearly ? "text-slate-900 font-medium" : "text-slate-500"}`}>
-                  3 Months
-                </span>
-                <button
-                  onClick={() => setIsYearly(!isYearly)}
-                  className="relative inline-flex h-8 w-14 items-center rounded-full bg-slate-200 transition-colors focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2"
-                  style={{
-                    background: isYearly ? "linear-gradient(to right, #0ea5e9, #a855f7)" : "",
-                  }}
-                >
-                  <span
-                    className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform ${
-                      isYearly ? "translate-x-7" : "translate-x-1"
-                    }`}
-                  />
-                </button>
-                <span className={`text-sm ${isYearly ? "text-slate-900 font-medium" : "text-slate-500"}`}>
-                  6 Months
-                </span>
-              </div>
             </div>
 
             {/* Pricing Cards - Vertical Stack */}
@@ -202,11 +165,10 @@ export function JourneyAndPricing() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.4, delay: index * 0.1 }}
-                  className={`relative bg-white rounded-2xl p-6 transition-all duration-300 hover:shadow-lg ${
-                    tier.popular
-                      ? "border-2 border-transparent bg-gradient-to-br from-brand-50 to-purple-50 shadow-xl shadow-brand-500/10"
-                      : "border-2 border-slate-200 hover:border-brand-300"
-                  }`}
+                  className={`relative bg-white rounded-2xl p-6 transition-all duration-300 hover:shadow-lg ${tier.popular
+                    ? "border-2 border-transparent bg-gradient-to-br from-brand-50 to-purple-50 shadow-xl shadow-brand-500/10"
+                    : "border-2 border-slate-200 hover:border-brand-300"
+                    }`}
                 >
                   {/* Popular Badge */}
                   {tier.popular && (
@@ -232,16 +194,10 @@ export function JourneyAndPricing() {
                         )}
                         <div className="flex items-baseline gap-1">
                           <span className="text-3xl font-bold text-slate-900">
-                            {isYearly ? tier.yearlyPrice : tier.monthlyPrice}
+                            {tier.price}
                           </span>
                           <span className="text-sm text-slate-600">
-                            {tier.monthlyPrice !== "₹0"
-                              ? tier.name === "Launch Offer"
-                                ? "/21 days"
-                                : isYearly
-                                ? "/6mo"
-                                : "/3mo"
-                              : ""}
+                            {tier.price !== "₹0" ? "/ 3 months" : "/ forever"}
                           </span>
                         </div>
                       </div>
@@ -262,11 +218,10 @@ export function JourneyAndPricing() {
                       <Button
                         asChild
                         size="sm"
-                        className={`font-semibold transition-all duration-300 whitespace-nowrap ${
-                          tier.popular
-                            ? "bg-gradient-to-r from-brand-500 to-purple-500 hover:from-brand-600 hover:to-purple-600 text-white shadow-lg shadow-brand-500/30 hover:shadow-xl"
-                            : "bg-white hover:bg-slate-50 text-slate-900 border-2 border-slate-300 hover:border-brand-400"
-                        }`}
+                        className={`font-semibold transition-all duration-300 whitespace-nowrap ${tier.popular
+                          ? "bg-gradient-to-r from-brand-500 to-purple-500 hover:from-brand-600 hover:to-purple-600 text-white shadow-lg shadow-brand-500/30 hover:shadow-xl"
+                          : "bg-white hover:bg-slate-50 text-slate-900 border-2 border-slate-300 hover:border-brand-400"
+                          }`}
                       >
                         <Link href={tier.ctaLink}>{tier.cta}</Link>
                       </Button>
