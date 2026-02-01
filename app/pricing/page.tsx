@@ -5,6 +5,8 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Check, Zap, Crown, Rocket } from 'lucide-react';
 import { SUBSCRIPTION_PLANS, SubscriptionTier } from '@/types/subscription';
+import { useAuth } from '@/hooks/use-auth';
+import { toast } from 'sonner';
 
 // Load Razorpay script
 declare global {
@@ -19,6 +21,7 @@ export const dynamic = 'force-dynamic';
 function PricingContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { user } = useAuth();
   const [loading, setLoading] = useState<SubscriptionTier | null>(null);
   const [scriptLoaded, setScriptLoaded] = useState(false);
 
@@ -38,8 +41,21 @@ function PricingContent() {
   }, []);
 
   const handleSubscribe = async (tier: Exclude<SubscriptionTier, 'free'>) => {
+    // Check if user is authenticated first
+    if (!user) {
+      toast.error('Authentication Required', {
+        description: 'Please sign in to subscribe to a plan.',
+      });
+      setTimeout(() => {
+        router.push('/signin?redirect=/pricing');
+      }, 1500);
+      return;
+    }
+
     if (!scriptLoaded) {
-      alert('Payment system is loading. Please try again.');
+      toast.error('Payment System Loading', {
+        description: 'Please wait a moment and try again.',
+      });
       return;
     }
 
@@ -54,7 +70,19 @@ function PricingContent() {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to create order');
+        // Handle authentication errors specifically
+        if (response.status === 401) {
+          toast.error('Authentication Required', {
+            description: 'Please sign in to subscribe to a plan.',
+          });
+          setTimeout(() => {
+            router.push('/signin?redirect=/pricing');
+          }, 1500);
+          return;
+        }
+
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to create order');
       }
 
       const orderData = await response.json();
@@ -89,7 +117,9 @@ function PricingContent() {
             }
           } catch (error) {
             console.error('Payment verification error:', error);
-            alert('Payment verification failed. Please contact support.');
+            toast.error('Payment Verification Failed', {
+              description: 'Please contact support if the amount was deducted.',
+            });
           } finally {
             setLoading(null);
           }
@@ -107,7 +137,9 @@ function PricingContent() {
       razorpay.open();
     } catch (error) {
       console.error('Payment error:', error);
-      alert('Failed to initiate payment. Please try again.');
+      toast.error('Payment Initiation Failed', {
+        description: 'Unable to start payment process. Please try again.',
+      });
       setLoading(null);
     }
   };
@@ -176,10 +208,10 @@ function PricingContent() {
 
             {/* CTA Button */}
             <Button
-              onClick={() => router.push('/signup')}
+              onClick={() => router.push(user ? '/dashboard' : '/signup')}
               className="w-full bg-white text-slate-900 border-2 border-slate-200 hover:bg-slate-50 hover:border-slate-300"
             >
-              Get Started Free
+              {user ? 'Go to Dashboard' : 'Get Started Free'}
             </Button>
 
             {/* Features */}
