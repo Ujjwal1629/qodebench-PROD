@@ -15,7 +15,7 @@ import { PasswordStrengthIndicator } from '@/components/auth/password-strength-i
 import { checkUsernameAvailability, validateUsername } from '@/lib/auth';
 import Link from 'next/link';
 import { AlertCircle, CheckCircle } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 const signUpSchema = z.object({
   username: z
@@ -41,6 +41,8 @@ export function SignUpForm() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const { signUp } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirect = searchParams.get('redirect');
 
   const form = useForm<SignUpFormValues>({
     resolver: zodResolver(signUpSchema),
@@ -99,9 +101,10 @@ export function SignUpForm() {
         values.username
       );
       setSuccessMessage('Welcome to QodeBench! Your account has been created successfully.');
-      // Redirect to dashboard after successful registration
+      // Redirect to dashboard or custom redirect after successful registration
       // Middleware will redirect to onboarding quiz if needed
-      setTimeout(() => router.push('/dashboard'), 1500);
+      const destination = redirect || '/dashboard';
+      setTimeout(() => router.push(destination), 1500);
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to sign up';
       setErrorMessage(message);
@@ -247,7 +250,10 @@ export function SignUpForm() {
             <OAuthButtons />
             <p className="text-sm text-center text-slate-600">
               Already have an account?{' '}
-              <Link href="/signin" className="text-brand-500 hover:text-brand-600 font-medium">
+              <Link
+                href={redirect ? `/signin?redirect=${encodeURIComponent(redirect)}` : '/signin'}
+                className="text-brand-500 hover:text-brand-600 font-medium"
+              >
                 Sign in
               </Link>
             </p>
