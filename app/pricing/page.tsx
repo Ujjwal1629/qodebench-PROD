@@ -145,12 +145,12 @@ function PricingContent() {
   };
 
   const plans = [
-    {
-      tier: 'monthly' as const,
-      icon: Zap,
-      color: 'from-blue-500 to-cyan-500',
-      borderColor: 'border-blue-200',
-    },
+    // {
+    //   tier: 'monthly' as const,
+    //   icon: Zap,
+    //   color: 'from-blue-500 to-cyan-500',
+    //   borderColor: 'border-blue-200',
+    // },
     {
       tier: 'quarterly' as const,
       icon: Crown,
