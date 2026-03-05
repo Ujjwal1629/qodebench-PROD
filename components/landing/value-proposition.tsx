@@ -1,29 +1,29 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Bug, GitPullRequest, Users, Brain, Zap, Mic } from "lucide-react";
+import { GitPullRequest, BookOpen, Target, Brain, Zap, TestTube } from "lucide-react";
 
 export function ValueProposition() {
   const leftColumn = [
     {
-      icon: Bug,
-      title: "Production Bugs",
+      icon: BookOpen,
+      title: "Structured Learning",
       description:
-        "Debug real production issues like you would in a company. Learn to identify, trace, and fix bugs in complex codebases.",
-      color: "from-red-500 to-orange-500",
-    },
-    {
-      icon: GitPullRequest,
-      title: "PR Workflows",
-      description:
-        "Experience the full PR lifecycle — write code, review changes, handle feedback, and merge like a professional developer.",
+        "Learn testing fundamentals through comprehensive modules covering test methodologies, best practices, and essential QA skills.",
       color: "from-purple-500 to-pink-500",
     },
     {
-      icon: Users,
-      title: "Team Simulation",
+      icon: GitPullRequest,
+      title: "Testing Lifecycle",
       description:
-        "Work in simulated team environments with realistic scenarios — handle tickets, collaborate, and communicate effectively.",
+        "Experience the full testing lifecycle — write test plans, execute test cases, and validate results like a professional QA engineer.",
+      color: "from-blue-500 to-cyan-500",
+    },
+    {
+      icon: TestTube,
+      title: "Hands-On Practice",
+      description:
+        "Test real tools like sliders, forms, and e-commerce sites. Practice on interactive applications with instant validation.",
       color: "from-yellow-500 to-amber-500",
     },
   ];
@@ -33,7 +33,7 @@ export function ValueProposition() {
       icon: Brain,
       title: "AI Guidance",
       description:
-        "Get instant AI-powered hints, explanations, and feedback on your code — like having a senior developer by your side.",
+        "Get instant AI-powered hints, explanations, and feedback on your testing work — like having a senior QA engineer by your side.",
       color: "from-green-500 to-emerald-500",
     },
     {
@@ -44,21 +44,21 @@ export function ValueProposition() {
       color: "from-indigo-500 to-purple-500",
     },
     {
-      icon: Mic,
-      title: "Mock Interviews",
+      icon: Target,
+      title: "Progressive Learning",
       description:
-        "Practice technical interviews with voice-interactive AI interviewer. Get real-time hints and comprehensive feedback.",
+        "Follow a structured path from basics to advanced testing. Build skills step-by-step with personalized recommendations.",
       color: "from-orange-500 to-red-500",
     },
   ];
 
   const featurePills = [
-    "100+ Challenges",
-    "Office Fundamentals",
-    "Weekly Competitions",
-    "7-Level Progression",
+    "Interactive Tools",
+    "Structured Courses",
+    "Real-Time Feedback",
+    "AI-Powered Guidance",
     "Personalized Learning",
-    "Test Case Validation",
+    "Practice Scenarios",
   ];
 
   return (
@@ -80,7 +80,7 @@ export function ValueProposition() {
             Different
           </h2>
           <p className="text-lg text-slate-600">
-            The only platform that simulates real developer workflows—not just coding challenges
+            Learn testing through structured courses and practice on real interactive tools
           </p>
         </motion.div>
 

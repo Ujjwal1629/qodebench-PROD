@@ -6,50 +6,34 @@ import Link from 'next/link';
 
 export const metadata = {
   title: 'Learning Module - QodeBench',
-  description: 'Master full-stack development with our structured learning paths',
+  description: 'Master QA testing and automation with our structured learning paths',
 };
 
 export default function LearningPage() {
   const learningPaths = [
     {
-      icon: Layout,
-      title: 'HTML & CSS Fundamentals',
-      description: 'Master the building blocks of web development',
-      lessons: 18,
-      available: true,
-      href: '/dashboard/learning/html-css',
-    },
-    {
       icon: Code2,
       title: 'JavaScript Essentials',
-      description: 'Learn modern JavaScript from basics to advanced',
+      description: 'Learn modern JavaScript from basics to advanced concepts',
       lessons: 18,
       available: true,
       href: '/dashboard/learning/javascript',
     },
     {
+      icon: Layout,
+      title: 'TypeScript Fundamentals',
+      description: 'Master TypeScript for type-safe test automation',
+      lessons: 8,
+      available: true,
+      href: '/dashboard/learning/typescript',
+    },
+    {
       icon: Rocket,
-      title: 'React & Next.js Mastery',
-      description: 'Build modern web applications with React and Next.js',
-      lessons: 28,
-      available: true,
-      href: '/dashboard/learning/react-nextjs',
-    },
-    {
-      icon: Database,
-      title: 'Backend & APIs',
-      description: 'Create robust server-side applications with Node.js, Express, databases, and security',
-      lessons: 14,
-      available: true,
-      href: '/dashboard/learning/backend-apis',
-    },
-    {
-      icon: Briefcase,
-      title: 'Office Fundamentals for Developers',
-      description: 'Master Git branching, code reviews, RCA, documentation, and professional communication',
-      lessons: 16,
-      available: true,
-      href: '/dashboard/learning/office-fundamentals',
+      title: 'Playwright Testing',
+      description: 'Master end-to-end testing with Playwright framework',
+      lessons: 20,
+      available: false,
+      href: '/dashboard/learning/playwright',
     },
   ];
 
@@ -76,7 +60,7 @@ export default function LearningPage() {
               </div>
             </div>
             <Button asChild size="lg" className="bg-white text-sky-600 hover:bg-white/90 text-sm sm:text-base">
-              <Link href="/dashboard/learning/html-css">
+              <Link href="/dashboard/learning/javascript">
                 Start Learning
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
@@ -89,8 +73,7 @@ export default function LearningPage() {
       <div>
         <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Start Your Learning Journey</h1>
         <p className="mt-2 text-sm sm:text-base text-slate-600">
-          Based on your skill assessment, we've identified the perfect learning path for you.
-          Our structured curriculum will help you build a strong foundation in full-stack web development.
+          Our structured curriculum will help you build a strong foundation in QA testing and automation.
         </p>
       </div>
 
@@ -164,7 +147,7 @@ export default function LearningPage() {
         <CardHeader>
           <CardTitle>Learning Features</CardTitle>
           <CardDescription>
-            Everything you need to master web development
+            Everything you need to master QA testing and automation
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -209,11 +192,11 @@ export default function LearningPage() {
                 Begin Your Journey Today
               </h3>
               <p className="mt-1 text-slate-600">
-                Start with HTML & CSS fundamentals and build your way up to advanced topics
+                Start with JavaScript essentials and build your way up to advanced automation testing
               </p>
             </div>
             <Button asChild size="lg" className="gap-2 bg-sky-600 hover:bg-sky-700">
-              <Link href="/dashboard/learning/html-css">
+              <Link href="/dashboard/learning/javascript">
                 Start Learning
                 <ArrowRight className="h-4 w-4" />
               </Link>

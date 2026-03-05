@@ -29,7 +29,7 @@ const steps = [
   {
     title: "Compete & Win",
     description:
-      "Join Code Friday challenges, compete on leaderboards, and showcase your skills",
+      "Join Code Friday challenges, compete globally, and showcase your skills",
   },
 ];
 

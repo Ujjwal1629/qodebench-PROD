@@ -2,55 +2,39 @@
 
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Code2, BookOpen, Mic } from "lucide-react";
-import { LearningPathPreview } from "./learning-path-preview";
+import { Code2, BookOpen } from "lucide-react";
 
 export function ProductModules() {
   const modules = [
     {
-      icon: Code2,
-      title: "Challenges",
-      description:
-        "Real company-style tasks spanning frontend, backend, and full-stack. Debug production bugs, fix issues, and test code just like you would in an actual development job.",
-      features: [
-        "Production-like debugging",
-        "Frontend & backend tasks",
-        "Test case validation",
-        "AI-powered feedback",
-      ],
-      gradient: "from-blue-500 to-cyan-500",
-      href: "/dashboard/challenges",
-      cta: "Browse Challenges",
-    },
-    {
       icon: BookOpen,
       title: "Learning",
       description:
-        "Core full-stack theory covering HTML/CSS, JavaScript, React/Next.js, and Backend APIs. Interactive quizzes and an AI tutor that explains concepts and answers your questions.",
+        "Comprehensive QA courses covering test methodologies, testing fundamentals, best practices, and essential QA skills. Learn through structured modules with interactive quizzes and AI-powered guidance.",
       features: [
-        "Structured learning paths",
+        "Structured learning modules",
         "Interactive quizzes",
         "AI tutor for guidance",
-        "Real-world examples",
+        "Testing fundamentals",
       ],
       gradient: "from-purple-500 to-pink-500",
       href: "/dashboard/learning",
       cta: "Start Learning",
     },
     {
-      icon: Mic,
-      title: "Mock Interviews",
+      icon: Code2,
+      title: "Practice Tools",
       description:
-        "AI interviewer conducts realistic verbal technical interviews. Get real-time feedback on your answers, detailed performance reports, and complete transcripts to improve.",
+        "Hands-on practice with real tools like sliders, e-commerce sites, forms, and interactive applications. Test, validate, and get instant feedback on your testing skills.",
       features: [
-        "Voice-based interviews",
-        "Real-time AI evaluation",
-        "Detailed feedback reports",
-        "Interview transcripts",
+        "Interactive testing tools",
+        "Real-world scenarios",
+        "Instant validation",
+        "AI-powered feedback",
       ],
-      gradient: "from-orange-500 to-red-500",
-      href: "/dashboard/interviews",
-      cta: "Try Interview",
+      gradient: "from-blue-500 to-cyan-500",
+      href: "/dashboard/challenges",
+      cta: "Try Practice Tools",
     },
   ];
 
@@ -60,18 +44,18 @@ export function ProductModules() {
         {/* Section Header */}
         <div className="text-center mb-16 max-w-3xl mx-auto">
           <h2 className="text-4xl md:text-5xl font-bold text-slate-900 mb-4">
-            Three Paths to{" "}
+            Two Ways to{" "}
             <span className="bg-gradient-to-r from-brand-500 to-purple-600 bg-clip-text text-transparent">
-              Job-Ready Skills
+              Master Testing
             </span>
           </h2>
           <p className="text-lg text-slate-600">
-            Experience real developer workflows through our three core modules designed to make you job-ready.
+            Learn testing fundamentals and practice on real tools to build your QA skills.
           </p>
         </div>
 
         {/* Module Cards */}
-        <div className="grid md:grid-cols-3 gap-8 max-w-7xl mx-auto">
+        <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
           {modules.map((module, index) => {
             const Icon = module.icon;
             return (
@@ -121,7 +105,7 @@ export function ProductModules() {
         {/* Bottom CTA */}
         <div className="text-center mt-16">
           <p className="text-slate-600 mb-6">
-            All modules work together to simulate real developer experience
+            Combine learning and practice to build strong testing skills
           </p>
           <Button
             asChild
@@ -131,22 +115,6 @@ export function ProductModules() {
           >
             <Link href="/signup">Get Started Free →</Link>
           </Button>
-        </div>
-
-        {/* Learning Path Section */}
-        <div className="mt-20">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">
-              Your Path to{" "}
-              <span className="bg-gradient-to-r from-brand-500 to-purple-600 bg-clip-text text-transparent">
-                Job-Ready Skills
-              </span>
-            </h2>
-            <p className="text-slate-600">
-              Follow our structured path from learning to real-world practice
-            </p>
-          </div>
-          <LearningPathPreview />
         </div>
       </div>
     </section>

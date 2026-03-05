@@ -18,7 +18,7 @@ export function FinalCTA() {
           <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight tracking-tight">
             <span className="text-slate-900">Ready to become a </span>
             <span className="bg-gradient-to-r from-brand-500 to-purple-600 bg-clip-text text-transparent">
-              job-ready developer?
+              job-ready QA engineer?
             </span>
           </h2>
 

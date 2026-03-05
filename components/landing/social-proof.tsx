@@ -13,8 +13,8 @@ export function SocialProof() {
     {
       icon: Code2,
       value: "100+",
-      label: "Coding Challenges",
-      description: "Across 5+ technologies",
+      label: "Testing Scenarios",
+      description: "Across 5+ methodologies",
     },
     {
       icon: Zap,
@@ -25,7 +25,7 @@ export function SocialProof() {
     {
       icon: Trophy,
       value: "Global",
-      label: "Leaderboard",
+      label: "Competition",
       description: "Compete worldwide",
     },
   ];

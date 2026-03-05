@@ -27,7 +27,7 @@ export default function DocumentationPage() {
           </h1>
           <p className="text-xl text-slate-600">
             Everything you need to know to get started with QodeBench and make the most
-            of our platform
+            of our platform for learning QA testing
           </p>
         </div>
 

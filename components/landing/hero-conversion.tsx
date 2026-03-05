@@ -36,7 +36,7 @@ export function HeroConversion() {
               Get Your First
               <br />
               <span className="bg-gradient-to-r from-brand-400 via-brand-500 to-purple-500 bg-clip-text text-transparent">
-                Developer Job
+                QA Job
               </span>
               <br />
               In 90 Days
@@ -44,7 +44,7 @@ export function HeroConversion() {
 
             {/* Sub-headline */}
             <p className="text-lg md:text-xl text-slate-300 mb-8 leading-relaxed">
-              Master full-stack development through real-world projects, AI-powered feedback, and mock interviews. No prior experience needed.
+              Master test automation, API testing, and QA workflows through real-world scenarios, AI-powered feedback, and mock interviews. No prior experience needed.
             </p>
 
             {/* Stats Grid */}
@@ -67,7 +67,7 @@ export function HeroConversion() {
             <div className="space-y-3">
               <div className="flex items-center gap-3">
                 <CheckCircle2 className="w-5 h-5 text-green-400 flex-shrink-0" />
-                <span className="text-slate-300">100+ Real-world coding challenges</span>
+                <span className="text-slate-300">100+ Real-world testing scenarios</span>
               </div>
               <div className="flex items-center gap-3">
                 <CheckCircle2 className="w-5 h-5 text-green-400 flex-shrink-0" />
@@ -75,7 +75,7 @@ export function HeroConversion() {
               </div>
               <div className="flex items-center gap-3">
                 <CheckCircle2 className="w-5 h-5 text-green-400 flex-shrink-0" />
-                <span className="text-slate-300">Learn by building real projects</span>
+                <span className="text-slate-300">Learn by testing real applications</span>
               </div>
               <div className="flex items-center gap-3">
                 <CheckCircle2 className="w-5 h-5 text-green-400 flex-shrink-0" />
@@ -103,14 +103,14 @@ export function HeroConversion() {
                   <CheckCircle2 className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
                   <div>
                     <div className="font-semibold text-slate-900">Free Forever Plan</div>
-                    <div className="text-sm text-slate-600">Start learning with beginner challenges</div>
+                    <div className="text-sm text-slate-600">Start learning with beginner test cases</div>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
                   <CheckCircle2 className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
                   <div>
                     <div className="font-semibold text-slate-900">AI-Powered Learning</div>
-                    <div className="text-sm text-slate-600">Get instant feedback on your code</div>
+                    <div className="text-sm text-slate-600">Get instant feedback on your test scripts</div>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
@@ -128,7 +128,7 @@ export function HeroConversion() {
                   size="lg"
                   className="w-full h-14 text-lg font-semibold bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700 text-white shadow-lg shadow-brand-500/30"
                 >
-                  Get Your First Bug Ticket →
+                  Start Your First Test →
                 </Button>
               </Link>
 

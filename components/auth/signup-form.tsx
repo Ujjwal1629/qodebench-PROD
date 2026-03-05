@@ -102,7 +102,6 @@ export function SignUpForm() {
       );
       setSuccessMessage('Welcome to QodeBench! Your account has been created successfully.');
       // Redirect to dashboard or custom redirect after successful registration
-      // Middleware will redirect to onboarding quiz if needed
       const destination = redirect || '/dashboard';
       setTimeout(() => router.push(destination), 1500);
     } catch (error) {

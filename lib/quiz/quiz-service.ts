@@ -18,6 +18,7 @@ const LEARNING_PATH_TABLES: Record<string, string> = {
   'd2f2f7f7-c823-4f4a-aa7e-42ab8e061537': 'react_nextjs', // React & Next.js Mastery
   'f5e4d3c2-b1a0-9876-5432-10fedcba9876': 'backend', // Backend & APIs
   'b1c2d3e4-f5a6-7b8c-9d0e-1f2a3b4c5d6e': 'office_fundamentals', // Office Fundamentals for Developers
+  'c3d4e5f6-a7b8-9c0d-1e2f-3a4b5c6d7e8f': 'typescript', // TypeScript Essentials
 };
 
 export class QuizService {

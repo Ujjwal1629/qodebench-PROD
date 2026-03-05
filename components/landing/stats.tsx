@@ -24,7 +24,7 @@ const stats = [
   {
     icon: Trophy,
     value: "Global",
-    label: "Leaderboard",
+    label: "Competition",
     description: "Compete worldwide",
   },
   {

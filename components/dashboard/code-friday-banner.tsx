@@ -132,7 +132,7 @@ export function CodeFridayBanner({ weeklyChallenge }: CodeFridayBannerProps) {
               variant="outline"
               className="border-white text-white hover:bg-white/10"
             >
-              <Link href="/dashboard/leaderboard?filter=weekly">View Leaderboard</Link>
+              <Link href="/dashboard/challenges">Browse All Challenges</Link>
             </Button>
           </div>
         </div>

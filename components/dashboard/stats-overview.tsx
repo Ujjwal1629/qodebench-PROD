@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { StatsCard } from './stats-card';
-import { Sparkles, CheckCircle2, Trophy, Flame } from 'lucide-react';
+import { Sparkles, BookOpen, Trophy, Flame } from 'lucide-react';
 import { formatPoints, getRankSuffix } from '@/lib/utils/format';
 import { Progress } from '@/components/ui/progress';
 import { UserStats } from '@/app/actions/dashboard';
@@ -31,37 +31,30 @@ export function StatsOverview({ stats }: StatsOverviewProps) {
         }
       />
 
-      {/* Challenges Completed */}
+      {/* Learning Progress */}
       <StatsCard
-        title="Challenges Completed"
+        title="Learning Progress"
         value={`${stats.challengesCompleted}/${stats.totalChallenges}`}
-        icon={CheckCircle2}
+        icon={BookOpen}
         footer={
           <div className="space-y-1">
             <Progress value={stats.completionPercentage} />
             <p className="text-xs text-slate-600">
-              {stats.completionPercentage}% completion rate
+              {stats.completionPercentage}% modules completed
             </p>
           </div>
         }
       />
 
-      {/* Current Rank */}
+      {/* Current Level */}
       <StatsCard
-        title="Current Rank"
-        value={stats.globalRank ? getRankSuffix(stats.globalRank) : 'Unranked'}
+        title="Current Level"
+        value={stats.currentLevel || 'Beginner'}
         icon={Trophy}
         footer={
-          stats.globalRank ? (
-            <Link
-              href="/dashboard/leaderboard"
-              className="text-xs text-brand-600 hover:text-brand-700 font-medium"
-            >
-              View Leaderboard →
-            </Link>
-          ) : (
-            <p className="text-xs text-slate-600">Complete a challenge to get ranked</p>
-          )
+          <p className="text-xs text-slate-600">
+            Keep learning to level up!
+          </p>
         }
       />
 

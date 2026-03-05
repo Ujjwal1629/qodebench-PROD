@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { Menu, X, User, Crown, LogOut, Code2 } from "lucide-react";
+import { Menu, X, User, Crown, LogOut, BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
 import {
@@ -20,6 +20,7 @@ import type { User as SupabaseUser } from "@supabase/supabase-js";
 
 const navLinks = [
   { name: "Features", href: "#features", isAnchor: true },
+  { name: "Courses", href: "https://www.journeytoautomation.org/", isAnchor: false, external: true },
   { name: "Pricing", href: "#pricing", isAnchor: true },
   { name: "About", href: "/about", isAnchor: false },
 ];
@@ -155,6 +156,17 @@ export function Navbar() {
                   {link.name}
                   <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-brand-500 transition-all duration-300 group-hover:w-full" />
                 </a>
+              ) : link.external ? (
+                <a
+                  key={link.name}
+                  href={link.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm font-medium transition-all duration-300 relative group text-slate-600 hover:text-slate-900"
+                >
+                  {link.name}
+                  <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-brand-500 transition-all duration-300 group-hover:w-full" />
+                </a>
               ) : (
                 <Link
                   key={link.name}
@@ -198,19 +210,18 @@ export function Navbar() {
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => router.push('/dashboard')}>
-                    <User className="mr-2 h-4 w-4" />
-                    Dashboard
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => router.push('/dashboard/challenges')}>
-                    <Code2 className="mr-2 h-4 w-4" />
-                    Challenges
+                  <DropdownMenuItem onClick={() => router.push('/dashboard/learning')}>
+                    <BookOpen className="mr-2 h-4 w-4" />
+                    Learning Modules
                   </DropdownMenuItem>
                   {subscriptionTier === 'free' && (
-                    <DropdownMenuItem onClick={() => router.push('/pricing')}>
-                      <Crown className="mr-2 h-4 w-4" />
-                      Upgrade to Pro
-                    </DropdownMenuItem>
+                    <>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={() => router.push('/pricing')}>
+                        <Crown className="mr-2 h-4 w-4" />
+                        Upgrade to Pro
+                      </DropdownMenuItem>
+                    </>
                   )}
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
@@ -275,6 +286,17 @@ export function Navbar() {
                   >
                     {link.name}
                   </a>
+                ) : link.external ? (
+                  <a
+                    key={link.name}
+                    href={link.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="text-base font-medium text-slate-600 hover:text-slate-900 transition-colors"
+                  >
+                    {link.name}
+                  </a>
                 ) : (
                   <Link
                     key={link.name}
@@ -311,23 +333,12 @@ export function Navbar() {
                     variant="outline"
                     className="w-full"
                     onClick={() => {
-                      router.push('/dashboard');
+                      router.push('/dashboard/learning');
                       setIsMobileMenuOpen(false);
                     }}
                   >
-                    <User className="mr-2 h-4 w-4" />
-                    Dashboard
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="w-full"
-                    onClick={() => {
-                      router.push('/dashboard/challenges');
-                      setIsMobileMenuOpen(false);
-                    }}
-                  >
-                    <Code2 className="mr-2 h-4 w-4" />
-                    Challenges
+                    <BookOpen className="mr-2 h-4 w-4" />
+                    Learning Modules
                   </Button>
                   {subscriptionTier === 'free' && (
                     <Button

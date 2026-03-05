@@ -12,12 +12,16 @@ const steps = [
     description: "No credit card required",
   },
   {
-    title: "Start with Your Level",
-    description: "Personalized recommendations",
+    title: "Choose Your Path",
+    description: "Learning or Practice",
   },
   {
-    title: "Solve Real Challenges",
-    description: "Multiple challenge types",
+    title: "Learn Testing Fundamentals",
+    description: "Structured modules & quizzes",
+  },
+  {
+    title: "Practice on Real Tools",
+    description: "Interactive testing scenarios",
   },
   {
     title: "Get AI Feedback",
@@ -25,11 +29,7 @@ const steps = [
   },
   {
     title: "Track Your Progress",
-    description: "Points, levels, analytics",
-  },
-  {
-    title: "Compete & Win",
-    description: "Leaderboards, Code Friday",
+    description: "Monitor skill development",
   },
 ];
 
@@ -40,7 +40,7 @@ const pricingTiers = [
     price: "₹0",
     description: "Perfect for getting started",
     features: [
-      "All beginner challenges",
+      "Basic practice tools",
       "Learning modules (Free forever)",
       "5 AI feedbacks/day",
       "Community access",
@@ -49,34 +49,18 @@ const pricingTiers = [
     ctaLink: "/signup",
     popular: false,
   },
-  // {
-  //   name: "Monthly",
-  //   price: "₹999",
-  //   originalPrice: "",
-  //   description: "Flexible monthly plan",
-  //   features: [
-  //     "All challenges unlocked",
-  //     "Mock Interview Prep",
-  //     "Unlimited AI feedback",
-  //     "Priority support",
-  //     "Monthly access",
-  //   ],
-  //   cta: "Get Monthly",
-  //   ctaLink: "/pricing",
-  //   popular: false,
-  // },
   {
     name: "Premium",
     price: "₹1,999",
     originalPrice: "",
     description: "Complete platform access, billed quarterly",
     features: [
-      "All challenges unlocked",
-      "Mock Interview Prep",
+      "All practice tools unlocked",
+      "All learning modules",
       "Unlimited AI feedback",
       "Priority support",
       "3 months access",
-      "Professional reports",
+      "Progress reports",
     ],
     cta: "Get Premium",
     ctaLink: "/pricing",
@@ -168,7 +152,7 @@ export function JourneyAndPricing() {
               </h2>
 
               <p className="text-slate-600 mb-6">
-                Start for free or upgrade for lifetime access
+                Start for free or upgrade for full access
               </p>
             </div>
 

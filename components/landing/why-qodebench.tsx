@@ -8,28 +8,28 @@ export function WhyQodebench() {
       icon: Bug,
       title: "Production Bugs",
       description:
-        "Debug real production issues like you would in a company. Learn to identify, trace, and fix bugs in complex codebases.",
+        "Identify production bugs like a real QA engineer. Learn to write test cases, reproduce issues, and report defects effectively.",
       color: "from-red-500 to-orange-500",
     },
     {
       icon: GitPullRequest,
-      title: "PR Workflows",
+      title: "Testing Lifecycle",
       description:
-        "Experience the full PR lifecycle — write code, review changes, handle feedback, and merge like a professional developer.",
+        "Experience the full testing lifecycle — write test plans, execute test cases, report bugs, and verify fixes like a professional QA engineer.",
       color: "from-purple-500 to-pink-500",
     },
     {
       icon: Rocket,
-      title: "Deployments",
+      title: "Test Automation",
       description:
-        "Understand deployment processes, environment configurations, and testing in staging before pushing to production.",
+        "Master test automation frameworks like Selenium, Cypress, and Playwright. Write robust automated tests for web applications.",
       color: "from-blue-500 to-cyan-500",
     },
     {
       icon: Brain,
       title: "AI Guidance",
       description:
-        "Get instant AI-powered hints, explanations, and feedback on your code — like having a senior developer by your side.",
+        "Get instant AI-powered hints, explanations, and feedback on your test scripts — like having a senior QA engineer by your side.",
       color: "from-green-500 to-emerald-500",
     },
     {
@@ -61,7 +61,7 @@ export function WhyQodebench() {
             ?
           </h2>
           <p className="text-lg text-slate-600">
-            It&apos;s not just another coding platform — Qodebench simulates real developer life to prepare you for actual tech jobs.
+            It&apos;s not just another testing platform — Qodebench simulates real QA workflows to prepare you for actual QA jobs.
           </p>
         </div>
 
@@ -98,10 +98,10 @@ export function WhyQodebench() {
         {/* Bottom Highlight */}
         <div className="mt-16 bg-gradient-to-r from-brand-50 via-purple-50 to-brand-50 border border-brand-200 rounded-3xl p-8 md:p-12 max-w-5xl mx-auto text-center">
           <h3 className="text-2xl md:text-3xl font-bold text-slate-900 mb-4">
-            Experience Real Developer Workflows
+            Experience Real QA Workflows
           </h3>
           <p className="text-lg text-slate-600 mb-6 max-w-3xl mx-auto">
-            Qodebench goes beyond traditional coding challenges. We simulate the entire developer experience — from reading tickets and writing code to handling code reviews and deploying features.
+            Qodebench goes beyond traditional testing tutorials. We simulate the entire QA experience — from reading requirements and writing test cases to executing tests and reporting defects.
           </p>
           <div className="flex flex-wrap justify-center gap-4">
             <div className="bg-white border border-brand-200 rounded-full px-6 py-3">

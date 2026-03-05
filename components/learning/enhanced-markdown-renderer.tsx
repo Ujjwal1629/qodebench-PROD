@@ -4,6 +4,8 @@ import ReactMarkdown from 'react-markdown';
 import { motion } from 'framer-motion';
 import { CodeBlockWithCopy } from './code-block-with-copy';
 import { CalloutBox } from './callout-box';
+import { InlinePracticeEditor } from './inline-practice-editor';
+import { PracticeSection } from './practice-section';
 
 interface EnhancedMarkdownRendererProps {
   content: string;
@@ -17,19 +19,80 @@ function removeFirstH1(content: string): string {
   return content.replace(/^#\s+.+$/m, '');
 }
 
-// Parse callout syntax (:::type Title\nContent\n:::)
+// Parse callout and practice block syntax (:::type Title\nContent\n:::)
 function parseCallouts(content: string): string {
+  console.log('🚀 parseCallouts called, content length:', content.length);
+  console.log('🔍 Content has :::practice?', content.includes(':::practice'));
+
   return content.replace(
-    /:::(\w+)(?:\s+([^\n]*))?\n([\s\S]*?):::/g,
+    /:::(\w+(?:-\w+)*)(?:\s+([^\n]*))?\n([\s\S]*?):::/g,
     (match, type, title, body) => {
+      console.log('✅ REGEX MATCHED! Type:', type, 'Title:', title?.substring(0, 50));
+      // Handle practice-steps blocks (structured practice with multiple steps)
+      if (type.toLowerCase() === 'practice-steps') {
+        // Parse JSON configuration
+        try {
+          // Clean up the JSON content - remove any markdown artifacts
+          let jsonContent = body.trim();
+
+          // If it starts with a code fence, extract JSON from it
+          if (jsonContent.startsWith('```json') || jsonContent.startsWith('```')) {
+            const lines = jsonContent.split('\n');
+            // Remove first line (```json or ```) and last line (```)
+            jsonContent = lines.slice(1, -1).join('\n').trim();
+          }
+
+          const config = JSON.parse(jsonContent);
+          const encodedConfig = typeof window !== 'undefined'
+            ? btoa(JSON.stringify(config))
+            : Buffer.from(JSON.stringify(config)).toString('base64');
+          return `\n\n[PRACTICE_STEPS_START]\n${encodedConfig}\n[PRACTICE_STEPS_END]\n\n`;
+        } catch (e) {
+          console.error('Failed to parse practice-steps JSON in parseCallouts:', e);
+          console.error('Body content:', body.substring(0, 200));
+          return match; // Return original if parsing fails
+        }
+      }
+
+      // Handle practice blocks
+      if (type.toLowerCase() === 'practice') {
+        // Extract optional parameters from title (language, height, title)
+        const params: Record<string, string> = {};
+
+        if (title) {
+          // Split by | and handle key=value pairs
+          title.split('|').forEach(param => {
+            const equalIndex = param.indexOf('=');
+            if (equalIndex > -1) {
+              const key = param.substring(0, equalIndex).trim();
+              const value = param.substring(equalIndex + 1).trim();
+              params[key] = value;
+            }
+          });
+        }
+
+        const language = params.language || 'typescript';
+        const height = params.height || '300px';
+        const practiceTitle = params.title || 'Try it yourself';
+
+        // Use Base64 encoding for title to avoid special character issues
+        // Use btoa for browser compatibility (works in both client and server)
+        const encodedTitle = typeof window !== 'undefined'
+          ? btoa(practiceTitle)
+          : Buffer.from(practiceTitle).toString('base64');
+
+        // Create a unique marker for practice blocks (use special chars that won't be interpreted as markdown)
+        return `\n\n[PRACTICE_START_LANG_${language}_HEIGHT_${height}_TITLE_${encodedTitle}]\n${body.trim()}\n[PRACTICE_END]\n\n`;
+      }
+
       // Validate callout type
       const validTypes = ['tip', 'warning', 'info', 'success'];
       const calloutType = validTypes.includes(type.toLowerCase())
         ? type.toLowerCase()
         : 'info';
 
-      // Create a unique marker that we can identify in the renderer
-      return `\n\n<CALLOUT_${calloutType.toUpperCase()}_START${title ? `_TITLE_${title}` : ''}>\n${body.trim()}\n<CALLOUT_END>\n\n`;
+      // Create a unique marker that we can identify in the renderer (use special chars that won't be interpreted as markdown)
+      return `\n\n[CALLOUT_${calloutType.toUpperCase()}_START${title ? `_TITLE_${title}` : ''}]\n${body.trim()}\n[CALLOUT_END]\n\n`;
     }
   );
 }
@@ -44,14 +107,123 @@ function generateAnchorId(text: string): string {
     .trim();
 }
 
+// New approach: Extract practice blocks and render them separately
+function extractPracticeBlocks(content: string) {
+  const blocks: Array<{ type: 'markdown' | 'practice' | 'practice-steps'; content: string; props?: any; index: number }> = [];
+
+  // Find all practice and practice-steps blocks with their positions
+  const practiceStepsRegex = /:::practice-steps\s*\n([\s\S]*?):::/g;
+  const practiceRegex = /:::practice\s+([^\n]*)\n([\s\S]*?):::/g;
+
+  const allMatches: Array<{ type: 'practice' | 'practice-steps'; index: number; length: number; content: string; params?: string }> = [];
+
+  // Find all practice-steps matches
+  let match;
+  while ((match = practiceStepsRegex.exec(content)) !== null) {
+    allMatches.push({
+      type: 'practice-steps',
+      index: match.index,
+      length: match[0].length,
+      content: match[1].trim()
+    });
+  }
+
+  // Find all practice matches
+  while ((match = practiceRegex.exec(content)) !== null) {
+    allMatches.push({
+      type: 'practice',
+      index: match.index,
+      length: match[0].length,
+      content: match[2].trim(),
+      params: match[1].trim()
+    });
+  }
+
+  // Sort by index to process in order
+  allMatches.sort((a, b) => a.index - b.index);
+
+  let lastIndex = 0;
+
+  for (const matchData of allMatches) {
+    // Add markdown before this block
+    if (matchData.index > lastIndex) {
+      blocks.push({
+        type: 'markdown',
+        content: content.substring(lastIndex, matchData.index),
+        index: lastIndex
+      });
+    }
+
+    if (matchData.type === 'practice-steps') {
+      // Parse JSON config for practice-steps
+      try {
+        const config = JSON.parse(matchData.content);
+        blocks.push({
+          type: 'practice-steps',
+          content: matchData.content,
+          props: config,
+          index: matchData.index
+        });
+      } catch (e) {
+        console.error('Failed to parse practice-steps JSON:', e);
+        console.error('Block content:', matchData.content.substring(0, 200));
+        // Still add as markdown if parsing fails
+        blocks.push({
+          type: 'markdown',
+          content: content.substring(matchData.index, matchData.index + matchData.length),
+          index: matchData.index
+        });
+      }
+    } else {
+      // Parse parameters for regular practice block
+      const params: Record<string, string> = {};
+      (matchData.params || '').split('|').forEach(param => {
+        const equalIndex = param.indexOf('=');
+        if (equalIndex > -1) {
+          const key = param.substring(0, equalIndex).trim();
+          const value = param.substring(equalIndex + 1).trim();
+          params[key] = value;
+        }
+      });
+
+      blocks.push({
+        type: 'practice',
+        content: matchData.content,
+        props: {
+          language: params.language || 'typescript',
+          height: params.height || '300px',
+          title: params.title || 'Try it yourself'
+        },
+        index: matchData.index
+      });
+    }
+
+    lastIndex = matchData.index + matchData.length;
+  }
+
+  // Add remaining markdown
+  if (lastIndex < content.length) {
+    blocks.push({
+      type: 'markdown',
+      content: content.substring(lastIndex),
+      index: lastIndex
+    });
+  }
+
+  return blocks;
+}
+
 export function EnhancedMarkdownRenderer({
   content,
   className = '',
   skipFirstH1 = true,
 }: EnhancedMarkdownRendererProps) {
-  // Pre-process content: remove first H1 if needed, then handle callouts
+  // Remove first H1 if needed
   let processedContent = skipFirstH1 ? removeFirstH1(content) : content;
-  processedContent = parseCallouts(processedContent);
+
+  // Extract practice blocks
+  const blocks = extractPracticeBlocks(processedContent);
+  console.log('🚀 Found blocks:', blocks.length, blocks.map(b => b.type));
 
   // Track if we're currently inside a callout
   let currentCallout: { type: string; title?: string; content: string[] } | null = null;
@@ -63,8 +235,42 @@ export function EnhancedMarkdownRenderer({
       transition={{ duration: 0.5 }}
       className={className}
     >
-      <ReactMarkdown
-        components={{
+      {blocks.map((block, index) => {
+        if (block.type === 'practice') {
+          console.log('🎉 Rendering practice editor!', block.props);
+          return (
+            <InlinePracticeEditor
+              key={`practice-${index}`}
+              initialCode={block.content}
+              language={block.props.language}
+              title={block.props.title}
+              height={block.props.height}
+            />
+          );
+        }
+
+        if (block.type === 'practice-steps') {
+          console.log('🎯 Rendering practice-steps section!', block.props);
+          return (
+            <PracticeSection
+              key={`practice-steps-${index}`}
+              title={block.props.title}
+              description={block.props.description}
+              goal={block.props.goal}
+              steps={block.props.steps}
+              language={block.props.language || 'typescript'}
+              height={block.props.height || '350px'}
+            />
+          );
+        }
+
+        // Render markdown block
+        const markdownContent = block.type === 'markdown' ? parseCallouts(block.content) : block.content;
+
+        return (
+          <ReactMarkdown
+            key={`markdown-${index}`}
+            components={{
           // Headings with anchor links
           h1: ({ node, children, ...props }) => {
             const text = children?.toString() || '';
@@ -121,7 +327,7 @@ export function EnhancedMarkdownRenderer({
 
             // Handle callout start markers
             const calloutStartMatch = childText.match(
-              /<CALLOUT_(\w+)_START(?:_TITLE_([^>]*))?>$/
+              /\[CALLOUT_(\w+)_START(?:_TITLE_([^\]]+))?\]$/
             );
             if (calloutStartMatch) {
               const type = calloutStartMatch[1].toLowerCase() as 'tip' | 'warning' | 'info' | 'success';
@@ -131,7 +337,7 @@ export function EnhancedMarkdownRenderer({
             }
 
             // Handle callout end markers
-            if (childText.includes('<CALLOUT_END>')) {
+            if (childText.includes('[CALLOUT_END]')) {
               if (currentCallout) {
                 const calloutElement = (
                   <CalloutBox
@@ -204,6 +410,11 @@ export function EnhancedMarkdownRenderer({
             const match = /language-(\w+)/.exec(className || '');
             const codeString = String(children).replace(/\n$/, '');
 
+            // Debug: Check if markers are being treated as code
+            if (codeString.includes('[PRACTICE_START') || codeString.includes('[PRACTICE_END]')) {
+              console.log('⚠️  MARKER IN CODE BLOCK! This is the problem!', codeString.substring(0, 100));
+            }
+
             if (!inline && match) {
               return (
                 <CodeBlockWithCopy code={codeString} language={match[1]} />
@@ -261,8 +472,10 @@ export function EnhancedMarkdownRenderer({
           ),
         }}
       >
-        {processedContent}
+        {markdownContent}
       </ReactMarkdown>
+        );
+      })}
     </motion.div>
   );
 }

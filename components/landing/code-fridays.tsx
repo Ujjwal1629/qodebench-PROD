@@ -28,7 +28,7 @@ export function CodeFridays() {
             <span className="text-yellow-300">Code Fridays</span>
           </h2>
           <p className="text-lg text-white/90">
-            Take weekly coding missions, earn points, and win rewards based on your monthly leaderboard rank.
+            Take weekly coding missions, earn points, and win rewards by completing challenging scenarios.
           </p>
         </div>
 
@@ -52,7 +52,7 @@ export function CodeFridays() {
             </div>
             <h3 className="text-lg font-bold text-white mb-2">Earn Points</h3>
             <p className="text-sm text-white/80">
-              Complete challenges to accumulate points on the leaderboard
+              Complete challenges to accumulate points and track your progress
             </p>
           </div>
 
@@ -61,10 +61,10 @@ export function CodeFridays() {
               <Trophy className="w-7 h-7 text-white" />
             </div>
             <h3 className="text-lg font-bold text-white mb-2">
-              Monthly Rankings
+              Compete Globally
             </h3>
             <p className="text-sm text-white/80">
-              Compete with developers worldwide on the monthly leaderboard
+              Test your skills against QA engineers worldwide every week
             </p>
           </div>
 
@@ -106,7 +106,7 @@ export function CodeFridays() {
                 Rewards
               </div>
               <p className="text-white/90 text-sm">
-                Monthly prizes for top leaderboard performers
+                Monthly prizes for top performers and active participants
               </p>
             </div>
           </div>

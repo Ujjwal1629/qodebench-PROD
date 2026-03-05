@@ -21,23 +21,25 @@ export type NavItem = {
 
 export const NAV_ITEMS: NavItem[] = [
   {
-    title: 'Dashboard',
-    href: '/dashboard',
-    icon: Home,
-    description: 'Overview of your progress',
-  },
-  {
     title: 'Learning',
     href: '/dashboard/learning',
     icon: BookOpen,
     description: 'Structured learning paths',
   },
-  {
-    title: 'Challenges',
-    href: '/dashboard/challenges',
-    icon: Code2,
-    description: 'Browse coding challenges',
-  },
+  // Temporarily hidden - Dashboard
+  // {
+  //   title: 'Dashboard',
+  //   href: '/dashboard',
+  //   icon: Home,
+  //   description: 'Overview of your progress',
+  // },
+  // Temporarily hidden - Challenges
+  // {
+  //   title: 'Challenges',
+  //   href: '/dashboard/challenges',
+  //   icon: Code2,
+  //   description: 'Browse coding challenges',
+  // },
   // Temporarily hidden - Coming soon
   // {
   //   title: 'Roadmap',
@@ -45,18 +47,20 @@ export const NAV_ITEMS: NavItem[] = [
   //   icon: Map,
   //   description: 'Your learning path',
   // },
-  {
-    title: 'Interviews',
-    href: '/dashboard/interviews',
-    icon: Mic,
-    description: 'Interview prep & mock interviews',
-  },
-  {
-    title: 'Leaderboard',
-    href: '/dashboard/leaderboard',
-    icon: Trophy,
-    description: 'Compete with developers worldwide',
-  },
+  // Temporarily hidden - Interviews
+  // {
+  //   title: 'Interviews',
+  //   href: '/dashboard/interviews',
+  //   icon: Mic,
+  //   description: 'Interview prep & mock interviews',
+  // },
+  // Temporarily hidden - Leaderboard feature
+  // {
+  //   title: 'Leaderboard',
+  //   href: '/dashboard/leaderboard',
+  //   icon: Trophy,
+  //   description: 'Compete with developers worldwide',
+  // },
   {
     title: 'Visitors',
     href: '/dashboard/admin/visitors',
@@ -74,11 +78,8 @@ export const NAV_ITEMS: NavItem[] = [
 
 // Mobile navigation items (essential features)
 export const MOBILE_NAV_ITEMS: NavItem[] = [
-  NAV_ITEMS[0], // Dashboard
-  NAV_ITEMS[1], // Learning
-  NAV_ITEMS[2], // Challenges
-  NAV_ITEMS[3], // Interviews
-  NAV_ITEMS[4], // Leaderboard
+  NAV_ITEMS[0], // Learning
+  // Dashboard, Challenges and Interviews temporarily hidden
 ];
 
 // Experience levels and point thresholds

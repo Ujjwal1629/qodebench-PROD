@@ -1,6 +1,6 @@
 # QodeBench
 
-**Master Real-World Coding Skills**
+**Master Real-World QA & Testing Skills**
 
 A modern SaaS application built with Next.js 14, TypeScript, Tailwind CSS, and Supabase.
 

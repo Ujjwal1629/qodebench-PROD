@@ -40,6 +40,8 @@ export async function getChatTableForLesson(lessonId: string): Promise<string | 
     return 'backend_chat_history';
   } else if (titleLower.includes('office') || titleLower.includes('fundamentals')) {
     return 'office_fundamentals_chat_history';
+  } else if (titleLower.includes('typescript')) {
+    return 'typescript_chat_history';
   }
 
   // Default fallback: try to detect from quiz tables
@@ -50,6 +52,7 @@ export async function getChatTableForLesson(lessonId: string): Promise<string | 
     { table: 'react_nextjs_quiz_questions', chat: 'react_nextjs_chat_history' },
     { table: 'backend_quiz_questions', chat: 'backend_chat_history' },
     { table: 'office_fundamentals_quiz_questions', chat: 'office_fundamentals_chat_history' },
+    { table: 'typescript_quiz_questions', chat: 'typescript_chat_history' },
   ];
 
   for (const { table, chat } of quizTables) {

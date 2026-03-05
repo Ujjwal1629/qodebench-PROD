@@ -17,9 +17,9 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Qodebench – Real Developer Simulator for Full-Stack Coders",
-  description: "Learn, debug, deploy, and face mock interviews — Qodebench simulates real developer life to help you become job-ready.",
-  keywords: ["Qodebench", "developer simulator", "coding challenges", "AI mock interview", "full-stack learning", "Code Fridays", "production bugs", "mock interviews", "real-world coding", "job-ready developer"],
+  title: "Qodebench – Real QA Simulator for Software Testers",
+  description: "Write test cases, automate testing, and master QA workflows — Qodebench simulates real QA engineer life to help you become job-ready.",
+  keywords: ["Qodebench", "QA simulator", "testing scenarios", "AI mock interview", "test automation learning", "Selenium", "Cypress", "Playwright", "API testing", "performance testing", "real-world testing", "job-ready QA engineer"],
   authors: [{ name: "Qodebench Technologies Pvt. Ltd." }],
   creator: "Qodebench Technologies Pvt. Ltd.",
   publisher: "Qodebench Technologies Pvt. Ltd.",
@@ -28,14 +28,14 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_US",
     url: "/",
-    title: "Qodebench – Real Developer Simulator for Full-Stack Coders",
-    description: "Learn, debug, deploy, and face mock interviews — Qodebench simulates real developer life to help you become job-ready.",
+    title: "Qodebench – Real QA Simulator for Software Testers",
+    description: "Write test cases, automate testing, and master QA workflows — Qodebench simulates real QA engineer life to help you become job-ready.",
     siteName: "Qodebench",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Qodebench – Real Developer Simulator for Full-Stack Coders",
-    description: "Learn, debug, deploy, and face mock interviews — Qodebench simulates real developer life to help you become job-ready.",
+    title: "Qodebench – Real QA Simulator for Software Testers",
+    description: "Write test cases, automate testing, and master QA workflows — Qodebench simulates real QA engineer life to help you become job-ready.",
   },
 };
 
