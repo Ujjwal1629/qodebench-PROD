@@ -61,7 +61,7 @@ function parseCallouts(content: string): string {
 
         if (title) {
           // Split by | and handle key=value pairs
-          title.split('|').forEach(param => {
+          title.split('|').forEach((param: string) => {
             const equalIndex = param.indexOf('=');
             if (equalIndex > -1) {
               const key = param.substring(0, equalIndex).trim();
