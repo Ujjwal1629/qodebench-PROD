@@ -137,7 +137,7 @@ async function ModuleHeader({ userId, learningPath }: { userId: string; learning
           Learning
         </Link>
         <span>/</span>
-        <span>JavaScript & TypeScript Essentials</span>
+        <span>TypeScript Essentials</span>
       </div>
 
       <div className="flex items-start justify-between gap-6">

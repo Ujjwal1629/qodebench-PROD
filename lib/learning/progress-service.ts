@@ -148,19 +148,13 @@ export class ProgressService {
       return [];
     }
 
-    const lessonsWithStatus = await Promise.all(
-      lessons.map(async (lesson) => {
-        const quizScore = await QuizService.getLatestQuizScore(userId, lesson.id);
-
-        return {
-          ...lesson,
-          can_access: true, // All lessons unlocked
-          is_completed: quizScore?.passed || false,
-          quiz_passed: quizScore?.passed || false,
-          latest_score: quizScore?.score_percentage,
-        };
-      })
-    );
+    const lessonsWithStatus = lessons.map((lesson) => ({
+      ...lesson,
+      can_access: true,
+      is_completed: false,
+      quiz_passed: false,
+      latest_score: undefined,
+    }));
 
     return lessonsWithStatus;
   }
@@ -241,17 +235,10 @@ export class ProgressService {
       };
     }
 
-    const completionChecks = await Promise.all(
-      lessons.map((lesson) => QuizService.hasPassedQuiz(userId, lesson.id))
-    );
-
-    const completedCount = completionChecks.filter((passed) => passed).length;
-    const progressPercentage = Math.round((completedCount / lessons.length) * 100);
-
     return {
       total_lessons: lessons.length,
-      completed_lessons: completedCount,
-      progress_percentage: progressPercentage,
+      completed_lessons: 0,
+      progress_percentage: 0,
     };
   }
 

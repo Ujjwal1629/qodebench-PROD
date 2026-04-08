@@ -60,7 +60,14 @@ export class QuizService {
    */
   static async getQuestionsForLesson(lessonId: string): Promise<QuizQuestion[]> {
     const supabase = await createClient();
-    const tablePrefix = await this.getTablePrefix(lessonId);
+
+    let tablePrefix: string;
+    try {
+      tablePrefix = await this.getTablePrefix(lessonId);
+    } catch {
+      // No quiz tables for this learning path — return empty
+      return [];
+    }
 
     const { data, error } = await supabase
       .from(`${tablePrefix}_quiz_questions`)

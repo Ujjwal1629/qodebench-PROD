@@ -12,7 +12,7 @@ import {
 import { cn } from '@/lib/utils';
 
 type Difficulty = 'Easy' | 'Medium' | 'Hard';
-type View = 'landing' | 'js-ts' | 'playwright';
+type View = 'landing' | 'javascript' | 'typescript' | 'playwright';
 
 interface Challenge {
   id: number;
@@ -561,6 +561,487 @@ console.log(filterPositive([1, 2, 3]));           // [1, 2, 3]
 console.log(sumArray([1, 2, 3, 4]));              // 10
 console.log(sumArray([10, 20, 30]));              // 60
 console.log(transformNames(["govind", "anil"]));  // ["GOVIND", "ANIL"]
+`,
+  },
+  // ─── Additional JavaScript Challenges ──────────────────────────────
+  {
+    id: 11,
+    title: 'Array Filter & Map',
+    topic: 'Arrays & Array Methods',
+    difficulty: 'Easy',
+    language: 'javascript',
+    description: `Write two functions:
+
+1. \`getPassingStudents(students)\` — takes an array of objects \`{ name, score }\` and returns an array of **names** of students who scored **70 or above**.
+
+2. \`getAverageScore(students)\` — returns the average score rounded to 1 decimal place.
+
+**Example:**
+\`\`\`
+const students = [
+  { name: "Alice", score: 85 },
+  { name: "Bob", score: 42 },
+  { name: "Charlie", score: 91 },
+  { name: "Diana", score: 67 }
+];
+
+getPassingStudents(students)
+// → ["Alice", "Charlie"]
+
+getAverageScore(students)
+// → 71.3
+\`\`\``,
+    hint: 'Use .filter() to get students with score >= 70, then .map() to extract names. For average, use .reduce() to sum scores, then divide by length.',
+    starterCode: `// Challenge: Array Filter & Map
+
+function getPassingStudents(students) {
+  // Filter students with score >= 70 and return their names
+}
+
+function getAverageScore(students) {
+  // Calculate average score, rounded to 1 decimal
+}
+
+// Test data
+const students = [
+  { name: "Alice", score: 85 },
+  { name: "Bob", score: 42 },
+  { name: "Charlie", score: 91 },
+  { name: "Diana", score: 67 }
+];
+
+console.log(getPassingStudents(students)); // ["Alice", "Charlie"]
+console.log(getAverageScore(students));    // 71.3
+`,
+  },
+  {
+    id: 12,
+    title: 'Object Destructuring',
+    topic: 'Objects & Destructuring',
+    difficulty: 'Easy',
+    language: 'javascript',
+    description: `Write a function \`formatUserCard(user)\` that takes a user object and returns a formatted string using destructuring.
+
+**Example:**
+\`\`\`
+const user = { name: "Alice", age: 25, city: "Mumbai", role: "QA Engineer" };
+formatUserCard(user)
+// → "Alice (25) — QA Engineer from Mumbai"
+\`\`\`
+
+**Requirements:**
+- Use object destructuring in the function parameter or body
+- Handle missing \`city\` with default value \`"Unknown"\``,
+    hint: 'Destructure with defaults: const { name, age, city = "Unknown", role } = user;',
+    starterCode: `// Challenge: Object Destructuring
+
+function formatUserCard(user) {
+  // Destructure user and return formatted string
+}
+
+// Tests
+console.log(formatUserCard({ name: "Alice", age: 25, city: "Mumbai", role: "QA Engineer" }));
+// → "Alice (25) — QA Engineer from Mumbai"
+
+console.log(formatUserCard({ name: "Bob", age: 30, role: "Developer" }));
+// → "Bob (30) — Developer from Unknown"
+
+console.log(formatUserCard({ name: "Charlie", age: 22, city: "Delhi", role: "Intern" }));
+// → "Charlie (22) — Intern from Delhi"
+`,
+  },
+  {
+    id: 13,
+    title: 'FizzBuzz',
+    topic: 'Loops & Iteration',
+    difficulty: 'Easy',
+    language: 'javascript',
+    description: `Write a function \`fizzBuzz(n)\` that returns an array of strings from 1 to n:
+
+- If divisible by 3 → \`"Fizz"\`
+- If divisible by 5 → \`"Buzz"\`
+- If divisible by both → \`"FizzBuzz"\`
+- Otherwise → the number as a string
+
+**Example:**
+\`\`\`
+fizzBuzz(5) // → ["1", "2", "Fizz", "4", "Buzz"]
+fizzBuzz(15) // last item → "FizzBuzz"
+\`\`\``,
+    hint: 'Use a for loop from 1 to n. Check divisible by 15 first (both 3 and 5), then 3, then 5.',
+    starterCode: `// Challenge: FizzBuzz
+
+function fizzBuzz(n) {
+  // Return array of strings from 1 to n with FizzBuzz rules
+}
+
+// Tests
+console.log(fizzBuzz(5));
+// ["1", "2", "Fizz", "4", "Buzz"]
+
+console.log(fizzBuzz(15));
+// last item should be "FizzBuzz"
+
+console.log(fizzBuzz(3));
+// ["1", "2", "Fizz"]
+`,
+  },
+  {
+    id: 14,
+    title: 'Error Handler',
+    topic: 'Error Handling',
+    difficulty: 'Medium',
+    language: 'javascript',
+    description: `Write a function \`safeDivide(a, b)\` that:
+- Returns the result of a / b
+- Throws an Error with message \`"Cannot divide by zero"\` if b is 0
+- Throws a TypeError with message \`"Both arguments must be numbers"\` if either is not a number
+
+Write another function \`safeJsonParse(str)\` that:
+- Returns \`{ success: true, data: parsedValue }\` on success
+- Returns \`{ success: false, error: errorMessage }\` on failure
+
+**Example:**
+\`\`\`
+safeDivide(10, 2)        // → 5
+safeJsonParse('{"a":1}') // → { success: true, data: { a: 1 } }
+safeJsonParse('bad')     // → { success: false, error: "..." }
+\`\`\``,
+    hint: 'Use typeof to check if arguments are numbers. Use try/catch to wrap JSON.parse.',
+    starterCode: `// Challenge: Error Handler
+
+function safeDivide(a, b) {
+  // Validate types and check for zero division
+}
+
+function safeJsonParse(str) {
+  // Try to parse JSON, return { success, data/error }
+}
+
+// Tests
+console.log(safeDivide(10, 2));   // 5
+console.log(safeDivide(7, 3));    // 2.333...
+
+try { safeDivide(10, 0); } catch (e) { console.log(e.message); }
+// "Cannot divide by zero"
+
+try { safeDivide("10", 2); } catch (e) { console.log(e.message); }
+// "Both arguments must be numbers"
+
+console.log(safeJsonParse('{"name": "Alice"}'));
+// { success: true, data: { name: "Alice" } }
+
+console.log(safeJsonParse('invalid json'));
+// { success: false, error: "..." }
+`,
+  },
+  {
+    id: 15,
+    title: 'Shopping Cart Class',
+    topic: 'OOP: Classes & Objects',
+    difficulty: 'Medium',
+    language: 'javascript',
+    description: `Create a \`ShoppingCart\` class with:
+
+**Methods:**
+- \`addItem(name, price, qty)\` — adds item to cart
+- \`removeItem(name)\` — removes item by name
+- \`getTotal()\` — returns total price (sum of price × qty)
+- \`getItemCount()\` — returns total quantity of all items
+- \`getSummary()\` — returns \`"3 items, Total: $45.50"\`
+
+**Example:**
+\`\`\`
+const cart = new ShoppingCart();
+cart.addItem("Shirt", 15.00, 2);
+cart.addItem("Pants", 25.50, 1);
+cart.getTotal()     // → 55.5
+cart.getItemCount() // → 3
+cart.getSummary()   // → "3 items, Total: $55.50"
+\`\`\``,
+    hint: 'Store items as { name, price, qty } objects. Use reduce() for getTotal and getItemCount.',
+    starterCode: `// Challenge: Shopping Cart Class
+
+class ShoppingCart {
+  constructor() {
+    // Initialize items array
+  }
+
+  addItem(name, price, qty) { }
+  removeItem(name) { }
+  getTotal() { }
+  getItemCount() { }
+  getSummary() { }
+}
+
+// Tests
+const cart = new ShoppingCart();
+cart.addItem("Shirt", 15.00, 2);
+cart.addItem("Pants", 25.50, 1);
+console.log(cart.getTotal());     // 55.5
+console.log(cart.getItemCount()); // 3
+console.log(cart.getSummary());   // "3 items, Total: $55.50"
+
+cart.removeItem("Shirt");
+console.log(cart.getTotal());     // 25.5
+console.log(cart.getSummary());   // "1 items, Total: $25.50"
+`,
+  },
+  {
+    id: 16,
+    title: 'Vehicle Inheritance',
+    topic: 'OOP: Inheritance',
+    difficulty: 'Medium',
+    language: 'javascript',
+    description: `Create a class hierarchy:
+
+**\`Vehicle\`** — constructor takes \`make\`, \`model\`, \`year\`
+- \`describe()\` → \`"2024 Toyota Camry"\`
+
+**\`ElectricVehicle extends Vehicle\`** — also takes \`range\` (km)
+- Override \`describe()\` → \`"2024 Tesla Model 3 (Electric, 580km range)"\`
+- \`canComplete(distance)\` → returns boolean
+
+**Example:**
+\`\`\`
+const ev = new ElectricVehicle("Tesla", "Model 3", 2024, 580);
+ev.describe()       // → "2024 Tesla Model 3 (Electric, 580km range)"
+ev.canComplete(500) // → true
+\`\`\``,
+    hint: 'Use extends and super(make, model, year) in the child constructor.',
+    starterCode: `// Challenge: Vehicle Inheritance
+
+class Vehicle {
+  constructor(make, model, year) { }
+  describe() { }
+}
+
+class ElectricVehicle extends Vehicle {
+  constructor(make, model, year, range) { }
+  describe() { }
+  canComplete(distance) { }
+}
+
+// Tests
+const car = new Vehicle("Toyota", "Camry", 2024);
+console.log(car.describe()); // "2024 Toyota Camry"
+
+const ev = new ElectricVehicle("Tesla", "Model 3", 2024, 580);
+console.log(ev.describe());       // "2024 Tesla Model 3 (Electric, 580km range)"
+console.log(ev.canComplete(500)); // true
+console.log(ev.canComplete(600)); // false
+console.log(ev instanceof Vehicle); // true
+`,
+  },
+  {
+    id: 17,
+    title: 'Promise Chain',
+    topic: 'Promises & Async/Await',
+    difficulty: 'Hard',
+    language: 'javascript',
+    description: `Write an async function \`fetchUserData(userId)\` that simulates sequential API calls:
+
+1. \`getUser(userId)\` → returns \`{ id, name, departmentId }\`
+2. \`getDepartment(departmentId)\` → returns \`{ id, name, managerId }\`
+3. \`getUser(managerId)\` → returns the manager object
+4. Return: \`{ user, department, manager }\`
+
+Also write \`fetchMultipleUsers(ids)\` using **Promise.all** for parallel fetching.
+
+Helper functions are provided — just use them!`,
+    hint: 'Use await sequentially for the chain. Use Promise.all([...ids.map(id => getUser(id))]) for parallel.',
+    starterCode: `// Challenge: Promise Chain
+
+// Simulated API (don't modify)
+function getUser(id) {
+  const users = {
+    1: { id: 1, name: "Alice", departmentId: 10 },
+    2: { id: 2, name: "Bob", departmentId: 20 },
+    3: { id: 3, name: "Charlie", departmentId: 10 },
+    99: { id: 99, name: "Manager Singh", departmentId: 10 }
+  };
+  return new Promise(r => setTimeout(() => r(users[id]), 100));
+}
+
+function getDepartment(id) {
+  const depts = {
+    10: { id: 10, name: "Engineering", managerId: 99 },
+    20: { id: 20, name: "Marketing", managerId: 99 }
+  };
+  return new Promise(r => setTimeout(() => r(depts[id]), 100));
+}
+
+// Task 1: Sequential fetch
+async function fetchUserData(userId) {
+  // Fetch user → department → manager
+}
+
+// Task 2: Parallel fetch
+async function fetchMultipleUsers(ids) {
+  // Use Promise.all
+}
+
+// Tests
+(async () => {
+  const result = await fetchUserData(1);
+  console.log(result.user.name);       // "Alice"
+  console.log(result.department.name); // "Engineering"
+  console.log(result.manager.name);    // "Manager Singh"
+
+  const users = await fetchMultipleUsers([1, 2, 3]);
+  console.log(users.map(u => u.name)); // ["Alice", "Bob", "Charlie"]
+})();
+`,
+  },
+  // ─── Additional TypeScript Challenges ──────────────────────────────
+  {
+    id: 18,
+    title: 'Type Guard Validator',
+    topic: 'Type Guards & Narrowing',
+    difficulty: 'Medium',
+    language: 'typescript',
+    description: `Create type-safe validator functions using TypeScript type guards.
+
+**Define types:**
+- \`type ApiSuccess = { status: "success"; data: string[] }\`
+- \`type ApiError = { status: "error"; message: string }\`
+- \`type ApiResponse = ApiSuccess | ApiError\`
+
+**Write a type guard** \`isSuccess(response): response is ApiSuccess\`
+
+**Write** \`processResponse(response)\` that returns:
+- Success → \`"Received X items"\`
+- Error → \`"Error: <message>"\`
+
+**Example:**
+\`\`\`
+processResponse({ status: "success", data: ["a", "b"] })
+// → "Received 2 items"
+\`\`\``,
+    hint: 'A type guard returns `response is ApiSuccess` and checks response.status === "success".',
+    starterCode: `// Challenge: Type Guard Validator
+
+type ApiSuccess = { status: "success"; data: string[] };
+type ApiError = { status: "error"; message: string };
+type ApiResponse = ApiSuccess | ApiError;
+
+function isSuccess(response: ApiResponse): response is ApiSuccess {
+  // Check if response is a success
+}
+
+function processResponse(response: ApiResponse): string {
+  // Use isSuccess() to narrow the type
+}
+
+// Tests
+console.log(processResponse({ status: "success", data: ["user1", "user2", "user3"] }));
+// "Received 3 items"
+
+console.log(processResponse({ status: "error", message: "Not found" }));
+// "Error: Not found"
+
+console.log(processResponse({ status: "success", data: [] }));
+// "Received 0 items"
+`,
+  },
+  {
+    id: 19,
+    title: 'Generic Collection',
+    topic: 'Generics',
+    difficulty: 'Hard',
+    language: 'typescript',
+    description: `Build a generic \`Collection<T>\` class that works with any data type.
+
+**Methods:**
+- \`add(item: T): void\`
+- \`getAll(): T[]\`
+- \`findBy(predicate: (item: T) => boolean): T | undefined\`
+- \`filterBy(predicate: (item: T) => boolean): T[]\`
+- \`mapTo<U>(transform: (item: T) => U): U[]\`
+- \`count(): number\`
+
+**Example:**
+\`\`\`
+const users = new Collection<{ name: string; age: number }>();
+users.add({ name: "Alice", age: 25 });
+users.findBy(u => u.name === "Alice") // → { name: "Alice", age: 25 }
+users.mapTo(u => u.name)              // → ["Alice"]
+\`\`\``,
+    hint: 'Use <T> on the class, and <U> on the mapTo method. Delegate to array methods on this.items.',
+    starterCode: `// Challenge: Generic Collection
+
+class Collection<T> {
+  private items: T[] = [];
+
+  add(item: T): void { }
+  getAll(): T[] { }
+  findBy(predicate: (item: T) => boolean): T | undefined { }
+  filterBy(predicate: (item: T) => boolean): T[] { }
+  mapTo<U>(transform: (item: T) => U): U[] { }
+  count(): number { }
+}
+
+// Tests
+interface User { name: string; age: number }
+const users = new Collection<User>();
+users.add({ name: "Alice", age: 25 });
+users.add({ name: "Bob", age: 30 });
+users.add({ name: "Charlie", age: 22 });
+
+console.log(users.count());                        // 3
+console.log(users.findBy(u => u.name === "Bob"));  // { name: "Bob", age: 30 }
+console.log(users.filterBy(u => u.age > 23));      // [Alice, Bob]
+console.log(users.mapTo(u => u.name));             // ["Alice", "Bob", "Charlie"]
+
+const nums = new Collection<number>();
+nums.add(10); nums.add(20); nums.add(30);
+console.log(nums.filterBy(n => n > 15));  // [20, 30]
+`,
+  },
+  {
+    id: 20,
+    title: 'Enum & Union Command Parser',
+    topic: 'Enums & Union Types',
+    difficulty: 'Medium',
+    language: 'typescript',
+    description: `Create a command parser using TypeScript enums and discriminated unions.
+
+**Task 1:** Enum \`Action\` with: \`Click\`, \`Fill\`, \`Navigate\`, \`Assert\`
+
+**Task 2:** Union type \`Command\` discriminated by \`action\` field
+
+**Task 3:** \`describeCommand(cmd)\` that returns a readable string:
+- Click → \`"Click on <selector>"\`
+- Fill → \`"Fill <selector> with <value>"\`
+- Navigate → \`"Navigate to <url>"\`
+- Assert → \`"Assert <selector> equals <expected>"\``,
+    hint: 'Use enum Action { Click, Fill, Navigate, Assert }. Discriminate union on action field.',
+    starterCode: `// Challenge: Enum & Union Command Parser
+
+enum Action {
+  // Add: Click, Fill, Navigate, Assert
+}
+
+type Command =
+  | { action: Action.Click; selector: string }
+  // | Add Fill, Navigate, Assert variants
+
+function describeCommand(cmd: Command): string {
+  // Switch on cmd.action
+}
+
+// Tests
+console.log(describeCommand({ action: Action.Click, selector: "#submit-btn" }));
+// "Click on #submit-btn"
+
+console.log(describeCommand({ action: Action.Fill, selector: "#email", value: "test@mail.com" }));
+// "Fill #email with test@mail.com"
+
+console.log(describeCommand({ action: Action.Navigate, url: "https://example.com" }));
+// "Navigate to https://example.com"
+
+console.log(describeCommand({ action: Action.Assert, selector: "#title", expected: "Welcome" }));
+// "Assert #title equals Welcome"
 `,
   },
 ];
@@ -1780,17 +2261,29 @@ export default function PracticePage() {
     setOpenChallenge(null);
   };
 
-  const jsCompleted  = JS_TS_CHALLENGES.filter(c => completed.has(c.id)).length;
+  const jsChallenges = JS_TS_CHALLENGES.filter(c => c.language === 'javascript');
+  const tsChallenges = JS_TS_CHALLENGES.filter(c => c.language === 'typescript');
+
+  const jsCompletedCount = jsChallenges.filter(c => completed.has(c.id)).length;
+  const tsCompletedCount = tsChallenges.filter(c => completed.has(c.id)).length;
   const pwCompleted  = PLAYWRIGHT_CHALLENGES.filter(c => completed.has(c.id)).length;
 
   const categories = [
     {
-      id: 'js-ts' as View,
+      id: 'javascript' as View,
       icon: Code2,
-      title: 'JavaScript & TypeScript',
-      description: 'Master JS fundamentals, TypeScript interfaces, classes, and async patterns',
-      count: JS_TS_CHALLENGES.length,
-      completedCount: jsCompleted,
+      title: 'JavaScript',
+      description: 'Variables, functions, arrays, objects, loops, and async patterns',
+      count: jsChallenges.length,
+      completedCount: jsCompletedCount,
+    },
+    {
+      id: 'typescript' as View,
+      icon: Code2,
+      title: 'TypeScript',
+      description: 'Interfaces, generics, classes, type system, and advanced TypeScript patterns',
+      count: tsChallenges.length,
+      completedCount: tsCompletedCount,
     },
     {
       id: 'playwright' as View,
@@ -1815,7 +2308,7 @@ export default function PracticePage() {
 
         <div>
           <h2 className="text-xl sm:text-2xl font-semibold text-slate-900 mb-4">Choose a Track</h2>
-          <div className="grid gap-6 md:grid-cols-2">
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {categories.map((cat) => {
               const Icon = cat.icon;
               return (
@@ -1859,22 +2352,43 @@ export default function PracticePage() {
     );
   }
 
-  // ─── JS & TS view ──────────────────────────────────────────────────
-  if (view === 'js-ts') {
+  // ─── JavaScript view ───────────────────────────────────────────────
+  if (view === 'javascript') {
     return (
       <div className="space-y-8">
         <ChallengeListView
-          challenges={JS_TS_CHALLENGES}
+          challenges={jsChallenges}
           completed={completed}
           openChallenge={openChallenge}
           onOpenChallenge={setOpenChallenge}
           onToggleComplete={toggleComplete}
           onBack={goToLanding}
-          title="JavaScript & TypeScript Challenges"
+          title="JavaScript Challenges"
           gradientFrom="from-sky-50"
-          gradientTo="to-purple-50"
+          gradientTo="to-blue-50"
           borderColor="border-sky-200"
-          categoryLabel={openChallenge?.language === 'typescript' ? 'TypeScript' : 'JavaScript'}
+          categoryLabel="JavaScript"
+        />
+      </div>
+    );
+  }
+
+  // ─── TypeScript view ──────────────────────────────────────────────
+  if (view === 'typescript') {
+    return (
+      <div className="space-y-8">
+        <ChallengeListView
+          challenges={tsChallenges}
+          completed={completed}
+          openChallenge={openChallenge}
+          onOpenChallenge={setOpenChallenge}
+          onToggleComplete={toggleComplete}
+          onBack={goToLanding}
+          title="TypeScript Challenges"
+          gradientFrom="from-purple-50"
+          gradientTo="to-indigo-50"
+          borderColor="border-purple-200"
+          categoryLabel="TypeScript"
         />
       </div>
     );

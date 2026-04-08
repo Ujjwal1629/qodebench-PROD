@@ -16,7 +16,6 @@ export default async function LessonPage({ params }: { params: Promise<{ lessonI
   const { lessonId } = await params;
   const supabase = await createClient();
 
-  // Check authentication
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -25,7 +24,6 @@ export default async function LessonPage({ params }: { params: Promise<{ lessonI
     redirect('/signin');
   }
 
-  // Get lesson details
   const { data: lesson } = await supabase
     .from('ai_learning_lessons')
     .select('*')
@@ -44,7 +42,6 @@ export default async function LessonPage({ params }: { params: Promise<{ lessonI
     );
   }
 
-  // OPTIMIZED: Parallelize independent queries for faster loading
   const [accessCheck, quizQuestions, nextLesson] = await Promise.all([
     ProgressService.canAccessLesson(user.id, lessonId),
     QuizService.getQuestionsForLesson(lessonId),
@@ -55,7 +52,7 @@ export default async function LessonPage({ params }: { params: Promise<{ lessonI
     return (
       <div className="container max-w-4xl py-10 space-y-4">
         <Link
-          href="/dashboard/learning/typescript"
+          href="/dashboard/learning/javascript"
           className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-sky-600"
         >
           <ArrowLeft className="h-4 w-4" />
@@ -70,7 +67,7 @@ export default async function LessonPage({ params }: { params: Promise<{ lessonI
               <div className="mt-4">
                 <p className="text-sm mb-2">Complete this lesson first:</p>
                 <Button asChild className="bg-sky-600 hover:bg-sky-700">
-                  <Link href={`/dashboard/learning/typescript/${accessCheck.required_lesson.id}`}>
+                  <Link href={`/dashboard/learning/javascript/${accessCheck.required_lesson.id}`}>
                     Go to {accessCheck.required_lesson.title}
                   </Link>
                 </Button>
@@ -82,27 +79,23 @@ export default async function LessonPage({ params }: { params: Promise<{ lessonI
     );
   }
 
-  // Mark lesson as started (non-blocking - fire and forget)
   ProgressService.markLessonAsStarted(user.id, lessonId);
 
-  const nextLessonUrl = nextLesson ? `/dashboard/learning/typescript/${nextLesson.id}` : null;
+  const nextLessonUrl = nextLesson ? `/dashboard/learning/javascript/${nextLesson.id}` : null;
 
-  // Theory Panel Component
   const TheoryPanel = () => (
     <div className="relative">
-      {/* Reading Progress Bar */}
       <ReadingProgress />
 
       <div className="space-y-8">
         <Link
-          href="/dashboard/learning/typescript"
+          href="/dashboard/learning/javascript"
           className="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-sky-600 transition-colors font-medium"
         >
           <ArrowLeft className="h-4 w-4" />
           Back to JavaScript
         </Link>
 
-        {/* Lesson Header */}
         <div className="space-y-4">
           <div className="flex items-center gap-3 flex-wrap">
             <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-sky-700 bg-sky-100 px-3 py-1.5 rounded-full border border-sky-200">
@@ -110,7 +103,7 @@ export default async function LessonPage({ params }: { params: Promise<{ lessonI
               Lesson {lesson.order_index}
             </span>
             <span className="text-sm text-slate-500">
-              {lesson.duration_minutes} min read • {quizQuestions.length} quiz questions
+              {lesson.duration_minutes} min read {quizQuestions.length > 0 ? `• ${quizQuestions.length} quiz questions` : ''}
             </span>
           </div>
           <h1 className="text-4xl font-bold leading-tight text-slate-900 tracking-tight">
@@ -121,13 +114,10 @@ export default async function LessonPage({ params }: { params: Promise<{ lessonI
           </p>
         </div>
 
-        {/* Divider */}
         <hr className="border-slate-200" />
 
-        {/* Enhanced Markdown Content */}
         <EnhancedMarkdownRenderer content={lesson.content} className="prose-enhanced" />
 
-        {/* Quiz Section */}
         {quizQuestions.length > 0 && (
           <div className="mt-16 bg-gradient-to-br from-sky-50 via-white to-purple-50 rounded-3xl p-8 space-y-6">
             <div className="flex flex-col items-center text-center">
