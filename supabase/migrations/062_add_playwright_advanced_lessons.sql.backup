@@ -1,0 +1,894 @@
+-- =====================================================
+-- Playwright Advanced Lessons (Lessons 3-8)
+-- Migration: 062
+-- Description: Add 6 advanced Playwright lessons
+-- Topics: Locators, UI Interactions, Dialogs, POM, Fixtures, Data-Driven Testing
+-- =====================================================
+
+-- =====================================================
+-- UPDATE LEARNING PATH (increase duration)
+-- =====================================================
+
+UPDATE ai_learning_paths
+SET
+  estimated_duration_hours = 8,
+  learning_objectives = ARRAY[
+    'Set up Playwright with TypeScript',
+    'Understand browser automation architecture',
+    'Write your first automated test',
+    'Master locators and assertions',
+    'Handle complex UI interactions',
+    'Work with dialogs, frames, and multi-page scenarios',
+    'Implement Page Object Model pattern',
+    'Create reusable fixtures and organize tests',
+    'Build data-driven test suites'
+  ]
+WHERE id = 'f8a9b0c1-d2e3-4f5a-6b7c-8d9e0f1a2b3c';
+
+-- =====================================================
+-- LESSON 3: Advanced Locators & Assertions
+-- =====================================================
+
+INSERT INTO ai_learning_lessons (
+  id,
+  learning_path_id,
+  title,
+  description,
+  content_type,
+  content,
+  duration_minutes,
+  order_index,
+  learning_objectives
+) VALUES (
+  gen_random_uuid(),
+  'f8a9b0c1-d2e3-4f5a-6b7c-8d9e0f1a2b3c',
+  'Advanced Locators & Powerful Assertions',
+  'Master CSS, XPath, and advanced locator strategies with comprehensive assertions',
+  'article',
+  E'# Advanced Locators & Powerful Assertions
+
+## Locator Strategies Overview
+
+In the last lesson, we learned about `getByRole`, `getByLabel`, etc. Now let's explore **all locator strategies** Playwright offers.
+
+### Quick Reference: All Locator Types
+
+```typescript
+// 1. Recommended (Semantic)
+page.getByRole('button', { name: 'Submit' })
+page.getByLabel('Email')
+page.getByPlaceholder('Enter your name')
+page.getByText('Welcome back')
+page.getByAltText('Profile picture')
+page.getByTitle('Close window')
+
+// 2. Stable IDs
+page.getByTestId('submit-btn')
+
+// 3. CSS Selectors
+page.locator('.submit-button')
+page.locator('#user-email')
+page.locator('div > button.primary')
+
+// 4. XPath (last resort)
+page.locator('//button[contains(@class, "submit")]')
+```
+
+## CSS Selectors Deep Dive
+
+CSS selectors are powerful for targeting elements:
+
+### Basic CSS Selectors
+
+```typescript
+// By class
+await page.locator('.button').click();
+
+// By ID
+await page.locator('#submit-btn').click();
+
+// By attribute
+await page.locator('[data-test="login-btn"]').click();
+await page.locator('[type="email"]').fill('user@example.com');
+
+// By tag name
+await page.locator('button').click();
+
+// Combining selectors
+await page.locator('button.primary.large').click();
+await page.locator('input[type="email"]#user-email').fill('...');
+```
+
+### Advanced CSS Selectors
+
+```typescript
+// Child selector (direct child)
+await page.locator('div > button').click();
+
+// Descendant selector (any nested child)
+await page.locator('form button').click();
+
+// Attribute contains
+await page.locator('[class*="submit"]').click(); // class contains "submit"
+
+// Attribute starts with
+await page.locator('[id^="user-"]').click(); // id starts with "user-"
+
+// Attribute ends with
+await page.locator('[class$="-button"]').click(); // class ends with "-button"
+
+// Multiple attributes
+await page.locator('input[type="text"][required]').fill('...');
+
+// nth-child
+await page.locator('li:nth-child(2)').click(); // Second list item
+await page.locator('li:first-child').click();  // First
+await page.locator('li:last-child').click();   // Last
+```
+
+:::practice language=typescript | height=350px | title=Practice CSS Selectors
+import { test, expect } from '@playwright/test';
+
+test('CSS selector examples', async ({ page }) => {
+  await page.goto('https://example.com');
+
+  // Class selector
+  await page.locator('.nav-link').first().click();
+
+  // ID selector
+  await page.locator('#search-input').fill('Playwright');
+
+  // Attribute selector
+  await page.locator('[data-testid="submit"]').click();
+
+  // Combined selectors
+  await page.locator('button.primary[type="submit"]').click();
+
+  // Descendant
+  await page.locator('form input[name="email"]').fill('test@example.com');
+
+  // nth-child
+  await page.locator('ul.menu > li:nth-child(3)').click();
+});
+:::
+
+## XPath Selectors
+
+XPath is powerful but should be your **last resort** (fragile and slower).
+
+### When to Use XPath
+
+✅ **Use XPath when:**
+- You need to navigate based on text content in complex structures
+- You need to select based on parent elements
+- CSS selectors become too complex
+
+❌ **Avoid XPath for:**
+- Simple element selection (use CSS instead)
+- Performance-critical tests
+
+### Basic XPath Examples
+
+```typescript
+// By text content
+await page.locator('//button[text()="Submit"]').click();
+
+// Contains text
+await page.locator('//button[contains(text(), "Save")]').click();
+
+// By attribute
+await page.locator('//input[@type="email"]').fill('...');
+
+// By ID
+await page.locator('//*[@id="submit-btn"]').click();
+
+// By class (contains)
+await page.locator('//button[contains(@class, "primary")]').click();
+
+// Parent selection (powerful!)
+await page.locator('//label[text()="Email"]/following-sibling::input').fill('...');
+
+// Ancestor selection
+await page.locator('//button[@id="save"]//ancestor::form');
+```
+
+:::warning XPath Performance
+XPath is slower than CSS selectors. Use CSS or getBy methods when possible!
+:::
+
+## Advanced Locator Methods
+
+Playwright provides powerful filtering methods:
+
+### has() - Filter by Descendant
+
+Find elements that **contain** specific child elements:
+
+```typescript
+// Find a product card that has a "Sale" badge
+await page.locator('.product-card').filter({
+  has: page.locator('.sale-badge')
+}).click();
+
+// Find a row that contains specific text
+await page.locator('tr').filter({
+  has: page.locator('text="Active"')
+}).click();
+```
+
+### hasText() - Filter by Text Content
+
+Find elements containing specific text:
+
+```typescript
+// Find button with specific text
+await page.getByRole('button').filter({ hasText: 'Delete' }).click();
+
+// Find card containing "Premium"
+await page.locator('.card').filter({ hasText: 'Premium' }).click();
+
+// Case-insensitive text match
+await page.locator('div').filter({ hasText: /premium/i }).click();
+```
+
+### hasNot() - Negative Filter
+
+Find elements that **do not** contain something:
+
+```typescript
+// Find rows that don't have a "Completed" status
+await page.locator('tr').filter({
+  hasNot: page.locator('text="Completed"')
+}).click();
+
+// Find buttons that don't contain "Cancel"
+await page.getByRole('button').filter({
+  hasNot: page.getByText('Cancel')
+}).click();
+```
+
+### Chaining Filters
+
+You can chain multiple filters:
+
+```typescript
+await page
+  .locator('.product-card')
+  .filter({ hasText: 'Electronics' })
+  .filter({ has: page.locator('.in-stock') })
+  .filter({ hasNot: page.locator('.sold-out') })
+  .first()
+  .click();
+```
+
+:::practice language=typescript | height=400px | title=Practice Advanced Locators
+import { test, expect } from '@playwright/test';
+
+test('advanced locator methods', async ({ page }) => {
+  await page.goto('https://example.com/products');
+
+  // Find product with "Sale" badge
+  const saleProduct = page.locator('.product').filter({
+    has: page.locator('.sale-badge')
+  });
+  await saleProduct.first().click();
+
+  // Find row with "Active" status
+  const activeRow = page.locator('tr').filter({
+    hasText: 'Active'
+  });
+  await expect(activeRow).toBeVisible();
+
+  // Find buttons without "disabled" class
+  const enabledButtons = page.getByRole('button').filter({
+    hasNot: page.locator('.disabled')
+  });
+  await enabledButtons.first().click();
+
+  // Complex chaining
+  await page
+    .locator('.item')
+    .filter({ hasText: 'Available' })
+    .filter({ has: page.locator('.in-stock') })
+    .nth(2)
+    .click();
+});
+:::
+
+## Comprehensive Assertions
+
+Playwright provides many assertion methods via `expect()`:
+
+### Element State Assertions
+
+```typescript
+// Visibility
+await expect(page.locator('h1')).toBeVisible();
+await expect(page.locator('.loading')).toBeHidden();
+await expect(page.locator('.modal')).not.toBeVisible();
+
+// Enabled/Disabled
+await expect(page.getByRole('button')).toBeEnabled();
+await expect(page.getByRole('button')).toBeDisabled();
+
+// Checked (checkboxes/radio)
+await expect(page.getByLabel('I agree')).toBeChecked();
+await expect(page.getByLabel('I agree')).not.toBeChecked();
+
+// Focused
+await expect(page.getByLabel('Email')).toBeFocused();
+
+// Editable
+await expect(page.locator('input')).toBeEditable();
+await expect(page.locator('input')).not.toBeEditable();
+
+// Empty
+await expect(page.locator('input')).toBeEmpty();
+await expect(page.locator('input')).not.toBeEmpty();
+```
+
+### Text Content Assertions
+
+```typescript
+// Exact text match
+await expect(page.locator('h1')).toHaveText('Welcome');
+
+// Contains text
+await expect(page.locator('.message')).toContainText('Success');
+
+// Multiple elements text
+await expect(page.locator('li')).toHaveText(['Item 1', 'Item 2', 'Item 3']);
+
+// Regex match
+await expect(page.locator('p')).toHaveText(/hello.*world/i);
+
+// Not equal
+await expect(page.locator('h1')).not.toHaveText('Error');
+```
+
+### Attribute & Value Assertions
+
+```typescript
+// Attribute value
+await expect(page.locator('input')).toHaveAttribute('type', 'email');
+await expect(page.locator('a')).toHaveAttribute('href', '/about');
+
+// Attribute contains
+await expect(page.locator('img')).toHaveAttribute('src', /logo\\.png/);
+
+// Input value
+await expect(page.locator('input')).toHaveValue('test@example.com');
+
+// CSS class
+await expect(page.locator('button')).toHaveClass('btn-primary');
+await expect(page.locator('button')).toHaveClass(/btn-/);
+
+// CSS property
+await expect(page.locator('h1')).toHaveCSS('color', 'rgb(0, 0, 0)');
+await expect(page.locator('div')).toHaveCSS('display', 'flex');
+```
+
+### Count & Collection Assertions
+
+```typescript
+// Count elements
+await expect(page.locator('li')).toHaveCount(5);
+await expect(page.locator('.item')).toHaveCount(10);
+
+// At least one element
+await expect(page.locator('.product')).not.toHaveCount(0);
+```
+
+### Page-Level Assertions
+
+```typescript
+// URL
+await expect(page).toHaveURL('https://example.com/dashboard');
+await expect(page).toHaveURL(/.*dashboard.*/);
+
+// Title
+await expect(page).toHaveTitle('Dashboard - MyApp');
+await expect(page).toHaveTitle(/Dashboard/);
+
+// Screenshot comparison (visual testing)
+await expect(page).toHaveScreenshot('homepage.png');
+```
+
+### Custom Timeout for Assertions
+
+```typescript
+// Wait up to 10 seconds
+await expect(page.locator('.slow-element')).toBeVisible({ timeout: 10000 });
+
+// Quick check (1 second)
+await expect(page.locator('.fast-element')).toBeVisible({ timeout: 1000 });
+```
+
+:::practice language=typescript | height=450px | title=Practice Assertions
+import { test, expect } from '@playwright/test';
+
+test('comprehensive assertions', async ({ page }) => {
+  await page.goto('https://example.com/login');
+
+  // Visibility
+  await expect(page.getByRole('heading')).toBeVisible();
+  await expect(page.locator('.error-message')).toBeHidden();
+
+  // Input value
+  await page.getByLabel('Email').fill('test@example.com');
+  await expect(page.getByLabel('Email')).toHaveValue('test@example.com');
+
+  // Attributes
+  await expect(page.getByRole('button')).toHaveAttribute('type', 'submit');
+  await expect(page.getByRole('button')).toBeEnabled();
+
+  // Text content
+  await expect(page.locator('h1')).toHaveText('Sign In');
+  await expect(page.locator('.welcome')).toContainText('Welcome');
+
+  // Count
+  await expect(page.locator('input')).toHaveCount(2);
+
+  // URL and Title
+  await expect(page).toHaveURL(/.*login.*/);
+  await expect(page).toHaveTitle(/Login/);
+
+  // CSS
+  await expect(page.locator('button')).toHaveClass(/btn-primary/);
+});
+:::
+
+## Best Practices Summary
+
+### Locator Priority (Best to Worst)
+
+1. ✅ **getByRole** - Accessibility-first
+2. ✅ **getByLabel** - Form elements
+3. ✅ **getByPlaceholder** - Inputs with placeholders
+4. ✅ **getByText** - Unique text content
+5. ✅ **getByTestId** - Stable test IDs
+6. ⚠️ **CSS Selectors** - When above don't work
+7. ❌ **XPath** - Last resort only
+
+### Assertion Best Practices
+
+- ✅ Use specific assertions (`toBeVisible` vs `toBeTruthy`)
+- ✅ Assert multiple properties when needed
+- ✅ Use custom timeouts for slow operations
+- ✅ Avoid hard-coded waits (`page.waitForTimeout`)
+- ✅ Let Playwright auto-wait with assertions
+
+### Common Mistakes to Avoid
+
+```typescript
+// ❌ Bad: Too fragile
+await page.locator('div > div > span.text').click();
+
+// ✅ Good: Semantic and stable
+await page.getByRole('button', { name: 'Submit' }).click();
+
+// ❌ Bad: Hard-coded wait
+await page.waitForTimeout(5000);
+await page.locator('.result').click();
+
+// ✅ Good: Smart waiting with assertion
+await expect(page.locator('.result')).toBeVisible();
+await page.locator('.result').click();
+```
+
+## Summary
+
+**What you learned:**
+- ✅ All locator strategies: CSS, XPath, getBy methods
+- ✅ Advanced filtering: has(), hasText(), hasNot()
+- ✅ Chaining filters for complex scenarios
+- ✅ Comprehensive assertions for every use case
+- ✅ Best practices for stable, maintainable tests
+
+**Next lesson:** Master UI interactions including forms, mouse actions, and file uploads!
+',
+  45,
+  3,
+  ARRAY[
+    'Master CSS and XPath selector strategies',
+    'Use advanced locator methods (has, hasText, hasNot)',
+    'Apply comprehensive assertions with expect()',
+    'Follow locator best practices for stable tests'
+  ]
+);
+
+-- =====================================================
+-- LESSON 4: UI Interactions & Form Handling
+-- =====================================================
+
+INSERT INTO ai_learning_lessons (
+  id,
+  learning_path_id,
+  title,
+  description,
+  content_type,
+  content,
+  duration_minutes,
+  order_index,
+  learning_objectives
+) VALUES (
+  gen_random_uuid(),
+  'f8a9b0c1-d2e3-4f5a-6b7c-8d9e0f1a2b3c',
+  'UI Interactions & Form Handling',
+  'Master form inputs, mouse actions, keyboard events, and file uploads',
+  'article',
+  E'# UI Interactions & Form Handling
+
+## Form Handling Mastery
+
+Forms are everywhere in web apps. Let's master all form interactions!
+
+### Text Inputs
+
+```typescript
+// Fill input (clears first, then types)
+await page.getByLabel('Email').fill('user@example.com');
+
+// Type (doesn't clear, just adds text)
+await page.getByLabel('Comment').type('Additional info');
+
+// Clear input
+await page.getByLabel('Email').clear();
+
+// Fill and press Enter
+await page.getByLabel('Search').fill('Playwright');
+await page.getByLabel('Search').press('Enter');
+
+// Type slowly (character by character)
+await page.getByLabel('Code').pressSequentially('ABC123', { delay: 100 });
+```
+
+### Checkboxes
+
+```typescript
+// Check a checkbox
+await page.getByLabel('I agree to terms').check();
+
+// Uncheck
+await page.getByLabel('Newsletter').uncheck();
+
+// Toggle (check if unchecked, uncheck if checked)
+await page.getByLabel('Dark mode').click();
+
+// Set to specific state
+await page.getByLabel('Remember me').setChecked(true);
+await page.getByLabel('Remember me').setChecked(false);
+
+// Assert checkbox state
+await expect(page.getByLabel('I agree')).toBeChecked();
+await expect(page.getByLabel('I agree')).not.toBeChecked();
+```
+
+### Radio Buttons
+
+```typescript
+// Select radio button
+await page.getByLabel('Male').check();
+await page.getByLabel('Female').check();
+
+// Radio buttons by value
+await page.locator('input[type="radio"][value="monthly"]').check();
+
+// Assert which is selected
+await expect(page.getByLabel('Monthly')).toBeChecked();
+await expect(page.getByLabel('Yearly')).not.toBeChecked();
+```
+
+### Dropdowns (Select Elements)
+
+```typescript
+// Select by label (visible text)
+await page.getByLabel('Country').selectOption('United States');
+
+// Select by value
+await page.locator('select[name="plan"]').selectOption({ value: 'premium' });
+
+// Select by index
+await page.locator('select').selectOption({ index: 2 });
+
+// Select multiple options
+await page.getByLabel('Skills').selectOption(['JavaScript', 'TypeScript', 'React']);
+
+// Get selected value
+const value = await page.locator('select').inputValue();
+console.log('Selected:', value);
+
+// Assert selected option
+await expect(page.getByLabel('Country')).toHaveValue('US');
+```
+
+:::practice language=typescript | height=450px | title=Complete Form Example
+import { test, expect } from '@playwright/test';
+
+test('fill registration form', async ({ page }) => {
+  await page.goto('https://example.com/register');
+
+  // Text inputs
+  await page.getByLabel('First Name').fill('John');
+  await page.getByLabel('Last Name').fill('Doe');
+  await page.getByLabel('Email').fill('john@example.com');
+
+  // Password
+  await page.getByLabel('Password').fill('SecurePass123!');
+  await page.getByLabel('Confirm Password').fill('SecurePass123!');
+
+  // Radio button
+  await page.getByLabel('Male').check();
+
+  // Checkboxes
+  await page.getByLabel('I agree to terms').check();
+  await page.getByLabel('Subscribe to newsletter').check();
+
+  // Dropdown
+  await page.getByLabel('Country').selectOption('United States');
+
+  // Submit
+  await page.getByRole('button', { name: 'Register' }).click();
+
+  // Verify success
+  await expect(page.getByText('Registration successful')).toBeVisible();
+});
+:::
+
+## File Uploads
+
+### Single File Upload
+
+```typescript
+// Upload a file
+await page.getByLabel('Upload file').setInputFiles('path/to/file.pdf');
+
+// Upload from buffer
+const buffer = Buffer.from('file content');
+await page.getByLabel('Upload').setInputFiles({
+  name: 'file.txt',
+  mimeType: 'text/plain',
+  buffer: buffer
+});
+
+// Remove uploaded file
+await page.getByLabel('Upload file').setInputFiles([]);
+```
+
+### Multiple File Uploads
+
+```typescript
+// Upload multiple files
+await page.getByLabel('Upload files').setInputFiles([
+  'path/to/file1.pdf',
+  'path/to/file2.jpg',
+  'path/to/file3.png'
+]);
+```
+
+### File Upload with Dialog
+
+```typescript
+// Wait for file chooser event
+const fileChooserPromise = page.waitForEvent('filechooser');
+await page.getByText('Choose file').click();
+const fileChooser = await fileChooserPromise;
+await fileChooser.setFiles('path/to/file.pdf');
+```
+
+## Mouse Actions
+
+### Hover (Mouse Over)
+
+```typescript
+// Simple hover
+await page.getByRole('button', { name: 'Menu' }).hover();
+
+// Hover and wait for tooltip
+await page.locator('.info-icon').hover();
+await expect(page.locator('.tooltip')).toBeVisible();
+
+// Hover with position
+await page.locator('.canvas').hover({ position: { x: 100, y: 200 } });
+```
+
+### Click Variations
+
+```typescript
+// Regular click
+await page.getByRole('button').click();
+
+// Double click
+await page.locator('.file-name').dblclick();
+
+// Right click (context menu)
+await page.locator('.item').click({ button: 'right' });
+
+// Click with modifiers
+await page.getByRole('link').click({ modifiers: ['Control'] }); // Ctrl+Click
+await page.getByRole('link').click({ modifiers: ['Meta'] });    // Cmd+Click (Mac)
+await page.getByRole('link').click({ modifiers: ['Shift'] });   // Shift+Click
+
+// Click at specific position
+await page.locator('.map').click({ position: { x: 150, y: 200 } });
+
+// Force click (bypass actionability checks)
+await page.locator('button').click({ force: true });
+
+// Click with delay
+await page.getByRole('button').click({ delay: 100 });
+```
+
+### Drag and Drop
+
+```typescript
+// Drag and drop
+await page.locator('.draggable').dragTo(page.locator('.drop-zone'));
+
+// Drag with precise control
+await page.locator('.item').hover();
+await page.mouse.down();
+await page.locator('.target').hover();
+await page.mouse.up();
+
+// Drag by offset
+await page.locator('.slider').dragTo(page.locator('.slider'), {
+  targetPosition: { x: 200, y: 0 }
+});
+```
+
+:::practice language=typescript | height=400px | title=Practice Mouse Actions
+import { test, expect } from '@playwright/test';
+
+test('mouse interactions', async ({ page }) => {
+  await page.goto('https://example.com');
+
+  // Hover to reveal submenu
+  await page.getByRole('link', { name: 'Products' }).hover();
+  await expect(page.locator('.submenu')).toBeVisible();
+
+  // Right click
+  await page.locator('.file').click({ button: 'right' });
+  await expect(page.locator('.context-menu')).toBeVisible();
+
+  // Double click to select text
+  await page.locator('p').first().dblclick();
+
+  // Drag and drop
+  await page.locator('.task').first().dragTo(page.locator('.completed'));
+
+  // Ctrl+Click to open in new tab
+  const [newPage] = await Promise.all([
+    page.context().waitForEvent('page'),
+    page.getByRole('link').click({ modifiers: ['Control'] })
+  ]);
+  await expect(newPage).toHaveURL(/.*about.*/);
+});
+:::
+
+## Keyboard Actions
+
+### Press Keys
+
+```typescript
+// Press single key
+await page.keyboard.press('Enter');
+await page.keyboard.press('Tab');
+await page.keyboard.press('Escape');
+await page.keyboard.press('ArrowDown');
+
+// Press with input focused
+await page.getByLabel('Search').press('Enter');
+await page.getByLabel('Code').press('Tab');
+
+// Press multiple keys (shortcut)
+await page.keyboard.press('Control+A'); // Select all
+await page.keyboard.press('Control+C'); // Copy
+await page.keyboard.press('Control+V'); // Paste
+await page.keyboard.press('Meta+S');    // Cmd/Win + S (Save)
+```
+
+### Type Text
+
+```typescript
+// Type normally (fast)
+await page.keyboard.type('Hello World');
+
+// Type slowly (with delay)
+await page.keyboard.type('Slow typing', { delay: 100 });
+
+// Press sequentially (character by character)
+await page.getByLabel('OTP').pressSequentially('123456', { delay: 50 });
+```
+
+### Hold Keys
+
+```typescript
+// Hold Shift and click multiple items
+await page.keyboard.down('Shift');
+await page.locator('.item').nth(0).click();
+await page.locator('.item').nth(3).click();
+await page.keyboard.up('Shift');
+
+// Ctrl+A (select all)
+await page.keyboard.down('Control');
+await page.keyboard.press('A');
+await page.keyboard.up('Control');
+```
+
+## Common UI Patterns
+
+### Toggle Switches
+
+```typescript
+// Click to toggle
+await page.locator('.toggle-switch').click();
+
+// Set to specific state
+const isOn = await page.locator('.toggle-switch').isChecked();
+if (!isOn) {
+  await page.locator('.toggle-switch').click();
+}
+```
+
+### Sliders
+
+```typescript
+// Slide by dragging
+await page.locator('.slider-handle').dragTo(page.locator('.slider-handle'), {
+  targetPosition: { x: 200, y: 0 }
+});
+
+// Set value if slider has input
+await page.locator('input[type="range"]').fill('75');
+```
+
+### Color Pickers
+
+```typescript
+// Set color value
+await page.locator('input[type="color"]').fill('#ff0000');
+
+// Get color value
+const color = await page.locator('input[type="color"]').inputValue();
+console.log('Selected color:', color);
+```
+
+### Date Pickers
+
+```typescript
+// Fill date input
+await page.locator('input[type="date"]').fill('2024-12-31');
+
+// Click calendar and select date
+await page.getByLabel('Date of Birth').click();
+await page.locator('.calendar-day[data-date="15"]').click();
+```
+
+## Summary
+
+**What you learned:**
+- ✅ Complete form handling: inputs, checkboxes, radio, dropdowns
+- ✅ File uploads (single and multiple)
+- ✅ Mouse actions: hover, click variations, drag & drop
+- ✅ Keyboard shortcuts and key combinations
+- ✅ Common UI patterns: toggles, sliders, date pickers
+
+**Next lesson:** Handle dialogs, alerts, iframes, and complex scenarios!
+',
+  50,
+  4,
+  ARRAY[
+    'Handle all form input types professionally',
+    'Perform file uploads and downloads',
+    'Execute mouse actions (hover, drag, drop)',
+    'Use keyboard shortcuts and key combinations',
+    'Work with complex UI components'
+  ]
+);
+
+-- =====================================================
+-- MIGRATION CONTINUES IN NEXT PART...
+-- =====================================================
+
+COMMENT ON TABLE ai_learning_lessons IS 'Playwright lessons 3-4 added: Advanced Locators and UI Interactions';

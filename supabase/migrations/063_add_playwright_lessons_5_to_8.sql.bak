@@ -1,0 +1,788 @@
+-- =====================================================
+-- Playwright Lessons 5-8: Dialogs, POM, Fixtures, Data-Driven
+-- Migration: 063
+-- Description: Final 4 Playwright lessons
+-- =====================================================
+
+-- =====================================================
+-- LESSON 5: Dialogs, Frames & Multi-Window
+-- =====================================================
+
+INSERT INTO ai_learning_lessons (
+  id,
+  learning_path_id,
+  title,
+  description,
+  content_type,
+  content,
+  duration_minutes,
+  order_index,
+  learning_objectives
+) VALUES (
+  gen_random_uuid(),
+  'f8a9b0c1-d2e3-4f5a-6b7c-8d9e0f1a2b3c',
+  'Dialogs, Frames & Multi-Window Scenarios',
+  'Handle alerts, confirms, prompts, iframes, and multiple browser contexts',
+  'article',
+  E'# Dialogs, Frames & Multi-Window Scenarios
+
+## Handling Browser Dialogs
+
+Browsers can show three types of dialogs: **alert**, **confirm**, and **prompt**.
+
+### Alert Dialogs
+
+```typescript
+// Set up listener BEFORE triggering the alert
+page.on(''dialog'', async dialog => {
+  console.log(dialog.message()); // Get alert message
+  await dialog.accept(); // Close the alert
+});
+
+// Trigger action that shows alert
+await page.getByRole(''button'', { name: ''Show Alert'' }).click();
+```
+
+### Confirm Dialogs (OK/Cancel)
+
+```typescript
+// Accept confirm dialog (click OK)
+page.on(''dialog'', async dialog => {
+  console.log(''Confirm message:'', dialog.message());
+  await dialog.accept(); // Click OK
+});
+
+await page.getByRole(''button'', { name: ''Delete'' }).click();
+
+// Dismiss confirm dialog (click Cancel)
+page.once(''dialog'', async dialog => {
+  await dialog.dismiss(); // Click Cancel
+});
+
+await page.getByRole(''button'', { name: ''Delete'' }).click();
+```
+
+### Prompt Dialogs (Input Text)
+
+```typescript
+// Enter text in prompt
+page.on(''dialog'', async dialog => {
+  console.log(''Prompt:'', dialog.message());
+  await dialog.accept(''John Doe''); // Enter text and click OK
+});
+
+await page.getByRole(''button'', { name: ''Enter Name'' }).click();
+
+// Dismiss prompt
+page.once(''dialog'', async dialog => {
+  await dialog.dismiss(); // Click Cancel
+});
+```
+
+### Dialog Properties
+
+```typescript
+page.on(''dialog'', async dialog => {
+  console.log(''Type:'', dialog.type());       // ''alert'', ''confirm'', or ''prompt''
+  console.log(''Message:'', dialog.message()); // Dialog text
+  console.log(''Default:'', dialog.defaultValue()); // Default prompt value
+
+  await dialog.accept();
+});
+```
+
+:::practice language=typescript | height=400px | title=Practice Dialog Handling
+import { test, expect } from ''@playwright/test'';
+
+test(''handle different dialogs'', async ({ page }) => {
+  await page.goto(''https://example.com'');
+
+  // Handle alert
+  page.once(''dialog'', async dialog => {
+    expect(dialog.type()).toBe(''alert'');
+    expect(dialog.message()).toContain(''Success'');
+    await dialog.accept();
+  });
+  await page.getByRole(''button'', { name: ''Submit'' }).click();
+
+  // Handle confirm (accept)
+  page.once(''dialog'', async dialog => {
+    expect(dialog.type()).toBe(''confirm'');
+    await dialog.accept(); // Click OK
+  });
+  await page.getByRole(''button'', { name: ''Delete'' }).click();
+
+  // Handle confirm (dismiss)
+  page.once(''dialog'', async dialog => {
+    await dialog.dismiss(); // Click Cancel
+  });
+  await page.getByRole(''button'', { name: ''Delete'' }).click();
+
+  // Handle prompt
+  page.once(''dialog'', async dialog => {
+    expect(dialog.type()).toBe(''prompt'');
+    await dialog.accept(''Test Name'');
+  });
+  await page.getByRole(''button'', { name: ''Enter Name'' }).click();
+});
+:::
+
+:::warning Important!
+Always set up the dialog listener **BEFORE** triggering the action that shows the dialog!
+:::
+
+## Working with iframes
+
+iframes are like mini web pages inside your main page.
+
+### Basic iframe Interaction
+
+```typescript
+// Method 1: By name or ID
+const frame = page.frame({ name: ''my-iframe'' });
+const frame = page.frame({ url: /.*embed.*/ });
+
+// Method 2: Using frameLocator (recommended)
+const frameLocator = page.frameLocator(''iframe[name="my-iframe"]'');
+
+// Interact with elements inside frame
+await frameLocator.getByLabel(''Username'').fill(''user'');
+await frameLocator.getByRole(''button'', { name: ''Submit'' }).click();
+```
+
+### Multiple Nested iframes
+
+```typescript
+// Access nested iframe
+const parentFrame = page.frameLocator(''#parent-iframe'');
+const childFrame = parentFrame.frameLocator(''#child-iframe'');
+
+await childFrame.getByLabel(''Email'').fill(''test@example.com'');
+```
+
+### Wait for iframe to Load
+
+```typescript
+// Wait for frame to be loaded
+await page.waitForLoadState(''networkidle'');
+
+// Or wait for specific element in frame
+const frame = page.frameLocator(''iframe'');
+await frame.getByRole(''heading'').waitFor();
+```
+
+### Real Example: YouTube Embed
+
+```typescript
+test(''interact with YouTube iframe'', async ({ page }) => {
+  await page.goto(''https://example.com/video'');
+
+  // Access YouTube iframe
+  const youtubeFrame = page.frameLocator(''iframe[src*="youtube.com"]'');
+
+  // Click play button
+  await youtubeFrame.getByRole(''button'', { name: ''Play'' }).click();
+
+  // Verify video is playing
+  await expect(youtubeFrame.locator(''.playing-indicator'')).toBeVisible();
+});
+```
+
+:::practice language=typescript | height=350px | title=Practice iframe Handling
+import { test, expect } from ''@playwright/test'';
+
+test(''work with iframes'', async ({ page }) => {
+  await page.goto(''https://example.com/iframe-demo'');
+
+  // Access iframe by selector
+  const loginFrame = page.frameLocator(''iframe[name="login"]'');
+
+  // Fill form inside iframe
+  await loginFrame.getByLabel(''Email'').fill(''user@example.com'');
+  await loginFrame.getByLabel(''Password'').fill(''password123'');
+  await loginFrame.getByRole(''button'', { name: ''Sign In'' }).click();
+
+  // Verify success inside iframe
+  await expect(loginFrame.getByText(''Welcome back'')).toBeVisible();
+
+  // Switch back to main page
+  await expect(page.getByRole(''heading'')).toHaveText(''Dashboard'');
+});
+:::
+
+## Multiple Tabs & Windows
+
+### Opening New Tabs
+
+```typescript
+// Wait for new page/tab to open
+const [newPage] = await Promise.all([
+  page.context().waitForEvent(''page''), // Wait for new page
+  page.getByRole(''link'', { name: ''Open in new tab'' }).click() // Trigger
+]);
+
+// Work with new tab
+await newPage.waitForLoadState();
+await expect(newPage).toHaveTitle(/About/);
+
+// Close new tab
+await newPage.close();
+```
+
+### Handling Multiple Tabs
+
+```typescript
+test(''work with multiple tabs'', async ({ page, context }) => {
+  await page.goto(''https://example.com'');
+
+  // Open link in new tab (Ctrl+Click)
+  const [newTab] = await Promise.all([
+    context.waitForEvent(''page''),
+    page.getByRole(''link'', { name: ''Help'' }).click({ modifiers: [''Control''] })
+  ]);
+
+  // Switch to new tab
+  await newTab.waitForLoadState();
+  await expect(newTab).toHaveURL(/.*help.*/);
+
+  // Work in new tab
+  await newTab.getByLabel(''Search'').fill(''How to test'');
+
+  // Switch back to original tab
+  await page.bringToFront();
+  await page.getByRole(''button'').click();
+
+  // Close the new tab
+  await newTab.close();
+
+  // Continue with original tab
+  await expect(page).toHaveURL(/.*example.com.*/);
+});
+```
+
+### Popup Windows
+
+```typescript
+// Handle popup window
+const [popup] = await Promise.all([
+  page.waitForEvent(''popup''),
+  page.getByRole(''button'', { name: ''Open Popup'' }).click()
+]);
+
+// Work with popup
+await popup.waitForLoadState();
+await popup.getByRole(''button'', { name: ''Accept'' }).click();
+
+// Popup closes automatically or close manually
+await popup.close();
+```
+
+## Multiple Browser Contexts
+
+Contexts are like **incognito windows** - isolated from each other.
+
+### Why Use Multiple Contexts?
+
+- ✅ Test multi-user scenarios (admin + regular user)
+- ✅ Test different sessions simultaneously
+- ✅ Parallel testing with isolated state
+
+### Creating Multiple Contexts
+
+```typescript
+import { test, expect, chromium } from ''@playwright/test'';
+
+test(''multi-user scenario'', async ({ browser }) => {
+  // Create admin context
+  const adminContext = await browser.newContext();
+  const adminPage = await adminContext.newPage();
+
+  // Create user context
+  const userContext = await browser.newContext();
+  const userPage = await userContext.newPage();
+
+  // Admin logs in
+  await adminPage.goto(''https://example.com/admin'');
+  await adminPage.getByLabel(''Email'').fill(''admin@example.com'');
+  await adminPage.getByLabel(''Password'').fill(''admin123'');
+  await adminPage.getByRole(''button'', { name: ''Login'' }).click();
+
+  // User logs in
+  await userPage.goto(''https://example.com'');
+  await userPage.getByLabel(''Email'').fill(''user@example.com'');
+  await userPage.getByLabel(''Password'').fill(''user123'');
+  await userPage.getByRole(''button'', { name: ''Login'' }).click();
+
+  // Admin creates something
+  await adminPage.getByRole(''button'', { name: ''New Post'' }).click();
+  await adminPage.getByLabel(''Title'').fill(''Test Post'');
+  await adminPage.getByRole(''button'', { name: ''Publish'' }).click();
+
+  // User verifies they can see it
+  await userPage.reload();
+  await expect(userPage.getByText(''Test Post'')).toBeVisible();
+
+  // Clean up
+  await adminContext.close();
+  await userContext.close();
+});
+```
+
+### Context with Permissions
+
+```typescript
+// Create context with specific permissions
+const context = await browser.newContext({
+  permissions: [''geolocation'', ''notifications''],
+  geolocation: { latitude: 59.95, longitude: 30.31667 },
+  locale: ''en-GB'',
+  timezoneId: ''Europe/Paris'',
+});
+
+const page = await context.newPage();
+```
+
+## Summary
+
+**What you learned:**
+- ✅ Handle alert, confirm, and prompt dialogs
+- ✅ Work with iframes and nested frames
+- ✅ Manage multiple tabs and popup windows
+- ✅ Use multiple browser contexts for isolated testing
+- ✅ Test multi-user scenarios effectively
+
+**Next lesson:** Build scalable tests with Page Object Model pattern!
+',
+  45,
+  5,
+  ARRAY[
+    'Handle browser dialogs (alert, confirm, prompt)',
+    'Work with iframes and nested frames',
+    'Manage multiple tabs and popup windows',
+    'Use multiple browser contexts for testing',
+    'Test multi-user scenarios'
+  ]
+);
+
+-- =====================================================
+-- LESSON 6: Page Object Model & Test Organization
+-- =====================================================
+
+INSERT INTO ai_learning_lessons (
+  id,
+  learning_path_id,
+  title,
+  description,
+  content_type,
+  content,
+  duration_minutes,
+  order_index,
+  learning_objectives
+) VALUES (
+  gen_random_uuid(),
+  'f8a9b0c1-d2e3-4f5a-6b7c-8d9e0f1a2b3c',
+  'Page Object Model & Scalable Test Architecture',
+  'Design maintainable test frameworks using Page Object Model pattern',
+  'article',
+  E'# Page Object Model & Scalable Test Architecture
+
+## What is Page Object Model?
+
+**Page Object Model (POM)** is a design pattern where each page/component has its own class containing locators and methods.
+
+### Without POM (Bad)
+
+```typescript
+// login.spec.ts
+test(''login as admin'', async ({ page }) => {
+  await page.goto(''https://example.com/login'');
+  await page.getByLabel(''Email'').fill(''admin@example.com'');
+  await page.getByLabel(''Password'').fill(''admin123'');
+  await page.getByRole(''button'', { name: ''Sign In'' }).click();
+});
+
+// profile.spec.ts - Duplicated login code!
+test(''view profile'', async ({ page }) => {
+  await page.goto(''https://example.com/login'');
+  await page.getByLabel(''Email'').fill(''admin@example.com'');
+  await page.getByLabel(''Password'').fill(''admin123'');
+  await page.getByRole(''button'', { name: ''Sign In'' }).click();
+  // ... rest of test
+});
+```
+
+**Problems:**
+- ❌ Code duplication
+- ❌ Hard to maintain (if login form changes, update everywhere)
+- ❌ Not reusable
+
+### With POM (Good)
+
+```typescript
+// pages/login.page.ts
+export class LoginPage {
+  constructor(private page: Page) {}
+
+  async goto() {
+    await this.page.goto(''https://example.com/login'');
+  }
+
+  async login(email: string, password: string) {
+    await this.page.getByLabel(''Email'').fill(email);
+    await this.page.getByLabel(''Password'').fill(password);
+    await this.page.getByRole(''button'', { name: ''Sign In'' }).click();
+  }
+}
+
+// tests/login.spec.ts
+test(''login as admin'', async ({ page }) => {
+  const loginPage = new LoginPage(page);
+  await loginPage.goto();
+  await loginPage.login(''admin@example.com'', ''admin123'');
+});
+```
+
+**Benefits:**
+- ✅ Reusable code
+- ✅ Easy to maintain
+- ✅ Clean test code
+
+## Building Your First Page Object
+
+Let''s create a Login Page Object step by step.
+
+### Basic Page Object
+
+```typescript
+// pages/login.page.ts
+import { Page, Locator } from ''@playwright/test'';
+
+export class LoginPage {
+  readonly page: Page;
+  readonly emailInput: Locator;
+  readonly passwordInput: Locator;
+  readonly submitButton: Locator;
+  readonly errorMessage: Locator;
+
+  constructor(page: Page) {
+    this.page = page;
+    this.emailInput = page.getByLabel(''Email'');
+    this.passwordInput = page.getByLabel(''Password'');
+    this.submitButton = page.getByRole(''button'', { name: ''Sign In'' });
+    this.errorMessage = page.locator(''.error-message'');
+  }
+
+  async goto() {
+    await this.page.goto(''https://example.com/login'');
+  }
+
+  async login(email: string, password: string) {
+    await this.emailInput.fill(email);
+    await this.passwordInput.fill(password);
+    await this.submitButton.click();
+  }
+
+  async getErrorMessage() {
+    return await this.errorMessage.textContent();
+  }
+}
+```
+
+### Using the Page Object
+
+```typescript
+import { test, expect } from ''@playwright/test'';
+import { LoginPage } from ''../pages/login.page'';
+
+test(''successful login'', async ({ page }) => {
+  const loginPage = new LoginPage(page);
+
+  await loginPage.goto();
+  await loginPage.login(''user@example.com'', ''password123'');
+
+  await expect(page).toHaveURL(/.*dashboard.*/);
+});
+
+test(''login with invalid credentials'', async ({ page }) => {
+  const loginPage = new LoginPage(page);
+
+  await loginPage.goto();
+  await loginPage.login(''invalid@example.com'', ''wrong'');
+
+  const error = await loginPage.getErrorMessage();
+  expect(error).toContain(''Invalid credentials'');
+});
+```
+
+## Advanced Page Object Patterns
+
+### Method Chaining
+
+```typescript
+export class LoginPage {
+  // ... locators
+
+  async goto() {
+    await this.page.goto(''https://example.com/login'');
+    return this; // Return this for chaining
+  }
+
+  async fillEmail(email: string) {
+    await this.emailInput.fill(email);
+    return this;
+  }
+
+  async fillPassword(password: string) {
+    await this.passwordInput.fill(password);
+    return this;
+  }
+
+  async submit() {
+    await this.submitButton.click();
+    return this;
+  }
+}
+
+// Usage with chaining
+await loginPage
+  .goto()
+  .fillEmail(''user@example.com'')
+  .fillPassword(''pass123'')
+  .submit();
+```
+
+### Page Navigation
+
+```typescript
+export class LoginPage {
+  // ... existing code
+
+  async loginAs(email: string, password: string) {
+    await this.login(email, password);
+    return new DashboardPage(this.page); // Return next page
+  }
+}
+
+// Usage
+const dashboardPage = await loginPage.loginAs(''user@example.com'', ''pass123'');
+await dashboardPage.verifyWelcomeMessage();
+```
+
+### Component Objects
+
+For reusable components like navigation, header, footer:
+
+```typescript
+// components/navbar.component.ts
+export class NavbarComponent {
+  constructor(private page: Page) {}
+
+  async clickProfile() {
+    await this.page.getByRole(''button'', { name: ''Profile'' }).click();
+  }
+
+  async clickLogout() {
+    await this.page.getByRole(''button'', { name: ''Logout'' }).click();
+  }
+
+  async searchFor(query: string) {
+    await this.page.getByPlaceholder(''Search'').fill(query);
+    await this.page.getByPlaceholder(''Search'').press(''Enter'');
+  }
+}
+
+// pages/dashboard.page.ts
+export class DashboardPage {
+  readonly navbar: NavbarComponent;
+
+  constructor(private page: Page) {
+    this.navbar = new NavbarComponent(page);
+  }
+
+  // Dashboard-specific methods
+}
+
+// Usage
+await dashboardPage.navbar.searchFor(''Playwright'');
+await dashboardPage.navbar.clickLogout();
+```
+
+## Complete Example: E-Commerce Pages
+
+```typescript
+// pages/product-list.page.ts
+export class ProductListPage {
+  constructor(private page: Page) {}
+
+  async goto() {
+    await this.page.goto(''https://example.com/products'');
+  }
+
+  async searchProduct(name: string) {
+    await this.page.getByPlaceholder(''Search products'').fill(name);
+    await this.page.keyboard.press(''Enter'');
+  }
+
+  async selectProduct(name: string) {
+    await this.page.getByRole(''link'', { name }).click();
+    return new ProductDetailPage(this.page);
+  }
+
+  async getProductCount() {
+    return await this.page.locator(''.product-card'').count();
+  }
+}
+
+// pages/product-detail.page.ts
+export class ProductDetailPage {
+  constructor(private page: Page) {}
+
+  async addToCart() {
+    await this.page.getByRole(''button'', { name: ''Add to Cart'' }).click();
+  }
+
+  async selectSize(size: string) {
+    await this.page.getByLabel(''Size'').selectOption(size);
+  }
+
+  async getPrice() {
+    return await this.page.locator(''.price'').textContent();
+  }
+}
+
+// pages/cart.page.ts
+export class CartPage {
+  constructor(private page: Page) {}
+
+  async goto() {
+    await this.page.goto(''https://example.com/cart'');
+  }
+
+  async proceedToCheckout() {
+    await this.page.getByRole(''button'', { name: ''Checkout'' }).click();
+    return new CheckoutPage(this.page);
+  }
+
+  async getTotal() {
+    return await this.page.locator(''.cart-total'').textContent();
+  }
+
+  async removeItem(productName: string) {
+    await this.page
+      .locator(''.cart-item'')
+      .filter({ hasText: productName })
+      .getByRole(''button'', { name: ''Remove'' })
+      .click();
+  }
+}
+
+// tests/shopping.spec.ts
+import { test, expect } from ''@playwright/test'';
+import { ProductListPage } from ''../pages/product-list.page'';
+
+test(''complete shopping flow'', async ({ page }) => {
+  const productsPage = new ProductListPage(page);
+
+  // Browse products
+  await productsPage.goto();
+  await productsPage.searchProduct(''shoes'');
+  const count = await productsPage.getProductCount();
+  expect(count).toBeGreaterThan(0);
+
+  // View product detail
+  const detailPage = await productsPage.selectProduct(''Running Shoes'');
+  await detailPage.selectSize(''42'');
+  const price = await detailPage.getPrice();
+  await detailPage.addToCart();
+
+  // Go to cart
+  const cartPage = new CartPage(page);
+  await cartPage.goto();
+  const total = await cartPage.getTotal();
+  expect(total).toContain(price);
+
+  // Checkout
+  const checkoutPage = await cartPage.proceedToCheckout();
+  // ... continue flow
+});
+```
+
+## Best Practices
+
+### 1. One Page = One Class
+
+```typescript
+// ✅ Good: Each page has its own class
+export class HomePage { }
+export class LoginPage { }
+export class DashboardPage { }
+
+// ❌ Bad: Everything in one file
+export class AllPages { }
+```
+
+### 2. Keep Locators in Page Objects
+
+```typescript
+// ✅ Good: Locators in page object
+export class LoginPage {
+  readonly emailInput = this.page.getByLabel(''Email'');
+}
+
+// ❌ Bad: Locators in test
+test(''login'', async ({ page }) => {
+  await page.getByLabel(''Email'').fill(''...'');
+});
+```
+
+### 3. Return New Pages
+
+```typescript
+// ✅ Good: Return next page
+async login(email: string, password: string) {
+  // ... login logic
+  return new DashboardPage(this.page);
+}
+
+// Usage
+const dashboard = await loginPage.login(''...'', ''...'');
+await dashboard.doSomething();
+```
+
+### 4. Use Descriptive Method Names
+
+```typescript
+// ✅ Good
+async loginAsAdmin() { }
+async selectProductByName(name: string) { }
+async proceedToCheckout() { }
+
+// ❌ Bad
+async doLogin() { }
+async select(name: string) { }
+async next() { }
+```
+
+## Summary
+
+**What you learned:**
+- ✅ Page Object Model pattern benefits
+- ✅ Creating reusable page objects
+- ✅ Advanced patterns: chaining, navigation, components
+- ✅ Complete e-commerce example
+- ✅ Best practices for maintainable tests
+
+**Next lesson:** Master fixtures, hooks, and test organization!
+',
+  50,
+  6,
+  ARRAY[
+    'Understand Page Object Model pattern',
+    'Create reusable page objects',
+    'Implement component objects for shared UI',
+    'Navigate between pages effectively',
+    'Follow POM best practices'
+  ]
+);
+
+-- Migration continues in next comment due to length...

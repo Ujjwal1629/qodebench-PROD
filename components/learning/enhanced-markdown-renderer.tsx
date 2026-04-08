@@ -1,10 +1,12 @@
 'use client';
 
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { motion } from 'framer-motion';
 import { CodeBlockWithCopy } from './code-block-with-copy';
 import { CalloutBox } from './callout-box';
 import { InlinePracticeEditor } from './inline-practice-editor';
+import { PlaywrightPracticeEditor } from './playwright-practice-editor-v2';
 import { PracticeSection } from './practice-section';
 
 interface EnhancedMarkdownRendererProps {
@@ -43,9 +45,8 @@ function parseCallouts(content: string): string {
           }
 
           const config = JSON.parse(jsonContent);
-          const encodedConfig = typeof window !== 'undefined'
-            ? btoa(JSON.stringify(config))
-            : Buffer.from(JSON.stringify(config)).toString('base64');
+          // Use btoa for consistent encoding (available in modern Node.js and browsers)
+          const encodedConfig = btoa(JSON.stringify(config));
           return `\n\n[PRACTICE_STEPS_START]\n${encodedConfig}\n[PRACTICE_STEPS_END]\n\n`;
         } catch (e) {
           console.error('Failed to parse practice-steps JSON in parseCallouts:', e);
@@ -54,7 +55,34 @@ function parseCallouts(content: string): string {
         }
       }
 
-      // Handle practice blocks
+      // Handle playwright-practice blocks (WebContainer execution)
+      if (type.toLowerCase() === 'playwright-practice') {
+        const params: Record<string, string> = {};
+
+        if (title) {
+          title.split('|').forEach((param: string) => {
+            const equalIndex = param.indexOf('=');
+            if (equalIndex > -1) {
+              const key = param.substring(0, equalIndex).trim();
+              const value = param.substring(equalIndex + 1).trim();
+              params[key] = value;
+            }
+          });
+        }
+
+        const language = params.language || 'typescript';
+        const height = params.height || '400px';
+        const practiceTitle = params.title || 'Try Playwright';
+        const testUrl = params.testUrl || '';
+
+        // Use btoa for consistent encoding (available in modern Node.js and browsers)
+        const encodedTitle = btoa(practiceTitle);
+        const encodedTestUrl = btoa(testUrl);
+
+        return `\n\n[PLAYWRIGHT_PRACTICE_START_LANG_${language}_HEIGHT_${height}_TITLE_${encodedTitle}_URL_${encodedTestUrl}]\n${body.trim()}\n[PLAYWRIGHT_PRACTICE_END]\n\n`;
+      }
+
+      // Handle practice blocks (regular JS/TS eval)
       if (type.toLowerCase() === 'practice') {
         // Extract optional parameters from title (language, height, title)
         const params: Record<string, string> = {};
@@ -76,10 +104,8 @@ function parseCallouts(content: string): string {
         const practiceTitle = params.title || 'Try it yourself';
 
         // Use Base64 encoding for title to avoid special character issues
-        // Use btoa for browser compatibility (works in both client and server)
-        const encodedTitle = typeof window !== 'undefined'
-          ? btoa(practiceTitle)
-          : Buffer.from(practiceTitle).toString('base64');
+        // Use btoa for consistent encoding (available in modern Node.js and browsers)
+        const encodedTitle = btoa(practiceTitle);
 
         // Create a unique marker for practice blocks (use special chars that won't be interpreted as markdown)
         return `\n\n[PRACTICE_START_LANG_${language}_HEIGHT_${height}_TITLE_${encodedTitle}]\n${body.trim()}\n[PRACTICE_END]\n\n`;
@@ -109,13 +135,14 @@ function generateAnchorId(text: string): string {
 
 // New approach: Extract practice blocks and render them separately
 function extractPracticeBlocks(content: string) {
-  const blocks: Array<{ type: 'markdown' | 'practice' | 'practice-steps'; content: string; props?: any; index: number }> = [];
+  const blocks: Array<{ type: 'markdown' | 'practice' | 'practice-steps' | 'playwright-practice'; content: string; props?: any; index: number }> = [];
 
   // Find all practice and practice-steps blocks with their positions
   const practiceStepsRegex = /:::practice-steps\s*\n([\s\S]*?):::/g;
+  const playwrightPracticeRegex = /:::playwright-practice\s+([^\n]*)\n([\s\S]*?):::/g;
   const practiceRegex = /:::practice\s+([^\n]*)\n([\s\S]*?):::/g;
 
-  const allMatches: Array<{ type: 'practice' | 'practice-steps'; index: number; length: number; content: string; params?: string }> = [];
+  const allMatches: Array<{ type: 'practice' | 'practice-steps' | 'playwright-practice'; index: number; length: number; content: string; params?: string }> = [];
 
   // Find all practice-steps matches
   let match;
@@ -125,6 +152,17 @@ function extractPracticeBlocks(content: string) {
       index: match.index,
       length: match[0].length,
       content: match[1].trim()
+    });
+  }
+
+  // Find all playwright-practice matches
+  while ((match = playwrightPracticeRegex.exec(content)) !== null) {
+    allMatches.push({
+      type: 'playwright-practice',
+      index: match.index,
+      length: match[0].length,
+      content: match[2].trim(),
+      params: match[1].trim()
     });
   }
 
@@ -174,6 +212,29 @@ function extractPracticeBlocks(content: string) {
           index: matchData.index
         });
       }
+    } else if (matchData.type === 'playwright-practice') {
+      // Parse parameters for playwright-practice block
+      const params: Record<string, string> = {};
+      (matchData.params || '').split('|').forEach(param => {
+        const equalIndex = param.indexOf('=');
+        if (equalIndex > -1) {
+          const key = param.substring(0, equalIndex).trim();
+          const value = param.substring(equalIndex + 1).trim();
+          params[key] = value;
+        }
+      });
+
+      blocks.push({
+        type: 'playwright-practice',
+        content: matchData.content,
+        props: {
+          language: params.language || 'typescript',
+          height: params.height || '400px',
+          title: params.title || 'Try Playwright',
+          testUrl: params.testUrl || ''
+        },
+        index: matchData.index
+      });
     } else {
       // Parse parameters for regular practice block
       const params: Record<string, string> = {};
@@ -236,6 +297,20 @@ export function EnhancedMarkdownRenderer({
       className={className}
     >
       {blocks.map((block, index) => {
+        if (block.type === 'playwright-practice') {
+          console.log('🎭 Rendering Playwright practice editor!', block.props);
+          return (
+            <PlaywrightPracticeEditor
+              key={`playwright-practice-${index}`}
+              initialCode={block.content}
+              language={block.props.language}
+              title={block.props.title}
+              height={block.props.height}
+              testUrl={block.props.testUrl}
+            />
+          );
+        }
+
         if (block.type === 'practice') {
           console.log('🎉 Rendering practice editor!', block.props);
           return (
@@ -270,6 +345,7 @@ export function EnhancedMarkdownRenderer({
         return (
           <ReactMarkdown
             key={`markdown-${index}`}
+            remarkPlugins={[remarkGfm]}
             components={{
           // Headings with anchor links
           h1: ({ node, children, ...props }) => {
@@ -469,6 +545,39 @@ export function EnhancedMarkdownRenderer({
           // Horizontal rule
           hr: ({ node, ...props }) => (
             <hr className="my-12 border-t-2 border-slate-200" {...props} />
+          ),
+          // Tables
+          table: ({ node, children, ...props }) => (
+            <div className="overflow-x-auto my-6">
+              <table className="w-full border-collapse rounded-lg overflow-hidden text-sm" {...props}>
+                {children}
+              </table>
+            </div>
+          ),
+          thead: ({ node, children, ...props }) => (
+            <thead className="bg-sky-50" {...props}>
+              {children}
+            </thead>
+          ),
+          tbody: ({ node, children, ...props }) => (
+            <tbody className="divide-y divide-slate-200" {...props}>
+              {children}
+            </tbody>
+          ),
+          tr: ({ node, children, ...props }) => (
+            <tr className="hover:bg-slate-50 transition-colors" {...props}>
+              {children}
+            </tr>
+          ),
+          th: ({ node, children, ...props }) => (
+            <th className="px-4 py-3 text-left font-semibold text-sky-700 border border-slate-200" {...props}>
+              {children}
+            </th>
+          ),
+          td: ({ node, children, ...props }) => (
+            <td className="px-4 py-3 text-slate-700 border border-slate-200" {...props}>
+              {children}
+            </td>
           ),
         }}
       >

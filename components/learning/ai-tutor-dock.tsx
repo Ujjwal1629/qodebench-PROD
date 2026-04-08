@@ -69,11 +69,11 @@ export function AITutorDock({ lessonId, lessonTitle, lessonContent }: AITutorDoc
               </div>
               <div className="flex-1 min-w-0">
                 <SheetTitle className="text-base font-bold text-white flex items-center gap-2">
-                  AI Senior Dev Tutor
+                  AI Senior QA Tutor
                   <Sparkles className="h-4 w-4 flex-shrink-0" />
                 </SheetTitle>
                 <p className="text-xs text-sky-50 mt-0.5">
-                  Teaching you like a real senior developer • Available now
+                  Teaching you like a real senior QA • Available now
                 </p>
               </div>
             </div>

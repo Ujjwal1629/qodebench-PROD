@@ -1,0 +1,923 @@
+-- =====================================================
+-- Playwright Lessons 7-8: Fixtures & Data-Driven Testing
+-- Migration: 064
+-- Description: Final 2 Playwright lessons + quiz questions
+-- =====================================================
+
+-- =====================================================
+-- LESSON 7: Fixtures, Hooks & Configuration
+-- =====================================================
+
+INSERT INTO ai_learning_lessons (
+  id,
+  learning_path_id,
+  title,
+  description,
+  content_type,
+  content,
+  duration_minutes,
+  order_index,
+  learning_objectives
+) VALUES (
+  gen_random_uuid(),
+  'f8a9b0c1-d2e3-4f5a-6b7c-8d9e0f1a2b3c',
+  'Fixtures, Hooks & Test Configuration',
+  'Create custom fixtures, use hooks for setup/teardown, and master playwright.config.ts',
+  'article',
+  E'# Fixtures, Hooks & Test Configuration
+
+## Understanding Fixtures
+
+**Fixtures** provide a fixed baseline for tests. Playwright gives you built-in fixtures like `page`, `browser`, and `context`.
+
+### Built-in Fixtures
+
+```typescript
+import { test } from ''@playwright/test'';
+
+test(''example'', async ({ page, context, browser, browserName }) => {
+  // page: Page object
+  // context: Browser context
+  // browser: Browser instance
+  // browserName: ''chromium'', ''firefox'', or ''webkit''
+});
+```
+
+## Custom Fixtures
+
+Create reusable test setup with custom fixtures.
+
+### Basic Custom Fixture
+
+```typescript
+// fixtures/auth.fixture.ts
+import { test as base } from ''@playwright/test'';
+
+export const test = base.extend({
+  authenticatedPage: async ({ page }, use) => {
+    // Setup: Login
+    await page.goto(''https://example.com/login'');
+    await page.getByLabel(''Email'').fill(''user@example.com'');
+    await page.getByLabel(''Password'').fill(''password123'');
+    await page.getByRole(''button'', { name: ''Sign In'' }).click();
+    await page.waitForURL(''**/dashboard'');
+
+    // Use fixture in test
+    await use(page);
+
+    // Teardown (optional)
+    await page.getByRole(''button'', { name: ''Logout'' }).click();
+  },
+});
+
+// tests/dashboard.spec.ts
+import { test } from ''../fixtures/auth.fixture'';
+import { expect } from ''@playwright/test'';
+
+test(''view dashboard'', async ({ authenticatedPage }) => {
+  await expect(authenticatedPage.getByText(''Welcome'')).toBeVisible();
+});
+```
+
+### Fixture with Options
+
+```typescript
+type TestFixtures = {
+  loggedInUser: {
+    email: string;
+    role: ''admin'' | ''user'';
+  };
+};
+
+export const test = base.extend<TestFixtures>({
+  loggedInUser: async ({ page }, use) => {
+    const email = ''user@example.com'';
+    const role = ''user'';
+
+    await page.goto(''https://example.com/login'');
+    await page.getByLabel(''Email'').fill(email);
+    await page.getByLabel(''Password'').fill(''password'');
+    await page.getByRole(''button'', { name: ''Sign In'' }).click();
+
+    await use({ email, role });
+  },
+});
+
+// Usage
+test(''check user info'', async ({ loggedInUser }) => {
+  expect(loggedInUser.email).toBe(''user@example.com'');
+  expect(loggedInUser.role).toBe(''user'');
+});
+```
+
+### Page Object Fixture
+
+```typescript
+import { LoginPage } from ''../pages/login.page'';
+import { DashboardPage } from ''../pages/dashboard.page'';
+
+type PageFixtures = {
+  loginPage: LoginPage;
+  dashboardPage: DashboardPage;
+};
+
+export const test = base.extend<PageFixtures>({
+  loginPage: async ({ page }, use) => {
+    await use(new LoginPage(page));
+  },
+
+  dashboardPage: async ({ page }, use) => {
+    await use(new DashboardPage(page));
+  },
+});
+
+// Usage
+test(''login and navigate'', async ({ loginPage, dashboardPage }) => {
+  await loginPage.goto();
+  await loginPage.login(''user@example.com'', ''password'');
+  await dashboardPage.verifyLoaded();
+});
+```
+
+## Test Hooks
+
+Hooks run code before/after tests automatically.
+
+### beforeEach & afterEach
+
+```typescript
+import { test, expect } from ''@playwright/test'';
+
+test.beforeEach(async ({ page }) => {
+  // Runs before EACH test
+  await page.goto(''https://example.com'');
+  console.log(''Test started'');
+});
+
+test.afterEach(async ({ page }) => {
+  // Runs after EACH test
+  console.log(''Test completed'');
+  await page.screenshot({ path: ''screenshot.png'' });
+});
+
+test(''test 1'', async ({ page }) => {
+  // beforeEach runs first
+  await expect(page).toHaveTitle(/Example/);
+  // afterEach runs after
+});
+
+test(''test 2'', async ({ page }) => {
+  // beforeEach runs again
+  await page.click(''button'');
+  // afterEach runs after
+});
+```
+
+### beforeAll & afterAll
+
+```typescript
+test.beforeAll(async () => {
+  // Runs ONCE before all tests in this file
+  console.log(''Setting up test suite'');
+  // Example: Create test database, start server
+});
+
+test.afterAll(async () => {
+  // Runs ONCE after all tests in this file
+  console.log(''Cleaning up test suite'');
+  // Example: Delete test data, stop server
+});
+
+test(''test 1'', async ({ page }) => { });
+test(''test 2'', async ({ page }) => { });
+// beforeAll runs once, then all tests, then afterAll runs once
+```
+
+### Hooks with describe
+
+```typescript
+test.describe(''Login Flow'', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto(''https://example.com/login'');
+  });
+
+  test(''successful login'', async ({ page }) => {
+    // page is already on login page
+  });
+
+  test(''failed login'', async ({ page }) => {
+    // page is already on login page
+  });
+});
+
+test.describe(''Dashboard'', () => {
+  test.beforeEach(async ({ page }) => {
+    // Different setup for dashboard tests
+    await page.goto(''https://example.com/dashboard'');
+  });
+
+  test(''view stats'', async ({ page }) => { });
+});
+```
+
+## Test Organization with describe
+
+### Grouping Tests
+
+```typescript
+test.describe(''User Authentication'', () => {
+  test(''login with valid credentials'', async ({ page }) => { });
+  test(''login with invalid credentials'', async ({ page }) => { });
+  test(''password reset flow'', async ({ page }) => { });
+});
+
+test.describe(''Shopping Cart'', () => {
+  test(''add item to cart'', async ({ page }) => { });
+  test(''remove item from cart'', async ({ page }) => { });
+  test(''update quantity'', async ({ page }) => { });
+});
+```
+
+### Nested describe
+
+```typescript
+test.describe(''E-Commerce'', () => {
+  test.describe(''Cart Operations'', () => {
+    test(''add item'', async ({ page }) => { });
+    test(''remove item'', async ({ page }) => { });
+  });
+
+  test.describe(''Checkout'', () => {
+    test(''enter shipping info'', async ({ page }) => { });
+    test(''complete payment'', async ({ page }) => { });
+  });
+});
+```
+
+## Test Annotations
+
+### Skip Tests
+
+```typescript
+test.skip(''not ready yet'', async ({ page }) => {
+  // This test won''t run
+});
+
+// Skip conditionally
+test(''mobile only'', async ({ page, isMobile }) => {
+  test.skip(!isMobile, ''Desktop only test'');
+  // Test content
+});
+```
+
+### Focus on Specific Tests
+
+```typescript
+test.only(''run only this'', async ({ page }) => {
+  // Only this test will run
+});
+
+test(''this won''t run'', async ({ page }) => { });
+test(''this won''t run either'', async ({ page }) => { });
+```
+
+### Mark as Failing
+
+```typescript
+test.fail(''known bug'', async ({ page }) => {
+  // Test is expected to fail
+  // Won''t fail the test suite
+});
+```
+
+### Slow Tests
+
+```typescript
+test(''slow operation'', async ({ page }) => {
+  test.slow(); // Triples the timeout
+  await page.waitForTimeout(60000);
+});
+```
+
+## playwright.config.ts Deep Dive
+
+Complete configuration file explained:
+
+```typescript
+import { defineConfig, devices } from ''@playwright/test'';
+
+export default defineConfig({
+  // Test directory
+  testDir: ''./tests'',
+
+  // Timeout settings
+  timeout: 30 * 1000, // 30 seconds per test
+  expect: {
+    timeout: 5000, // 5 seconds for assertions
+  },
+
+  // Retry failed tests
+  retries: process.env.CI ? 2 : 0, // Retry on CI only
+
+  // Parallel execution
+  workers: process.env.CI ? 1 : undefined, // Serial on CI, parallel locally
+  fullyParallel: true, // Run tests in parallel
+
+  // Reporter
+  reporter: [
+    [''html''],
+    [''list''],
+    process.env.CI ? [''github''] : [''line''],
+  ],
+
+  // Global setup/teardown
+  globalSetup: require.resolve(''./global-setup''),
+  globalTeardown: require.resolve(''./global-teardown''),
+
+  // Shared settings for all tests
+  use: {
+    // Base URL
+    baseURL: ''http://localhost:3000'',
+
+    // Browser options
+    headless: true,
+    viewport: { width: 1280, height: 720 },
+    screenshot: ''only-on-failure'',
+    video: ''retain-on-failure'',
+    trace: ''on-first-retry'',
+
+    // Timeouts
+    actionTimeout: 10000,
+    navigationTimeout: 30000,
+
+    // Locale & timezone
+    locale: ''en-US'',
+    timezoneId: ''America/New_York'',
+
+    // Geolocation
+    geolocation: { longitude: 12.492507, latitude: 41.889938 },
+    permissions: [''geolocation''],
+  },
+
+  // Test multiple browsers
+  projects: [
+    {
+      name: ''chromium'',
+      use: { ...devices[''Desktop Chrome''] },
+    },
+    {
+      name: ''firefox'',
+      use: { ...devices[''Desktop Firefox''] },
+    },
+    {
+      name: ''webkit'',
+      use: { ...devices[''Desktop Safari''] },
+    },
+    {
+      name: ''Mobile Chrome'',
+      use: { ...devices[''Pixel 5''] },
+    },
+    {
+      name: ''Mobile Safari'',
+      use: { ...devices[''iPhone 12''] },
+    },
+  ],
+
+  // Web server (optional)
+  webServer: {
+    command: ''npm run start'',
+    url: ''http://localhost:3000'',
+    reuseExistingServer: !process.env.CI,
+    timeout: 120 * 1000,
+  },
+});
+```
+
+### Environment-based Config
+
+```typescript
+// Load environment variables
+import dotenv from ''dotenv'';
+dotenv.config();
+
+export default defineConfig({
+  use: {
+    baseURL: process.env.BASE_URL || ''http://localhost:3000'',
+  },
+});
+```
+
+### Project-specific Config
+
+```typescript
+projects: [
+  {
+    name: ''logged-out'',
+    use: { ...devices[''Desktop Chrome''] },
+  },
+  {
+    name: ''logged-in'',
+    use: {
+      ...devices[''Desktop Chrome''],
+      storageState: ''auth.json'', // Reuse authenticated state
+    },
+    dependencies: [''setup''], // Run setup project first
+  },
+],
+```
+
+## Summary
+
+**What you learned:**
+- ✅ Create custom fixtures for reusable setup
+- ✅ Use hooks (beforeEach, afterEach, beforeAll, afterAll)
+- ✅ Organize tests with describe blocks
+- ✅ Use annotations (skip, only, fail, slow)
+- ✅ Master playwright.config.ts configuration
+- ✅ Environment-based configurations
+
+**Next lesson:** Build data-driven tests with JSON/CSV data!
+',
+  50,
+  7,
+  ARRAY[
+    'Create custom fixtures for reusable setup',
+    'Use test hooks for setup and teardown',
+    'Organize tests with describe blocks',
+    'Apply test annotations effectively',
+    'Configure Playwright for different environments'
+  ]
+);
+
+-- =====================================================
+-- LESSON 8: Data-Driven Testing
+-- =====================================================
+
+INSERT INTO ai_learning_lessons (
+  id,
+  learning_path_id,
+  title,
+  description,
+  content_type,
+  content,
+  duration_minutes,
+  order_index,
+  learning_objectives
+) VALUES (
+  gen_random_uuid(),
+  'f8a9b0c1-d2e3-4f5a-6b7c-8d9e0f1a2b3c',
+  'Data-Driven Testing & Parameterization',
+  'Run tests with multiple data sets using JSON, CSV, and parameterized fixtures',
+  'article',
+  E'# Data-Driven Testing & Parameterization
+
+## What is Data-Driven Testing?
+
+**Data-driven testing** means running the same test with different input data. Instead of writing separate tests for each scenario, you write one test and feed it different data.
+
+### Without Data-Driven (Repetitive)
+
+```typescript
+test(''login with user 1'', async ({ page }) => {
+  await page.goto(''https://example.com/login'');
+  await page.getByLabel(''Email'').fill(''user1@example.com'');
+  await page.getByLabel(''Password'').fill(''password1'');
+  // ... assertions
+});
+
+test(''login with user 2'', async ({ page }) => {
+  await page.goto(''https://example.com/login'');
+  await page.getByLabel(''Email'').fill(''user2@example.com'');
+  await page.getByLabel(''Password'').fill(''password2'');
+  // ... same assertions
+});
+
+// Repeating same code! 😰
+```
+
+### With Data-Driven (Clean)
+
+```typescript
+const users = [
+  { email: ''user1@example.com'', password: ''password1'' },
+  { email: ''user2@example.com'', password: ''password2'' },
+  { email: ''user3@example.com'', password: ''password3'' },
+];
+
+for (const user of users) {
+  test(`login with ${user.email}`, async ({ page }) => {
+    await page.goto(''https://example.com/login'');
+    await page.getByLabel(''Email'').fill(user.email);
+    await page.getByLabel(''Password'').fill(user.password);
+    // ... assertions
+  });
+}
+```
+
+## Using Arrays for Test Data
+
+### Simple Array
+
+```typescript
+const searchTerms = [''Playwright'', ''Testing'', ''Automation'', ''TypeScript''];
+
+for (const term of searchTerms) {
+  test(`search for "${term}"`, async ({ page }) => {
+    await page.goto(''https://example.com'');
+    await page.getByPlaceholder(''Search'').fill(term);
+    await page.keyboard.press(''Enter'');
+    await expect(page.locator(''.results'')).toContainText(term);
+  });
+}
+```
+
+### Array of Objects
+
+```typescript
+const testCases = [
+  { input: ''valid@email.com'', expected: true, description: ''valid email'' },
+  { input: ''invalid-email'', expected: false, description: ''missing @'' },
+  { input: ''@example.com'', expected: false, description: ''missing username'' },
+  { input: ''user@'', expected: false, description: ''missing domain'' },
+];
+
+for (const testCase of testCases) {
+  test(`email validation: ${testCase.description}`, async ({ page }) => {
+    await page.goto(''https://example.com/signup'');
+    await page.getByLabel(''Email'').fill(testCase.input);
+    await page.getByLabel(''Email'').blur();
+
+    if (testCase.expected) {
+      await expect(page.locator(''.error'')).toBeHidden();
+    } else {
+      await expect(page.locator(''.error'')).toBeVisible();
+    }
+  });
+}
+```
+
+## Loading Data from JSON
+
+### Create Test Data File
+
+```json
+// test-data/users.json
+{
+  "validUsers": [
+    {
+      "email": "admin@example.com",
+      "password": "Admin@123",
+      "role": "admin"
+    },
+    {
+      "email": "user@example.com",
+      "password": "User@123",
+      "role": "user"
+    }
+  ],
+  "invalidUsers": [
+    {
+      "email": "invalid@example.com",
+      "password": "wrong",
+      "expectedError": "Invalid credentials"
+    }
+  ]
+}
+```
+
+### Load JSON in Tests
+
+```typescript
+import userData from ''../test-data/users.json'';
+
+// Test with valid users
+for (const user of userData.validUsers) {
+  test(`login as ${user.role}`, async ({ page }) => {
+    await page.goto(''https://example.com/login'');
+    await page.getByLabel(''Email'').fill(user.email);
+    await page.getByLabel(''Password'').fill(user.password);
+    await page.getByRole(''button'', { name: ''Sign In'' }).click();
+
+    await expect(page).toHaveURL(/.*dashboard.*/);
+    await expect(page.getByText(`Role: ${user.role}`)).toBeVisible();
+  });
+}
+
+// Test with invalid users
+for (const user of userData.invalidUsers) {
+  test(`invalid login: ${user.email}`, async ({ page }) => {
+    await page.goto(''https://example.com/login'');
+    await page.getByLabel(''Email'').fill(user.email);
+    await page.getByLabel(''Password'').fill(user.password);
+    await page.getByRole(''button'', { name: ''Sign In'' }).click();
+
+    await expect(page.locator(''.error'')).toHaveText(user.expectedError);
+  });
+}
+```
+
+## Loading Data from CSV
+
+### CSV File
+
+```csv
+# test-data/products.csv
+name,price,category,inStock
+Laptop,999,Electronics,true
+Phone,599,Electronics,true
+Desk,299,Furniture,false
+Chair,199,Furniture,true
+```
+
+### Parse CSV in Tests
+
+```typescript
+import fs from ''fs'';
+import { parse } from ''csv-parse/sync'';
+
+// Read and parse CSV
+const csvContent = fs.readFileSync(''test-data/products.csv'', ''utf-8'');
+const products = parse(csvContent, {
+  columns: true,
+  skip_empty_lines: true,
+  cast: true, // Auto-convert types
+});
+
+for (const product of products) {
+  test(`add ${product.name} to cart`, async ({ page }) => {
+    await page.goto(''https://example.com/products'');
+
+    // Search for product
+    await page.getByPlaceholder(''Search'').fill(product.name);
+    await page.keyboard.press(''Enter'');
+
+    // Verify price
+    await expect(page.locator(''.price'')).toHaveText(`$${product.price}`);
+
+    // Check stock status
+    if (product.inStock) {
+      await page.getByRole(''button'', { name: ''Add to Cart'' }).click();
+      await expect(page.locator(''.cart-count'')).toHaveText(''1'');
+    } else {
+      await expect(page.getByText(''Out of Stock'')).toBeVisible();
+    }
+  });
+}
+```
+
+## Parameterized Fixtures
+
+Create fixtures that accept parameters for dynamic test setup.
+
+### Basic Parameterized Fixture
+
+```typescript
+import { test as base } from ''@playwright/test'';
+
+type Role = ''admin'' | ''user'' | ''guest'';
+
+type TestOptions = {
+  userRole: Role;
+};
+
+const test = base.extend<TestOptions>({
+  userRole: [''user'', { option: true }], // Default value
+
+  page: async ({ page, userRole }, use) => {
+    // Login based on role
+    const credentials = {
+      admin: { email: ''admin@example.com'', password: ''admin123'' },
+      user: { email: ''user@example.com'', password: ''user123'' },
+      guest: { email: ''guest@example.com'', password: ''guest123'' },
+    };
+
+    await page.goto(''https://example.com/login'');
+    await page.getByLabel(''Email'').fill(credentials[userRole].email);
+    await page.getByLabel(''Password'').fill(credentials[userRole].password);
+    await page.getByRole(''button'', { name: ''Sign In'' }).click();
+
+    await use(page);
+  },
+});
+
+// Usage with different roles
+test(''admin can delete users'', async ({ page }) => {
+  test.use({ userRole: ''admin'' });
+  await expect(page.getByRole(''button'', { name: ''Delete User'' })).toBeVisible();
+});
+
+test(''regular user cannot delete users'', async ({ page }) => {
+  test.use({ userRole: ''user'' });
+  await expect(page.getByRole(''button'', { name: ''Delete User'' })).toBeHidden();
+});
+```
+
+### Multiple Parameter Combinations
+
+```typescript
+const browsers = [''chromium'', ''firefox'', ''webkit''] as const;
+const viewports = [
+  { width: 1920, height: 1080, name: ''Desktop'' },
+  { width: 375, height: 667, name: ''Mobile'' },
+  { width: 768, height: 1024, name: ''Tablet'' },
+];
+
+for (const browser of browsers) {
+  for (const viewport of viewports) {
+    test(`responsive test on ${browser} - ${viewport.name}`, async ({ page }) => {
+      await page.setViewportSize({ width: viewport.width, height: viewport.height });
+      await page.goto(''https://example.com'');
+
+      // Verify responsive design
+      if (viewport.width < 768) {
+        await expect(page.locator(''.mobile-menu'')).toBeVisible();
+      } else {
+        await expect(page.locator(''.desktop-menu'')).toBeVisible();
+      }
+    });
+  }
+}
+```
+
+## Advanced: API Test Data
+
+Generate test data from API:
+
+```typescript
+import { test, expect } from ''@playwright/test'';
+
+let testUsers: any[] = [];
+
+test.beforeAll(async ({ request }) => {
+  // Fetch test data from API
+  const response = await request.get(''https://api.example.com/test-users'');
+  testUsers = await response.json();
+});
+
+for (let i = 0; i < 5; i++) {
+  test(`test with user ${i}`, async ({ page }) => {
+    const user = testUsers[i];
+    await page.goto(''https://example.com/login'');
+    await page.getByLabel(''Email'').fill(user.email);
+    await page.getByLabel(''Password'').fill(user.password);
+    await page.getByRole(''button'', { name: ''Sign In'' }).click();
+    await expect(page).toHaveURL(/.*dashboard.*/);
+  });
+}
+```
+
+## Complete Example: E-Commerce Testing
+
+```typescript
+import { test, expect } from ''@playwright/test'';
+import testData from ''../test-data/checkout.json'';
+
+interface CheckoutData {
+  user: {
+    email: string;
+    password: string;
+  };
+  shipping: {
+    firstName: string;
+    lastName: string;
+    address: string;
+    city: string;
+    zip: string;
+  };
+  payment: {
+    cardNumber: string;
+    expiry: string;
+    cvv: string;
+  };
+}
+
+for (const scenario of testData.scenarios as CheckoutData[]) {
+  test(`complete checkout: ${scenario.user.email}`, async ({ page }) => {
+    // Login
+    await page.goto(''https://example.com/login'');
+    await page.getByLabel(''Email'').fill(scenario.user.email);
+    await page.getByLabel(''Password'').fill(scenario.user.password);
+    await page.getByRole(''button'', { name: ''Sign In'' }).click();
+
+    // Add product to cart (simplified)
+    await page.goto(''https://example.com/products/laptop'');
+    await page.getByRole(''button'', { name: ''Add to Cart'' }).click();
+
+    // Checkout - Shipping
+    await page.goto(''https://example.com/checkout'');
+    await page.getByLabel(''First Name'').fill(scenario.shipping.firstName);
+    await page.getByLabel(''Last Name'').fill(scenario.shipping.lastName);
+    await page.getByLabel(''Address'').fill(scenario.shipping.address);
+    await page.getByLabel(''City'').fill(scenario.shipping.city);
+    await page.getByLabel(''ZIP Code'').fill(scenario.shipping.zip);
+    await page.getByRole(''button'', { name: ''Continue'' }).click();
+
+    // Payment
+    await page.getByLabel(''Card Number'').fill(scenario.payment.cardNumber);
+    await page.getByLabel(''Expiry'').fill(scenario.payment.expiry);
+    await page.getByLabel(''CVV'').fill(scenario.payment.cvv);
+    await page.getByRole(''button'', { name: ''Place Order'' }).click();
+
+    // Verify success
+    await expect(page.getByText(''Order Confirmed'')).toBeVisible();
+  });
+}
+```
+
+## Best Practices
+
+### 1. Organize Test Data
+
+```
+test-data/
+  ├── users.json
+  ├── products.csv
+  ├── checkout-scenarios.json
+  └── api-endpoints.json
+```
+
+### 2. Use Descriptive Test Names
+
+```typescript
+// ✅ Good
+test(`login with ${user.role} role`, async ({ page }) => {});
+
+// ❌ Bad
+test(''test 1'', async ({ page }) => {});
+```
+
+### 3. Keep Data Separate from Logic
+
+```typescript
+// ✅ Good: Data in separate file
+import users from ''./users.json'';
+
+// ❌ Bad: Data in test file
+const users = [/* ... */];
+```
+
+### 4. Validate Data Structure
+
+```typescript
+import { z } from ''zod'';
+
+const UserSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(8),
+  role: z.enum([''admin'', ''user'']),
+});
+
+// Validate before using
+for (const user of users) {
+  const validated = UserSchema.parse(user);
+  test(`login as ${validated.role}`, async ({ page }) => {
+    // Use validated data
+  });
+}
+```
+
+## Summary
+
+**What you learned:**
+- ✅ Data-driven testing concepts and benefits
+- ✅ Use arrays and objects for test data
+- ✅ Load data from JSON files
+- ✅ Parse and use CSV data
+- ✅ Create parameterized fixtures
+- ✅ Generate test data from APIs
+- ✅ Best practices for data organization
+
+**Congratulations!** You''ve completed the Playwright Test Automation course! 🎭
+
+You now have the skills to:
+- Write robust end-to-end tests
+- Build maintainable test frameworks
+- Handle complex scenarios
+- Organize tests effectively
+- Run data-driven test suites
+
+**Next steps:**
+- Practice on real projects
+- Explore CI/CD integration
+- Join Playwright community
+- Keep learning and testing! ✨
+',
+  55,
+  8,
+  ARRAY[
+    'Implement data-driven testing strategies',
+    'Load test data from JSON and CSV files',
+    'Create parameterized tests and fixtures',
+    'Generate dynamic test data from APIs',
+    'Organize test data effectively'
+  ]
+);
+
+-- =====================================================
+-- ADD QUIZ QUESTIONS FOR LESSONS 3-8
+-- =====================================================
+
+-- Note: Quiz questions will be added in a separate migration
+-- to keep file size manageable
+
+COMMENT ON TABLE ai_learning_lessons IS 'Complete Playwright course with 8 comprehensive lessons';

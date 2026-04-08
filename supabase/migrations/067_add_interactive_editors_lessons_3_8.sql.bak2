@@ -1,0 +1,262 @@
+-- =====================================================
+-- Add Interactive Playwright Editors to Lessons 3-8
+-- Migration: 067
+-- Description: Update lessons 3-8 content to include interactive :::playwright-practice blocks
+-- =====================================================
+
+-- This migration adds interactive editors to existing lessons
+-- It appends practice blocks to the end of each lesson's content
+
+-- =====================================================
+-- LESSON 3: Advanced Locators - Add Interactive Practice
+-- =====================================================
+
+UPDATE ai_learning_lessons
+SET content = content || E'
+
+## 🎯 Practice: Locator Strategies
+
+Try different locator strategies in this interactive editor:
+
+:::playwright-practice language=typescript | height=450px | title=Practice Locator Strategies | testUrl=https://playwright.dev
+import { test, expect } from ''@playwright/test'';
+
+test(''practice different locators'', async ({ page }) => {
+  await page.goto(''https://playwright.dev'');
+
+  // Role-based locator (Recommended)
+  const getStarted = page.getByRole(''link'', { name: ''Get started'' });
+  await expect(getStarted).toBeVisible();
+
+  // Text locator
+  const heading = page.getByText(''Playwright enables'');
+  await expect(heading).toBeVisible();
+
+  // CSS selector
+  const navbar = page.locator(''.navbar'');
+  await expect(navbar).toBeVisible();
+
+  // Data-testid (best for testing)
+  // await page.getByTestId(''hero-button'').click();
+
+  console.log(''✅ All locators working!'');
+});
+:::
+'
+WHERE learning_path_id = 'f8a9b0c1-d2e3-4f5a-6b7c-8d9e0f1a2b3c'
+AND title = 'Advanced Locators & Powerful Assertions';
+
+-- =====================================================
+-- LESSON 4: UI Interactions - Add Interactive Practice
+-- =====================================================
+
+UPDATE ai_learning_lessons
+SET content = content || E'
+
+## 🎯 Practice: UI Interactions
+
+Practice common UI interactions:
+
+:::playwright-practice language=typescript | height=500px | title=Practice UI Interactions | testUrl=https://demo.playwright.dev/todomvc
+import { test, expect } from ''@playwright/test'';
+
+test(''practice UI interactions'', async ({ page }) => {
+  await page.goto(''https://demo.playwright.dev/todomvc'');
+
+  // Type in input field
+  const newTodo = page.getByPlaceholder(''What needs to be done?'');
+  await newTodo.fill(''Learn Playwright'');
+  await newTodo.press(''Enter'');
+
+  // Verify todo added
+  const todoItem = page.getByText(''Learn Playwright'');
+  await expect(todoItem).toBeVisible();
+
+  // Hover over item (checkbox appears)
+  await todoItem.hover();
+
+  // Click checkbox to complete
+  await page.locator(''.toggle'').first().click();
+
+  console.log(''✅ UI interactions working!'');
+});
+:::
+'
+WHERE learning_path_id = 'f8a9b0c1-d2e3-4f5a-6b7c-8d9e0f1a2b3c'
+AND title LIKE '%UI Interactions%';
+
+-- =====================================================
+-- LESSON 5: Dialogs & Frames - Add Interactive Practice
+-- =====================================================
+
+UPDATE ai_learning_lessons
+SET content = content || E'
+
+## 🎯 Practice: Handling Alerts
+
+Practice handling browser dialogs:
+
+:::playwright-practice language=typescript | height=450px | title=Practice Dialog Handling | testUrl=https://playwright.dev
+import { test, expect } from ''@playwright/test'';
+
+test(''handle dialog events'', async ({ page }) => {
+  // Listen for dialog before it appears
+  page.on(''dialog'', async (dialog) => {
+    console.log(''Dialog appeared: '' + dialog.message());
+    await dialog.accept(); // or dialog.dismiss()
+  });
+
+  await page.goto(''https://playwright.dev'');
+
+  // You can trigger alerts in your own test pages
+  // Example: await page.evaluate(() => alert(''Test alert''));
+
+  console.log(''✅ Dialog handler set up!'');
+});
+:::
+'
+WHERE learning_path_id = 'f8a9b0c1-d2e3-4f5a-6b7c-8d9e0f1a2b3c'
+AND (title LIKE '%Dialog%' OR title LIKE '%Frame%');
+
+-- =====================================================
+-- LESSON 6: Page Object Model - Add Interactive Practice
+-- =====================================================
+
+UPDATE ai_learning_lessons
+SET content = content || E'
+
+## 🎯 Practice: Simple Page Object Pattern
+
+See a basic Page Object Model in action:
+
+:::playwright-practice language=typescript | height=550px | title=Practice Page Object Model | testUrl=https://playwright.dev
+import { test, expect, Page } from ''@playwright/test'';
+
+// Simple Page Object
+class PlaywrightHomePage {
+  constructor(private page: Page) {}
+
+  async navigate() {
+    await this.page.goto(''https://playwright.dev'');
+  }
+
+  async getStartedLink() {
+    return this.page.getByRole(''link'', { name: ''Get started'' });
+  }
+
+  async isLoaded() {
+    await expect(this.page).toHaveTitle(/Playwright/);
+  }
+}
+
+test(''use page object model'', async ({ page }) => {
+  const homePage = new PlaywrightHomePage(page);
+
+  await homePage.navigate();
+  await homePage.isLoaded();
+
+  const link = await homePage.getStartedLink();
+  await expect(link).toBeVisible();
+
+  console.log(''✅ Page Object Model working!'');
+});
+:::
+'
+WHERE learning_path_id = 'f8a9b0c1-d2e3-4f5a-6b7c-8d9e0f1a2b3c'
+AND title LIKE '%Page Object%';
+
+-- =====================================================
+-- LESSON 7: Fixtures & Hooks - Add Interactive Practice
+-- =====================================================
+
+UPDATE ai_learning_lessons
+SET content = content || E'
+
+## 🎯 Practice: Test Hooks
+
+Practice using beforeEach and afterEach hooks:
+
+:::playwright-practice language=typescript | height=500px | title=Practice Test Hooks | testUrl=https://playwright.dev
+import { test, expect } from ''@playwright/test'';
+
+let startTime: number;
+
+test.beforeEach(async ({ page }) => {
+  console.log(''⏰ beforeEach: Setting up test'');
+  startTime = Date.now();
+  await page.goto(''https://playwright.dev'');
+});
+
+test.afterEach(async () => {
+  const duration = Date.now() - startTime;
+  console.log(''✅ afterEach: Test took '' + duration + ''ms'');
+});
+
+test(''first test with hooks'', async ({ page }) => {
+  await expect(page).toHaveTitle(/Playwright/);
+  console.log(''Running first test'');
+});
+
+test(''second test with hooks'', async ({ page }) => {
+  const heading = page.getByRole(''heading'').first();
+  await expect(heading).toBeVisible();
+  console.log(''Running second test'');
+});
+:::
+'
+WHERE learning_path_id = 'f8a9b0c1-d2e3-4f5a-6b7c-8d9e0f1a2b3c'
+AND (title LIKE '%Fixture%' OR title LIKE '%Hook%' OR title LIKE '%Configuration%');
+
+-- =====================================================
+-- LESSON 8: Data-Driven Testing - Add Interactive Practice
+-- =====================================================
+
+UPDATE ai_learning_lessons
+SET content = content || E'
+
+## 🎯 Practice: Data-Driven Tests
+
+Run the same test with different data:
+
+:::playwright-practice language=typescript | height=550px | title=Practice Data-Driven Testing | testUrl=https://playwright.dev
+import { test, expect } from ''@playwright/test'';
+
+// Test data array
+const searchTerms = [
+  { term: ''testing'', expected: ''Test'' },
+  { term: ''automation'', expected: ''Automat'' },
+  { term: ''browser'', expected: ''Browser'' }
+];
+
+// Run test for each search term
+for (const data of searchTerms) {
+  test(''search for '' + data.term, async ({ page }) => {
+    await page.goto(''https://playwright.dev'');
+
+    // This is a demo - actual search would work on a real search page
+    console.log(''Searching for: '' + data.term);
+    console.log(''Expected to find: '' + data.expected);
+
+    // Verify page loaded
+    await expect(page).toHaveTitle(/Playwright/);
+
+    console.log(''✅ Test passed for: '' + data.term);
+  });
+}
+:::
+'
+WHERE learning_path_id = 'f8a9b0c1-d2e3-4f5a-6b7c-8d9e0f1a2b3c'
+AND title LIKE '%Data-Driven%';
+
+-- Verify updates
+SELECT
+  order_index,
+  title,
+  CASE
+    WHEN content LIKE '%:::playwright-practice%' THEN '✅ Has interactive editor'
+    ELSE '❌ No interactive editor'
+  END as has_editor,
+  LENGTH(content) as content_length
+FROM ai_learning_lessons
+WHERE learning_path_id = 'f8a9b0c1-d2e3-4f5a-6b7c-8d9e0f1a2b3c'
+ORDER BY order_index;

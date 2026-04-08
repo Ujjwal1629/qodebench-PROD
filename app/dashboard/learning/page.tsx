@@ -1,29 +1,36 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { BookOpen, Code2, Database, Layout, Rocket, ArrowRight, Sparkles, CheckCircle, Briefcase } from 'lucide-react';
+import { Code2, Rocket, ArrowRight, CheckCircle } from 'lucide-react';
 import Link from 'next/link';
+import { createClient } from '@/lib/supabase/server';
 
 export const metadata = {
   title: 'Learning Module - QodeBench',
   description: 'Master QA testing and automation with our structured learning paths',
 };
 
-export default function LearningPage() {
+const PATH_IDS = {
+  javascript_typescript: 'c3d4e5f6-a7b8-9c0d-1e2f-3a4b5c6d7e8f',
+  playwright: 'f8a9b0c1-d2e3-4f5a-6b7c-8d9e0f1a2b3c',
+};
+
+export default async function LearningPage() {
+  const supabase = await createClient();
+
+  const { data: lessonCounts } = await supabase
+    .from('ai_learning_lessons')
+    .select('learning_path_id')
+    .in('learning_path_id', Object.values(PATH_IDS));
+
+  const countByPath = (pathId: string) =>
+    lessonCounts?.filter((l) => l.learning_path_id === pathId).length ?? 0;
+
   const learningPaths = [
     {
       icon: Code2,
-      title: 'JavaScript Essentials',
-      description: 'Learn modern JavaScript from basics to advanced concepts',
-      lessons: 24,
-      available: true,
-      href: '/dashboard/learning/javascript',
-    },
-    {
-      icon: Layout,
-      title: 'TypeScript Fundamentals',
-      description: 'Master TypeScript for type-safe test automation',
-      lessons: 5,
+      title: 'JavaScript & TypeScript Essentials',
+      description: 'Master JavaScript fundamentals and TypeScript for type-safe automation',
+      lessons: countByPath(PATH_IDS.javascript_typescript),
       available: true,
       href: '/dashboard/learning/typescript',
     },
@@ -31,55 +38,24 @@ export default function LearningPage() {
       icon: Rocket,
       title: 'Playwright Testing',
       description: 'Master end-to-end testing with Playwright framework',
-      lessons: 0,
-      available: false,
+      lessons: countByPath(PATH_IDS.playwright),
+      available: true,
       href: '/dashboard/learning/playwright',
     },
   ];
 
   return (
     <div className="space-y-8">
-      {/* Featured Banner */}
-      <Card className="overflow-hidden bg-gradient-to-r from-sky-500 to-purple-600">
-        <CardContent className="p-4 sm:p-5 md:p-6">
-          <div className="flex flex-col items-center gap-4 text-center text-white sm:flex-row sm:justify-between sm:text-left">
-            <div className="flex items-start gap-3 sm:gap-4">
-              <div className="rounded-lg bg-white/20 p-2 sm:p-3">
-                <Sparkles className="h-5 w-5 sm:h-6 sm:w-6" />
-              </div>
-              <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <Badge className="bg-white text-sky-600 hover:bg-white text-xs sm:text-sm">
-                    Now Available
-                  </Badge>
-                </div>
-                <h3 className="text-xl sm:text-2xl font-bold">Start Your Learning Journey</h3>
-                <p className="mt-1 text-sm sm:text-base text-sky-50">
-                  Interactive lessons with AI-powered assistance and hands-on quizzes
-                </p>
-              </div>
-            </div>
-            <Button asChild size="lg" className="bg-white text-sky-600 hover:bg-white/90 text-sm sm:text-base">
-              <Link href="/dashboard/learning/javascript">
-                Start Learning
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
       {/* Welcome Message */}
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Start Your Learning Journey</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Learning Paths</h1>
         <p className="mt-2 text-sm sm:text-base text-slate-600">
-          Our structured curriculum will help you build a strong foundation in QA testing and automation.
+          Pick a path and start building your QA automation skills.
         </p>
       </div>
 
       {/* Learning Paths */}
       <div>
-        <h2 className="text-xl sm:text-2xl font-semibold text-slate-900 mb-4">Learning Paths</h2>
         <div className="grid gap-6 md:grid-cols-2">
           {learningPaths.map((path) => {
             const Icon = path.icon;
@@ -142,68 +118,6 @@ export default function LearningPage() {
         </div>
       </div>
 
-      {/* Features Section */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Learning Features</CardTitle>
-          <CardDescription>
-            Everything you need to master QA testing and automation
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            <div className="flex items-start gap-3">
-              <div className="rounded-lg bg-sky-100 p-2">
-                <BookOpen className="h-5 w-5 text-sky-600" />
-              </div>
-              <div>
-                <h4 className="font-medium text-slate-900">Interactive Lessons</h4>
-                <p className="text-sm text-slate-600">Rich content with code examples and explanations</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3">
-              <div className="rounded-lg bg-purple-100 p-2">
-                <Sparkles className="h-5 w-5 text-purple-600" />
-              </div>
-              <div>
-                <h4 className="font-medium text-slate-900">AI Assistant</h4>
-                <p className="text-sm text-slate-600">Get instant help and code examples</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3">
-              <div className="rounded-lg bg-green-100 p-2">
-                <CheckCircle className="h-5 w-5 text-green-600" />
-              </div>
-              <div>
-                <h4 className="font-medium text-slate-900">Quiz-Based Learning</h4>
-                <p className="text-sm text-slate-600">Test your knowledge and track your progress</p>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* CTA Section */}
-      <Card className="bg-sky-50 border-sky-200">
-        <CardContent className="p-6">
-          <div className="flex flex-col items-center gap-4 text-center sm:flex-row sm:justify-between sm:text-left">
-            <div>
-              <h3 className="text-xl font-semibold text-slate-900">
-                Begin Your Journey Today
-              </h3>
-              <p className="mt-1 text-slate-600">
-                Start with JavaScript essentials and build your way up to advanced automation testing
-              </p>
-            </div>
-            <Button asChild size="lg" className="gap-2 bg-sky-600 hover:bg-sky-700">
-              <Link href="/dashboard/learning/javascript">
-                Start Learning
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 }

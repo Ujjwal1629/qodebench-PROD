@@ -8,6 +8,9 @@ import {
   Trophy,
   Gift,
   Users,
+  FlaskConical,
+  GraduationCap,
+  TestTube,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -25,6 +28,12 @@ export const NAV_ITEMS: NavItem[] = [
     href: '/dashboard/learning',
     icon: BookOpen,
     description: 'Structured learning paths',
+  },
+  {
+    title: 'Practice',
+    href: '/dashboard/practice',
+    icon: FlaskConical,
+    description: 'JS & TypeScript coding challenges',
   },
   // Temporarily hidden - Dashboard
   // {
@@ -62,6 +71,18 @@ export const NAV_ITEMS: NavItem[] = [
   //   description: 'Compete with developers worldwide',
   // },
   {
+    title: 'Testing Tools',
+    href: '/dashboard/testing-tools',
+    icon: TestTube,
+    description: 'Practice automation on real web apps',
+  },
+  {
+    title: 'Interview Prep',
+    href: '/dashboard/interview-prep',
+    icon: GraduationCap,
+    description: 'JS, TS & Playwright interview questions',
+  },
+  {
     title: 'Visitors',
     href: '/dashboard/admin/visitors',
     icon: Users,
@@ -79,7 +100,9 @@ export const NAV_ITEMS: NavItem[] = [
 // Mobile navigation items (essential features)
 export const MOBILE_NAV_ITEMS: NavItem[] = [
   NAV_ITEMS[0], // Learning
-  // Dashboard, Challenges and Interviews temporarily hidden
+  NAV_ITEMS[1], // Practice
+  NAV_ITEMS[2], // Testing Tools
+  NAV_ITEMS[3], // Interview Prep
 ];
 
 // Experience levels and point thresholds
