@@ -1,15 +1,18 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { InlinePracticeEditor } from '@/components/learning/inline-practice-editor';
 import {
   CheckCircle, CheckCircle2,
-  Lightbulb, Code2, Rocket, ArrowRight,
+  Lightbulb, Code2, Rocket, ArrowRight, Lock, Crown,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+
+const FREE_CHALLENGES_PER_CATEGORY = 4;
 
 type Difficulty = 'Easy' | 'Medium' | 'Hard';
 type View = 'landing' | 'javascript' | 'typescript' | 'playwright';
@@ -2061,12 +2064,14 @@ function ChallengeCard({
   challenge,
   onOpen,
   completed,
+  isLocked,
 }: {
   challenge: Challenge;
   index: number;
   onOpen: () => void;
   completed: boolean;
   onToggleComplete: () => void;
+  isLocked: boolean;
 }) {
   const iconStyle = TOPIC_ICON_STYLES[challenge.topic] ?? 'bg-slate-100 text-slate-600';
 
@@ -2074,9 +2079,11 @@ function ChallengeCard({
     <Card
       className={cn(
         'relative overflow-hidden h-full border-2 cursor-pointer transition-transform hover:scale-[1.02]',
-        completed
-          ? 'border-green-200 bg-green-50/30 hover:border-green-400'
-          : 'border-sky-200 bg-sky-50/30 hover:border-sky-400'
+        isLocked
+          ? 'border-slate-200 bg-slate-50 opacity-70 hover:border-slate-300'
+          : completed
+            ? 'border-green-200 bg-green-50/30 hover:border-green-400'
+            : 'border-sky-200 bg-sky-50/30 hover:border-sky-400'
       )}
       onClick={onOpen}
     >
@@ -2094,6 +2101,12 @@ function ChallengeCard({
             <Badge variant="secondary" className="text-xs">
               {challenge.language === 'typescript' ? 'TS' : 'JS'}
             </Badge>
+            {isLocked && (
+              <Badge className="text-xs bg-amber-100 text-amber-700 hover:bg-amber-100 gap-1">
+                <Crown className="h-3 w-3" />
+                Premium
+              </Badge>
+            )}
           </div>
         </div>
         <CardTitle className="mt-4 text-base">
@@ -2104,7 +2117,12 @@ function ChallengeCard({
 
       <CardContent>
         <div className="flex items-center justify-between">
-          {completed ? (
+          {isLocked ? (
+            <div className="flex items-center gap-2 text-sm text-slate-400">
+              <Lock className="h-4 w-4" />
+              Locked
+            </div>
+          ) : completed ? (
             <div className="flex items-center gap-2 text-sm font-medium text-green-700">
               <CheckCircle className="h-4 w-4" />
               Completed
@@ -2136,6 +2154,7 @@ function ChallengeListView({
   gradientTo,
   borderColor,
   categoryLabel,
+  isPaidUser,
 }: {
   challenges: Challenge[];
   completed: Set<number>;
@@ -2148,6 +2167,7 @@ function ChallengeListView({
   gradientTo: string;
   borderColor: string;
   categoryLabel: string;
+  isPaidUser: boolean;
 }) {
   const completedCount = challenges.filter(c => completed.has(c.id)).length;
 
@@ -2225,16 +2245,20 @@ function ChallengeListView({
       <div>
         <h2 className="text-xl sm:text-2xl font-semibold text-slate-900 mb-4">Challenges</h2>
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {challenges.map((challenge, i) => (
-            <ChallengeCard
-              key={challenge.id}
-              challenge={challenge}
-              index={i}
-              onOpen={() => onOpenChallenge(challenge)}
-              completed={completed.has(challenge.id)}
-              onToggleComplete={() => onToggleComplete(challenge.id)}
-            />
-          ))}
+          {challenges.map((challenge, i) => {
+            const isLocked = i >= FREE_CHALLENGES_PER_CATEGORY && !isPaidUser;
+            return (
+              <ChallengeCard
+                key={challenge.id}
+                challenge={challenge}
+                index={i}
+                onOpen={() => onOpenChallenge(challenge)}
+                completed={completed.has(challenge.id)}
+                onToggleComplete={() => onToggleComplete(challenge.id)}
+                isLocked={isLocked}
+              />
+            );
+          })}
         </div>
       </div>
     </div>
@@ -2244,9 +2268,23 @@ function ChallengeListView({
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function PracticePage() {
+  const router = useRouter();
   const [view, setView]                   = useState<View>('landing');
   const [openChallenge, setOpenChallenge] = useState<Challenge | null>(null);
   const [completed, setCompleted]         = useState<Set<number>>(new Set());
+  const [isPaidUser, setIsPaidUser]       = useState(false);
+
+  // Fetch subscription status on mount
+  useEffect(() => {
+    fetch('/api/payments/subscription-status')
+      .then(res => res.ok ? res.json() : null)
+      .then(data => {
+        if (data?.subscription?.isActive) {
+          setIsPaidUser(true);
+        }
+      })
+      .catch(() => { /* stay as free user on error */ });
+  }, []);
 
   const toggleComplete = (id: number) => {
     setCompleted(prev => {
@@ -2259,6 +2297,15 @@ export default function PracticePage() {
   const goToLanding = () => {
     setView('landing');
     setOpenChallenge(null);
+  };
+
+  // Wrapper: if the challenge is locked, redirect to /pricing
+  const handleOpenChallenge = (challenge: Challenge, index: number) => {
+    if (index >= FREE_CHALLENGES_PER_CATEGORY && !isPaidUser) {
+      router.push('/pricing');
+      return;
+    }
+    setOpenChallenge(challenge);
   };
 
   const jsChallenges = JS_TS_CHALLENGES.filter(c => c.language === 'javascript');
@@ -2360,7 +2407,7 @@ export default function PracticePage() {
           challenges={jsChallenges}
           completed={completed}
           openChallenge={openChallenge}
-          onOpenChallenge={setOpenChallenge}
+          onOpenChallenge={(c) => c ? handleOpenChallenge(c, jsChallenges.indexOf(c)) : setOpenChallenge(null)}
           onToggleComplete={toggleComplete}
           onBack={goToLanding}
           title="JavaScript Challenges"
@@ -2368,6 +2415,7 @@ export default function PracticePage() {
           gradientTo="to-blue-50"
           borderColor="border-sky-200"
           categoryLabel="JavaScript"
+          isPaidUser={isPaidUser}
         />
       </div>
     );
@@ -2381,7 +2429,7 @@ export default function PracticePage() {
           challenges={tsChallenges}
           completed={completed}
           openChallenge={openChallenge}
-          onOpenChallenge={setOpenChallenge}
+          onOpenChallenge={(c) => c ? handleOpenChallenge(c, tsChallenges.indexOf(c)) : setOpenChallenge(null)}
           onToggleComplete={toggleComplete}
           onBack={goToLanding}
           title="TypeScript Challenges"
@@ -2389,6 +2437,7 @@ export default function PracticePage() {
           gradientTo="to-indigo-50"
           borderColor="border-purple-200"
           categoryLabel="TypeScript"
+          isPaidUser={isPaidUser}
         />
       </div>
     );
@@ -2401,7 +2450,7 @@ export default function PracticePage() {
         challenges={PLAYWRIGHT_CHALLENGES}
         completed={completed}
         openChallenge={openChallenge}
-        onOpenChallenge={setOpenChallenge}
+        onOpenChallenge={(c) => c ? handleOpenChallenge(c, PLAYWRIGHT_CHALLENGES.indexOf(c)) : setOpenChallenge(null)}
         onToggleComplete={toggleComplete}
         onBack={goToLanding}
         title="Playwright Challenges"
@@ -2409,6 +2458,7 @@ export default function PracticePage() {
         gradientTo="to-teal-50"
         borderColor="border-emerald-200"
         categoryLabel="Playwright"
+        isPaidUser={isPaidUser}
       />
     </div>
   );

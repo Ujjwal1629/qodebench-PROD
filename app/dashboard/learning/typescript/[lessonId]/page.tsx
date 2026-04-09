@@ -52,34 +52,7 @@ export default async function LessonPage({ params }: { params: Promise<{ lessonI
   ]);
 
   if (!accessCheck.can_access) {
-    return (
-      <div className="container max-w-4xl py-10 space-y-4">
-        <Link
-          href="/dashboard/learning/typescript"
-          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-purple-600"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back to Lessons
-        </Link>
-        <Card className="border-2 border-red-200 bg-red-50">
-          <CardContent className="p-6 text-center space-y-4">
-            <div className="text-4xl">🔒</div>
-            <h2 className="text-2xl font-bold">Lesson Locked</h2>
-            <p className="text-muted-foreground">{accessCheck.reason}</p>
-            {accessCheck.required_lesson && (
-              <div className="mt-4">
-                <p className="text-sm mb-2">Complete this lesson first:</p>
-                <Button asChild className="bg-purple-600 hover:bg-purple-700">
-                  <Link href={`/dashboard/learning/typescript/${accessCheck.required_lesson.id}`}>
-                    Go to {accessCheck.required_lesson.title}
-                  </Link>
-                </Button>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-    );
+    redirect('/pricing');
   }
 
   // Mark lesson as started (non-blocking - fire and forget)

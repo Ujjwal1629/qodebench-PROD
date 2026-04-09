@@ -15,11 +15,13 @@ import {
   ArrowRight,
   BookOpen,
   BookOpenCheck,
+  Crown,
 } from 'lucide-react';
 import {
   LessonListSkeleton,
   LearningModuleHeaderSkeleton,
 } from '@/components/learning/lesson-list-skeleton';
+import { FREE_LESSONS_PER_PATH } from '@/lib/learning/progress-service';
 
 const JAVASCRIPT_PATH_ID = 'a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d';
 
@@ -69,6 +71,16 @@ async function LessonsList({ userId }: { userId: string }) {
                       <Clock className="h-3 w-3" />
                       {lesson.duration_minutes}m
                     </Badge>
+                    {lesson.order_index <= FREE_LESSONS_PER_PATH ? (
+                      <Badge className="text-xs bg-green-100 text-green-700 hover:bg-green-100">
+                        Free
+                      </Badge>
+                    ) : (
+                      <Badge className="text-xs bg-amber-100 text-amber-700 hover:bg-amber-100 gap-1">
+                        <Crown className="h-3 w-3" />
+                        Premium
+                      </Badge>
+                    )}
                   </div>
                 </div>
                 <CardTitle className="mt-4 text-base leading-snug">{lesson.title}</CardTitle>
@@ -107,7 +119,13 @@ async function LessonsList({ userId }: { userId: string }) {
           );
 
           return isLocked ? (
-            <div key={lesson.id}>{cardContent}</div>
+            <Link
+              key={lesson.id}
+              href="/pricing"
+              className="block transition-transform hover:scale-[1.02]"
+            >
+              {cardContent}
+            </Link>
           ) : (
             <Link
               key={lesson.id}

@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   ChevronDown, ChevronRight, ArrowRight, ArrowLeft, Search,
-  GraduationCap, BookOpen, Code2,
+  GraduationCap, BookOpen, Code2, Lock, Crown,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
@@ -16,6 +17,8 @@ import {
   type InterviewSection,
   type InterviewQuestion,
 } from '@/lib/constants/interview-questions';
+
+const FREE_SECTIONS_PER_BANK = 4;
 
 type View = 'home' | 'bank' | 'section';
 type QuestionBank = 'js-ts' | 'playwright';
@@ -168,10 +171,12 @@ function BankView({
   bank,
   onBack,
   onOpenSection,
+  isPaidUser,
 }: {
   bank: QuestionBank;
   onBack: () => void;
-  onOpenSection: (section: InterviewSection) => void;
+  onOpenSection: (section: InterviewSection, index: number) => void;
+  isPaidUser: boolean;
 }) {
   const sections = bank === 'js-ts' ? INTERVIEW_SECTIONS : PLAYWRIGHT_FRAMEWORK_SECTIONS;
   const totalQuestions = bank === 'js-ts' ? TOTAL_QUESTIONS : TOTAL_PLAYWRIGHT_FRAMEWORK_QUESTIONS;
@@ -228,42 +233,64 @@ function BankView({
 
       {/* Section Cards Grid */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {filteredSections.map((section) => (
-          <Card
-            key={section.id}
-            className={cn(
-              'relative overflow-hidden h-full border-2 cursor-pointer transition-all hover:scale-[1.02] hover:shadow-md',
-              accent === 'sky'
-                ? 'border-sky-200 bg-sky-50/30 hover:border-sky-400'
-                : 'border-purple-200 bg-purple-50/30 hover:border-purple-400'
-            )}
-            onClick={() => onOpenSection(section)}
-          >
-            <CardHeader className="pb-3">
-              <div className="flex items-start justify-between">
-                <span className="text-2xl">{section.icon}</span>
-                <Badge variant="secondary" className="text-xs">
-                  {section.questions.length} Q&apos;s
-                </Badge>
-              </div>
-              <CardTitle className="mt-2 text-base leading-snug">
-                {section.title}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pt-0">
-              <div className="flex items-center justify-between">
-                <div className={cn(
-                  'flex items-center gap-2 text-sm font-medium',
-                  accent === 'sky' ? 'text-sky-700' : 'text-purple-700'
-                )}>
-                  <BookOpen className="h-4 w-4" />
-                  View Questions
+        {filteredSections.map((section, index) => {
+          const originalIndex = sections.indexOf(section);
+          const isLocked = originalIndex >= FREE_SECTIONS_PER_BANK && !isPaidUser;
+
+          return (
+            <Card
+              key={section.id}
+              className={cn(
+                'relative overflow-hidden h-full border-2 cursor-pointer transition-all hover:scale-[1.02] hover:shadow-md',
+                isLocked
+                  ? 'border-slate-200 bg-slate-50 opacity-70 hover:border-slate-300'
+                  : accent === 'sky'
+                    ? 'border-sky-200 bg-sky-50/30 hover:border-sky-400'
+                    : 'border-purple-200 bg-purple-50/30 hover:border-purple-400'
+              )}
+              onClick={() => onOpenSection(section, originalIndex)}
+            >
+              <CardHeader className="pb-3">
+                <div className="flex items-start justify-between">
+                  <span className="text-2xl">{isLocked ? '🔒' : section.icon}</span>
+                  <div className="flex items-center gap-1.5">
+                    <Badge variant="secondary" className="text-xs">
+                      {section.questions.length} Q&apos;s
+                    </Badge>
+                    {isLocked && (
+                      <Badge className="text-xs bg-amber-100 text-amber-700 hover:bg-amber-100 gap-1">
+                        <Crown className="h-3 w-3" />
+                        Premium
+                      </Badge>
+                    )}
+                  </div>
                 </div>
-                <ArrowRight className={cn('h-4 w-4', accent === 'sky' ? 'text-sky-600' : 'text-purple-600')} />
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+                <CardTitle className="mt-2 text-base leading-snug">
+                  {section.title}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <div className="flex items-center justify-between">
+                  {isLocked ? (
+                    <div className="flex items-center gap-2 text-sm text-slate-400">
+                      <Lock className="h-4 w-4" />
+                      Locked
+                    </div>
+                  ) : (
+                    <div className={cn(
+                      'flex items-center gap-2 text-sm font-medium',
+                      accent === 'sky' ? 'text-sky-700' : 'text-purple-700'
+                    )}>
+                      <BookOpen className="h-4 w-4" />
+                      View Questions
+                    </div>
+                  )}
+                  <ArrowRight className={cn('h-4 w-4', isLocked ? 'text-slate-400' : accent === 'sky' ? 'text-sky-600' : 'text-purple-600')} />
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
 
       {filteredSections.length === 0 && (
@@ -278,9 +305,23 @@ function BankView({
 // ─── Page ────────────────────────────────────────────────────────────────────
 
 export default function InterviewPrepPage() {
+  const router = useRouter();
   const [view, setView] = useState<View>('home');
   const [activeBank, setActiveBank] = useState<QuestionBank>('js-ts');
   const [activeSection, setActiveSection] = useState<InterviewSection | null>(null);
+  const [isPaidUser, setIsPaidUser] = useState(false);
+
+  // Fetch subscription status on mount
+  useEffect(() => {
+    fetch('/api/payments/subscription-status')
+      .then(res => res.ok ? res.json() : null)
+      .then(data => {
+        if (data?.subscription?.isActive) {
+          setIsPaidUser(true);
+        }
+      })
+      .catch(() => { /* stay as free user on error */ });
+  }, []);
 
   const allTotalQuestions = TOTAL_QUESTIONS + TOTAL_PLAYWRIGHT_FRAMEWORK_QUESTIONS;
 
@@ -289,7 +330,11 @@ export default function InterviewPrepPage() {
     setView('bank');
   };
 
-  const openSection = (section: InterviewSection) => {
+  const openSection = (section: InterviewSection, index: number) => {
+    if (index >= FREE_SECTIONS_PER_BANK && !isPaidUser) {
+      router.push('/pricing');
+      return;
+    }
     setActiveSection(section);
     setView('section');
   };
@@ -319,7 +364,7 @@ export default function InterviewPrepPage() {
   if (view === 'bank') {
     return (
       <div className="space-y-8">
-        <BankView bank={activeBank} onBack={goHome} onOpenSection={openSection} />
+        <BankView bank={activeBank} onBack={goHome} onOpenSection={openSection} isPaidUser={isPaidUser} />
       </div>
     );
   }
@@ -336,12 +381,6 @@ export default function InterviewPrepPage() {
         <p className="mt-2 text-sm sm:text-base text-slate-600">
           {allTotalQuestions} curated questions with detailed answers &amp; code examples to ace your interviews.
         </p>
-        <div className="flex items-center gap-2 mt-3">
-          <Badge variant="secondary" className="bg-green-100 text-green-700 border-green-200">
-            100% Free
-          </Badge>
-          <Badge variant="outline">{allTotalQuestions} Questions</Badge>
-        </div>
       </div>
 
       {/* Two Bank Cards */}
