@@ -5,7 +5,6 @@ import { QuizService } from '@/lib/quiz/quiz-service';
 import { SplitScreenLayout } from '@/components/learning/split-screen-layout';
 import { AITutorDock } from '@/components/learning/ai-tutor-dock';
 import { QuizComponent } from '@/components/learning/quiz/quiz-component';
-import { ReadingProgress } from '@/components/learning/reading-progress';
 import { EnhancedMarkdownRenderer } from '@/components/learning/enhanced-markdown-renderer';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -58,7 +57,6 @@ export default async function LessonPage({ params }: { params: Promise<{ lessonI
 
   const TheoryPanel = () => (
     <div className="relative">
-      <ReadingProgress />
 
       <div className="space-y-8">
         <Link

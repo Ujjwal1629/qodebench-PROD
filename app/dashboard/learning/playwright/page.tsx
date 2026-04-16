@@ -4,14 +4,12 @@ import { createClient } from '@/lib/supabase/server';
 import { ProgressService } from '@/lib/learning/progress-service';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
 import Link from 'next/link';
 import {
   CheckCircle2,
   CheckCircle,
   Lock,
   Clock,
-  Trophy,
   ArrowRight,
   BookOpen,
   BookOpenCheck,
@@ -19,8 +17,6 @@ import {
 } from 'lucide-react';
 import {
   LessonListSkeleton,
-  LearningModuleHeaderSkeleton,
-  LearningObjectivesSkeleton,
 } from '@/components/learning/lesson-list-skeleton';
 import { FREE_LESSONS_PER_PATH } from '@/lib/learning/progress-service';
 
@@ -145,10 +141,7 @@ async function LessonsList({ userId }: { userId: string }) {
   );
 }
 
-// Separate component for header with progress
-async function ModuleHeader({ userId, learningPath }: { userId: string; learningPath: any }) {
-  const progress = await ProgressService.getLearningPathProgress(userId, PLAYWRIGHT_PATH_ID);
-
+function ModuleHeader({ learningPath }: { learningPath: any }) {
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -159,37 +152,17 @@ async function ModuleHeader({ userId, learningPath }: { userId: string; learning
         <span>Playwright Test Automation</span>
       </div>
 
-      <div className="flex items-start justify-between gap-6">
-        <div className="flex-1 space-y-2">
-          <div className="flex items-center gap-3">
-            <div className="text-4xl">{learningPath.icon}</div>
-            <div>
-              <h1 className="text-3xl font-bold">{learningPath.title}</h1>
-              <Badge className="bg-green-100 text-green-800 mt-2">
-                {learningPath.difficulty}
-              </Badge>
-            </div>
+      <div className="space-y-2">
+        <div className="flex items-center gap-3">
+          <div className="text-4xl">{learningPath.icon}</div>
+          <div>
+            <h1 className="text-3xl font-bold">{learningPath.title}</h1>
+            <Badge className="bg-green-100 text-green-800 mt-2">
+              {learningPath.difficulty}
+            </Badge>
           </div>
-          <p className="text-lg text-muted-foreground">{learningPath.description}</p>
         </div>
-
-        <Card className="w-64">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium">Your Progress</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-3xl font-bold text-sky-600">
-                {progress.progress_percentage}%
-              </span>
-              <Trophy className="h-8 w-8 text-yellow-500" />
-            </div>
-            <Progress value={progress.progress_percentage} className="h-2" />
-            <p className="text-sm text-muted-foreground">
-              {progress.completed_lessons} of {progress.total_lessons} lessons completed
-            </p>
-          </CardContent>
-        </Card>
+        <p className="text-lg text-muted-foreground">{learningPath.description}</p>
       </div>
     </div>
   );
@@ -268,10 +241,7 @@ export default async function PlaywrightLearningPage() {
   // The header and lessons will load independently with loading states
   return (
     <div className="container space-y-8">
-      {/* Header Section with Progress - Wrapped in Suspense */}
-      <Suspense fallback={<LearningModuleHeaderSkeleton />}>
-        <ModuleHeader userId={user.id} learningPath={learningPath} />
-      </Suspense>
+      <ModuleHeader learningPath={learningPath} />
 
       {/* Learning Objectives - Static content, no need for Suspense */}
       <LearningObjectives learningPath={learningPath} />

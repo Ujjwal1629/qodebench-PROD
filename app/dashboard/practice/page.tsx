@@ -2174,6 +2174,15 @@ function ChallengeListView({
   if (openChallenge) {
     return (
       <div className="space-y-4">
+        {/* Back button at the top */}
+        <button
+          onClick={() => onOpenChallenge(null)}
+          className="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-sky-600 transition-colors font-medium"
+        >
+          <ArrowRight className="h-4 w-4 rotate-180" />
+          Back to challenges
+        </button>
+
         <div className="flex items-center gap-3">
           <div className={cn('rounded-lg p-3', TOPIC_ICON_STYLES[openChallenge.topic] ?? 'bg-slate-100 text-slate-600')}>
             <Code2 className="h-6 w-6" />
@@ -2267,12 +2276,33 @@ function ChallengeListView({
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
+const STORAGE_KEY = 'practice_completed_challenges';
+
+function loadCompleted(): Set<number> {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) return new Set(JSON.parse(stored) as number[]);
+  } catch { /* ignore */ }
+  return new Set();
+}
+
+function saveCompleted(set: Set<number>) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify([...set]));
+  } catch { /* ignore */ }
+}
+
 export default function PracticePage() {
   const router = useRouter();
   const [view, setView]                   = useState<View>('landing');
   const [openChallenge, setOpenChallenge] = useState<Challenge | null>(null);
   const [completed, setCompleted]         = useState<Set<number>>(new Set());
   const [isPaidUser, setIsPaidUser]       = useState(false);
+
+  // Load persisted completed state from localStorage on mount
+  useEffect(() => {
+    setCompleted(loadCompleted());
+  }, []);
 
   // Fetch subscription status on mount
   useEffect(() => {
@@ -2290,6 +2320,7 @@ export default function PracticePage() {
     setCompleted(prev => {
       const next = new Set(prev);
       next.has(id) ? next.delete(id) : next.add(id);
+      saveCompleted(next);
       return next;
     });
   };
