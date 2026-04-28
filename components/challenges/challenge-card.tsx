@@ -8,11 +8,9 @@ import {
   DIFFICULTY_COLORS,
   CATEGORY_LABELS,
   CATEGORY_COLORS,
-  ChallengeTier,
 } from '@/lib/constants/dashboard';
-import { Clock, Sparkles, CheckCircle2, PlayCircle, Lock, Crown } from 'lucide-react';
+import { Clock, Sparkles, CheckCircle2, PlayCircle } from 'lucide-react';
 import { ChallengeWithProgress } from '@/app/actions/challenges';
-import { FREE_CHALLENGES_PER_TIER } from '@/lib/constants/subscription';
 
 interface ChallengeCardProps {
   challenge: ChallengeWithProgress & {
@@ -26,18 +24,6 @@ export function ChallengeCard({ challenge, hasActiveSubscription = false }: Chal
   const userProgress = challenge.userProgress;
   const isCompleted = userProgress?.status === 'completed';
   const isInProgress = userProgress?.status === 'in_progress';
-  const isNotStarted = !userProgress;
-
-  // TIER-SPECIFIC POSITION-BASED PREMIUM CHECK
-  // Each tier has different free challenge limits (Advanced: 2, Others: 5)
-  const tier = challenge.tier as ChallengeTier;
-  const freeLimit = FREE_CHALLENGES_PER_TIER[tier] || 5;
-  const orderInTier = challenge.order_in_tier || 0;
-  const isPremiumPosition = orderInTier > freeLimit;
-  const requiresPremium = isPremiumPosition && !challenge.is_free_tier_accessible;
-
-  // Challenge is locked if it requires premium and user doesn't have subscription
-  const isLocked = requiresPremium && !hasActiveSubscription;
 
   // Determine button text and variant
   const getButtonConfig = () => {
@@ -65,13 +51,7 @@ export function ChallengeCard({ challenge, hasActiveSubscription = false }: Chal
   const buttonConfig = getButtonConfig();
 
   return (
-    <Card className={`h-full transition-all duration-200 ${
-      isLocked
-        ? 'border-slate-300 bg-gradient-to-br from-slate-50 to-slate-100 opacity-75'
-        : requiresPremium
-          ? 'border-primary/30 bg-gradient-to-br from-background to-primary/5 hover:shadow-lg hover:-translate-y-1'
-          : 'hover:shadow-lg hover:-translate-y-1'
-    }`}>
+    <Card className="h-full transition-all duration-200 hover:shadow-lg hover:-translate-y-1">
       <CardContent className="p-4 sm:p-6 h-full flex flex-col">
         <div className="space-y-3 sm:space-y-4 flex-1 flex flex-col">
           {/* Badges Row */}
@@ -103,19 +83,6 @@ export function ChallengeCard({ challenge, hasActiveSubscription = false }: Chal
               {challenge.difficulty.charAt(0).toUpperCase() +
                 challenge.difficulty.slice(1)}
             </Badge>
-            {requiresPremium && (
-              <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20 text-xs">
-                <Crown className="h-3 w-3 mr-1" />
-                <span className="hidden sm:inline">Premium</span>
-                <span className="sm:hidden">Pro</span>
-              </Badge>
-            )}
-            {isLocked && (
-              <Badge variant="secondary" className="bg-slate-200 text-slate-700 border-slate-300 text-xs">
-                <Lock className="h-3 w-3 mr-1" />
-                Locked
-              </Badge>
-            )}
           </div>
 
           {/* Title */}
@@ -169,31 +136,17 @@ export function ChallengeCard({ challenge, hasActiveSubscription = false }: Chal
             )}
 
             {/* CTA Button */}
-            {isLocked ? (
-              <Button
-                asChild
-                variant="outline"
-                className="w-full border-primary text-primary hover:bg-primary hover:text-white"
-                size="sm"
-              >
-                <Link href={`/dashboard/challenges/${challenge.slug}`}>
-                  <Lock className="h-4 w-4 mr-2" />
-                  Unlock Premium
-                </Link>
-              </Button>
-            ) : (
-              <Button
-                asChild
-                variant={buttonConfig.variant}
-                className="w-full"
-                size="sm"
-              >
-                <Link href={`/dashboard/challenges/${challenge.slug}`}>
-                  {buttonConfig.icon}
-                  {buttonConfig.text}
-                </Link>
-              </Button>
-            )}
+            <Button
+              asChild
+              variant={buttonConfig.variant}
+              className="w-full"
+              size="sm"
+            >
+              <Link href={`/dashboard/challenges/${challenge.slug}`}>
+                {buttonConfig.icon}
+                {buttonConfig.text}
+              </Link>
+            </Button>
           </div>
         </div>
       </CardContent>
