@@ -115,6 +115,7 @@ export async function updateSession(request: NextRequest) {
     '/tutorials',
     '/auth/callback',
     '/pricing', // Pricing page is public so expired users can upgrade
+    '/llm-bug-hunter',
   ];
 
   const isPublicRoute = publicRoutes.some(route =>

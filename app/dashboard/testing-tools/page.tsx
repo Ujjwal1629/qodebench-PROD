@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { TestTube, ArrowRight, LogIn, Table2, ListChecks } from 'lucide-react';
+import { TestTube, ArrowRight, LogIn, Table2, ListChecks, Bug } from 'lucide-react';
 
 const tools = [
   {
@@ -33,6 +33,15 @@ const tools = [
     difficulty: 'Intermediate',
     color: 'bg-purple-500',
   },
+  {
+    id: 'llm-bug-hunter',
+    icon: Bug,
+    title: 'LLM Bug Hunter',
+    description: 'Spot hallucinations, prompt injections, factual errors, and context leakage in AI responses. Test your eye for AI bugs.',
+    tags: ['AI', 'Hallucination', 'QA'],
+    difficulty: 'Intermediate',
+    color: 'bg-rose-500',
+  },
 ];
 
 const difficultyColor: Record<string, string> = {
@@ -58,6 +67,7 @@ export default function TestingToolsPage() {
             100% Free
           </Badge>
           <Badge variant="outline">{tools.length} Tools</Badge>
+          <Badge variant="secondary" className="bg-rose-100 text-rose-700 border-rose-200">New: LLM Bug Hunter</Badge>
         </div>
       </div>
 
@@ -65,8 +75,9 @@ export default function TestingToolsPage() {
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {tools.map((tool) => {
           const Icon = tool.icon;
+          const href = `/dashboard/testing-tools/${tool.id}`;
           return (
-            <Link key={tool.id} href={`/dashboard/testing-tools/${tool.id}`}>
+            <Link key={tool.id} href={href}>
               <Card className="h-full border border-slate-200 hover:border-sky-300 hover:shadow-lg cursor-pointer transition-all hover:-translate-y-0.5">
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between">
