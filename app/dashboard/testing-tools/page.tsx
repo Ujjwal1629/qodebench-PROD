@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { TestTube, ArrowRight, LogIn, Table2, ListChecks, Bug } from 'lucide-react';
+import { TestTube, ArrowRight, LogIn, Table2, ListChecks, Bug, Scale } from 'lucide-react';
 
 const tools = [
   {
@@ -42,6 +42,15 @@ const tools = [
     difficulty: 'Intermediate',
     color: 'bg-rose-500',
   },
+  {
+    id: 'bias-detector',
+    icon: Scale,
+    title: 'Bias Detector',
+    description: 'Send two near-identical prompts differing by one identity variable and compare AI responses for gender, age, cultural, or profession bias.',
+    tags: ['AI Bias', 'Fairness', 'LLM QA'],
+    difficulty: 'Intermediate',
+    color: 'bg-amber-500',
+  },
 ];
 
 const difficultyColor: Record<string, string> = {
@@ -67,7 +76,7 @@ export default function TestingToolsPage() {
             100% Free
           </Badge>
           <Badge variant="outline">{tools.length} Tools</Badge>
-          <Badge variant="secondary" className="bg-rose-100 text-rose-700 border-rose-200">New: LLM Bug Hunter</Badge>
+          <Badge variant="secondary" className="bg-amber-100 text-amber-700 border-amber-200">New: Bias Detector</Badge>
         </div>
       </div>
 
