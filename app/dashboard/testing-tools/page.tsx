@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { TestTube, ArrowRight, LogIn, Table2, ListChecks, Bug, Scale } from 'lucide-react';
+import { TestTube, ArrowRight, LogIn, Table2, ListChecks, Bug, Scale, Activity, Bot } from 'lucide-react';
 
 const tools = [
   {
@@ -51,6 +51,24 @@ const tools = [
     difficulty: 'Intermediate',
     color: 'bg-amber-500',
   },
+  {
+    id: 'drift-testing',
+    icon: Activity,
+    title: 'Drift Testing',
+    description: 'Run the same question suite over time and track if AI quality drops — even when nothing in your code has changed.',
+    tags: ['AI Drift', 'Eval', 'LLM QA'],
+    difficulty: 'Advanced',
+    color: 'bg-sky-600',
+  },
+  {
+    id: 'hr-chatbot',
+    icon: Bot,
+    title: 'HR Chatbot Tester',
+    description: 'Build a system prompt for an HR assistant, then run a suite of test questions — including prompt-injection attacks — to check whether your prompt holds.',
+    tags: ['RAG', 'Prompt Testing', 'LLM QA'],
+    difficulty: 'Advanced',
+    color: 'bg-emerald-600',
+  },
 ];
 
 const difficultyColor: Record<string, string> = {
@@ -76,7 +94,7 @@ export default function TestingToolsPage() {
             100% Free
           </Badge>
           <Badge variant="outline">{tools.length} Tools</Badge>
-          <Badge variant="secondary" className="bg-amber-100 text-amber-700 border-amber-200">New: Bias Detector</Badge>
+          <Badge variant="secondary" className="bg-sky-100 text-sky-700 border-sky-200">New: HR Chatbot Tester</Badge>
         </div>
       </div>
 

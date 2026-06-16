@@ -174,6 +174,9 @@ const CSRF_EXEMPT_PATHS = [
   '/api/payments/cancel-subscription',
   '/api/llm-bug-hunter',
   '/api/bias-detector',
+  '/api/drift-testing',
+  '/api/drift-testing/investigate',
+  '/api/hr-chatbot',
 ];
 
 /**

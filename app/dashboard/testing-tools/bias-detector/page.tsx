@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Loader2, RefreshCw, Send, FlaskConical, MessageSquare } from 'lucide-react';
+import { Loader2, RefreshCw, Send, FlaskConical, MessageSquare, ScanSearch } from 'lucide-react';
 import { ToolLayout } from '../tool-layout';
 
 /* ─── Types ─── */
@@ -16,12 +16,19 @@ interface Scenario {
   promptB: string;
 }
 
+interface BiasAnalysis {
+  verdict: string;
+  summary: string;
+  differences: string[];
+}
+
 interface ChatMessage {
   question: string;
   identityA: string;
   identityB: string;
   responseA: string;
   responseB: string;
+  analysis: BiasAnalysis | null;
 }
 
 /* ─── Data ─── */
@@ -114,13 +121,43 @@ const SCENARIOS_LIST = [
 ];
 
 /* ─── API helper ─── */
-async function fetchBiasResponses(promptA: string, promptB: string) {
+async function fetchBiasResponses(promptA: string, promptB: string, labelA?: string, labelB?: string) {
   const res = await fetch('/api/bias-detector', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ promptA, promptB }),
+    body: JSON.stringify({ promptA, promptB, labelA, labelB }),
   });
   return res.json();
+}
+
+/* ─── Shared analysis card ─── */
+const VERDICT_STYLES: Record<string, string> = {
+  'Bias detected': 'bg-red-50 border-red-200 text-red-700',
+  'Subtle bias': 'bg-amber-50 border-amber-200 text-amber-700',
+  'No bias found': 'bg-green-50 border-green-200 text-green-700',
+};
+
+function AnalysisCard({ analysis }: { analysis: BiasAnalysis }) {
+  const style = VERDICT_STYLES[analysis.verdict] ?? 'bg-slate-50 border-slate-200 text-slate-700';
+  return (
+    <div className={`rounded-lg border px-4 py-3 ${style}`}>
+      <div className="flex items-center gap-2 mb-1">
+        <ScanSearch className="w-4 h-4 shrink-0" />
+        <p className="text-sm font-semibold">AI Bias Analysis: {analysis.verdict}</p>
+      </div>
+      <p className="text-sm leading-relaxed">{analysis.summary}</p>
+      {analysis.differences.length > 0 && (
+        <ul className="mt-2 space-y-1">
+          {analysis.differences.map((d, i) => (
+            <li key={i} className="text-xs flex items-start gap-1.5">
+              <span className="mt-1.5 w-1 h-1 rounded-full bg-current shrink-0" />
+              <span>{d}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
 }
 
 /* ─── Main component ─── */
@@ -166,6 +203,7 @@ function PresetTab() {
   const [customB, setCustomB] = useState('');
   const [responseA, setResponseA] = useState('');
   const [responseB, setResponseB] = useState('');
+  const [analysis, setAnalysis] = useState<BiasAnalysis | null>(null);
   const [loading, setLoading] = useState(false);
   const [ran, setRan] = useState(false);
   const [checked, setChecked] = useState<Record<string, boolean>>({});
@@ -183,14 +221,16 @@ function PresetTab() {
     setLoading(true);
     setResponseA('');
     setResponseB('');
+    setAnalysis(null);
     setRan(false);
     setChecked({});
     setBiasTag('');
     setNotes('');
     try {
-      const data = await fetchBiasResponses(promptA, promptB);
+      const data = await fetchBiasResponses(promptA, promptB, scenario.labelA, scenario.labelB);
       setResponseA(data.responseA ?? data.error ?? 'No response.');
       setResponseB(data.responseB ?? data.error ?? 'No response.');
+      setAnalysis(data.analysis ?? null);
       setRan(true);
     } catch {
       setResponseA('Failed to get response.');
@@ -212,7 +252,7 @@ function PresetTab() {
           {SCENARIOS.map((s) => (
             <button
               key={s.id}
-              onClick={() => { setSelectedId(s.id); setRan(false); setResponseA(''); setResponseB(''); setChecked({}); setBiasTag(''); setNotes(''); }}
+              onClick={() => { setSelectedId(s.id); setRan(false); setResponseA(''); setResponseB(''); setAnalysis(null); setChecked({}); setBiasTag(''); setNotes(''); }}
               className={`text-xs px-3 py-1.5 rounded-md border transition-colors ${
                 selectedId === s.id
                   ? 'border-sky-500 bg-sky-50 text-sky-700 font-medium'
@@ -292,6 +332,9 @@ function PresetTab() {
         </div>
       )}
 
+      {/* AI bias analysis */}
+      {ran && analysis && <AnalysisCard analysis={analysis} />}
+
       {/* Analysis */}
       {ran && responseA && responseB && (
         <div className="space-y-4 border-t border-slate-100 pt-5">
@@ -369,13 +412,14 @@ function ChatTab() {
     setLoading(true);
 
     try {
-      const data = await fetchBiasResponses(promptA, promptB);
+      const data = await fetchBiasResponses(promptA, promptB, identityA.trim(), identityB.trim());
       setHistory((h) => [...h, {
         question: q,
         identityA: identityA.trim(),
         identityB: identityB.trim(),
         responseA: data.responseA ?? data.error ?? 'No response.',
         responseB: data.responseB ?? data.error ?? 'No response.',
+        analysis: data.analysis ?? null,
       }]);
     } catch {
       setHistory((h) => [...h, {
@@ -384,6 +428,7 @@ function ChatTab() {
         identityB: identityB.trim(),
         responseA: 'Failed to get response.',
         responseB: 'Failed to get response.',
+        analysis: null,
       }]);
     } finally {
       setLoading(false);
@@ -439,6 +484,7 @@ function ChatTab() {
                   </div>
                 ))}
               </div>
+              {msg.analysis && <AnalysisCard analysis={msg.analysis} />}
             </div>
           ))}
         </div>
