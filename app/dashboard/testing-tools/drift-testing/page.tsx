@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Loader2, Play, Trash2, TrendingDown, TrendingUp, Minus, ChevronDown, ChevronUp, Search } from 'lucide-react';
+import { Loader2, Play, Trash2, TrendingDown, TrendingUp, Minus, ChevronDown, ChevronUp, Search, Activity, History, ArrowRight } from 'lucide-react';
 import { ToolLayout } from '../tool-layout';
 
 /* ─── Types ─── */
@@ -111,11 +111,11 @@ function DriftIndicator({ current, previous }: { current: number; previous?: num
 }
 
 const TOOL_SCENARIOS = [
-  'Pick a question suite and click "Run Eval" — the AI answers every question and each is auto-scored 0–100.',
-  'Run the same suite again later — scores are saved locally and shown as a timeline.',
-  'When drift is detected, click "Investigate" on any low-scoring question to run 4 diagnostic probes.',
-  'The investigation shows: fresh re-run, rephrased version, knowledge cutoff check, and a self-evaluation of the old answer.',
-  'Use the root cause checklist to determine why the drift happened.',
+  'Quality Drift tab: pick a question suite and click "Run Eval" — the AI answers every question and each is auto-scored 0–100. Re-run later to see if scores drop.',
+  'When drift is detected, click "Investigate" on any low-scoring question to run 4 diagnostic probes (fresh re-run, rephrased, knowledge check, self-eval).',
+  'Knowledge Cutoff tab: ask time-sensitive questions (e.g. "Who is the US president?") to an old-dataset AI vs a new-dataset AI and watch the answers drift (Biden → Trump).',
+  'Change the cutoff dates to see how far back the AI\'s knowledge has to be before a fact goes stale.',
+  'Lesson: AI has no live information — it only knows its frozen training data, so facts can silently go out of date.',
 ];
 
 /* ─── RCA Panel ─── */
@@ -267,8 +267,44 @@ function InvestigatePanel({
   );
 }
 
-/* ─── Main page ─── */
+/* ─── Main page (tab shell) ─── */
 export default function DriftTestingTool() {
+  const [tab, setTab] = useState<'eval' | 'cutoff'>('eval');
+
+  return (
+    <ToolLayout
+      title="Drift Testing"
+      description="Track if AI response quality drifts over time — from silent model updates, prompt sensitivity, or an outdated training dataset that no longer reflects the real world."
+      difficulty="Advanced"
+      scenarios={TOOL_SCENARIOS}
+    >
+      {/* Tab switcher */}
+      <div className="flex rounded-lg overflow-hidden border border-slate-200 w-fit mb-5">
+        <button
+          onClick={() => setTab('eval')}
+          className={`flex items-center gap-2 px-4 py-2 text-sm font-medium transition-colors border-r border-slate-200 ${
+            tab === 'eval' ? 'bg-sky-50 text-sky-700' : 'text-slate-500 hover:text-slate-700'
+          }`}
+        >
+          <Activity className="w-3.5 h-3.5" /> Quality Drift
+        </button>
+        <button
+          onClick={() => setTab('cutoff')}
+          className={`flex items-center gap-2 px-4 py-2 text-sm font-medium transition-colors ${
+            tab === 'cutoff' ? 'bg-sky-50 text-sky-700' : 'text-slate-500 hover:text-slate-700'
+          }`}
+        >
+          <History className="w-3.5 h-3.5" /> Knowledge Cutoff
+        </button>
+      </div>
+
+      {tab === 'eval' ? <DriftEvalTab /> : <KnowledgeCutoffTab />}
+    </ToolLayout>
+  );
+}
+
+/* ─── Quality Drift tab (the original eval flow) ─── */
+function DriftEvalTab() {
   const [selectedSuiteId, setSelectedSuiteId] = useState(SUITES[0].id);
   const [runs, setRuns] = useState<RunRecord[]>([]);
   const [loading, setLoading] = useState(false);
@@ -331,13 +367,7 @@ export default function DriftTestingTool() {
   const driftDetected = overallDrift !== null && overallDrift < -5;
 
   return (
-    <ToolLayout
-      title="Drift Testing"
-      description="Run the same question suite repeatedly over time and track if AI response quality drops — even when nothing in your code has changed."
-      difficulty="Advanced"
-      scenarios={TOOL_SCENARIOS}
-    >
-      <div className="space-y-5">
+    <div className="space-y-5">
 
         {/* Suite picker */}
         <div>
@@ -549,7 +579,212 @@ export default function DriftTestingTool() {
             <p className="text-xs text-slate-400 mt-1">Click &quot;Run Eval&quot; to take your first baseline score.</p>
           </div>
         )}
+    </div>
+  );
+}
+
+/* ─── Knowledge Cutoff tab ─── */
+interface CutoffPair {
+  question: string;
+  oldAnswer: string;
+  newAnswer: string;
+  drifted: boolean;
+}
+
+const CUTOFF_PRESETS = [
+  'Who is the current President of the United States?',
+  'What is the latest iPhone model released by Apple?',
+  'Who is the current CEO of Twitter (X)?',
+  'What is the most recent Summer Olympics host city?',
+  'What is the latest major version of React?',
+  'Who won the most recent FIFA World Cup?',
+];
+
+const OLD_CUTOFFS = ['January 2022', 'September 2021', 'January 2023'];
+const NEW_CUTOFFS = ['June 2025', 'January 2025', 'December 2024'];
+
+function KnowledgeCutoffTab() {
+  const [oldCutoff, setOldCutoff] = useState(OLD_CUTOFFS[0]);
+  const [newCutoff, setNewCutoff] = useState(NEW_CUTOFFS[0]);
+  const [questions, setQuestions] = useState<string[]>(CUTOFF_PRESETS);
+  const [pairs, setPairs] = useState<CutoffPair[]>([]);
+  const [meta, setMeta] = useState<{ oldCutoff: string; newCutoff: string; driftCount: number; total: number } | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const updateQuestion = (i: number, value: string) => {
+    setQuestions((prev) => prev.map((q, idx) => (idx === i ? value : q)));
+  };
+  const addQuestion = () => setQuestions((prev) => [...prev, '']);
+  const removeQuestion = (i: number) => setQuestions((prev) => prev.filter((_, idx) => idx !== i));
+
+  const run = async () => {
+    const valid = questions.filter((q) => q.trim());
+    if (valid.length === 0 || loading) return;
+    setLoading(true);
+    setError('');
+    setPairs([]);
+    setMeta(null);
+    try {
+      const res = await fetch('/api/drift-testing/knowledge-cutoff', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ questions: valid, oldCutoff, newCutoff }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error ?? 'Failed to run comparison.');
+      } else {
+        setPairs(data.pairs ?? []);
+        setMeta({ oldCutoff: data.oldCutoff, newCutoff: data.newCutoff, driftCount: data.driftCount, total: data.total });
+      }
+    } catch {
+      setError('Failed to reach the AI. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const canRun = questions.some((q) => q.trim());
+
+  return (
+    <div className="space-y-5">
+      {/* Explainer */}
+      <div className="bg-sky-50 border border-sky-200 rounded-lg px-4 py-3 text-sm text-sky-800">
+        AI models don&apos;t know live information — they only know what was in their training dataset, frozen at a
+        <span className="font-medium"> knowledge cutoff date</span>. Here we ask the same question to an AI with an
+        <span className="font-medium"> old dataset</span> and one with a <span className="font-medium">newer dataset</span>.
+        When the world has changed since the old cutoff, the answers drift apart — that&apos;s <span className="font-medium">knowledge drift</span>.
       </div>
-    </ToolLayout>
+
+      {/* Cutoff pickers */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div>
+          <p className="text-xs font-medium text-slate-600 mb-1.5">Old dataset cutoff</p>
+          <div className="flex flex-wrap gap-2">
+            {OLD_CUTOFFS.map((c) => (
+              <button key={c} onClick={() => setOldCutoff(c)}
+                className={`text-xs px-3 py-1.5 rounded-md border transition-colors ${
+                  oldCutoff === c ? 'border-amber-400 bg-amber-50 text-amber-700 font-medium' : 'border-slate-200 text-slate-500 hover:border-slate-300'
+                }`}>{c}</button>
+            ))}
+          </div>
+        </div>
+        <div>
+          <p className="text-xs font-medium text-slate-600 mb-1.5">New dataset cutoff</p>
+          <div className="flex flex-wrap gap-2">
+            {NEW_CUTOFFS.map((c) => (
+              <button key={c} onClick={() => setNewCutoff(c)}
+                className={`text-xs px-3 py-1.5 rounded-md border transition-colors ${
+                  newCutoff === c ? 'border-green-400 bg-green-50 text-green-700 font-medium' : 'border-slate-200 text-slate-500 hover:border-slate-300'
+                }`}>{c}</button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Questions editor */}
+      <div>
+        <div className="flex items-center justify-between mb-1">
+          <p className="text-sm font-medium text-slate-700">Time-sensitive questions <span className="text-slate-400 font-normal">({questions.length})</span></p>
+          {questions.length < 10 && (
+            <button onClick={addQuestion} className="text-xs text-sky-600 hover:text-sky-700 font-medium">+ Add question</button>
+          )}
+        </div>
+        <p className="text-xs text-slate-400 mb-2">
+          Use questions whose answer <span className="font-medium text-slate-500">changes over time</span> (e.g. &quot;Who is the US president?&quot;).
+          Timeless questions like &quot;is Playwright good for testing?&quot; will correctly show &quot;Same&quot; — there&apos;s nothing to drift.
+        </p>
+        <div className="space-y-2">
+          {questions.map((q, i) => (
+            <div key={i} className="flex items-center gap-2">
+              <span className="text-xs text-slate-400 font-mono w-7 shrink-0">Q{i + 1}</span>
+              <input value={q} onChange={(e) => updateQuestion(i, e.target.value)}
+                placeholder="e.g. Who is the current President of the United States?"
+                className="flex-1 bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-700 placeholder-slate-400 focus:outline-none focus:border-sky-400" />
+              <button onClick={() => removeQuestion(i)} className="text-slate-300 hover:text-red-500 transition-colors shrink-0">
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Run */}
+      <div className="flex items-center gap-3">
+        <button onClick={run} disabled={!canRun || loading}
+          className="flex items-center gap-2 bg-sky-500 hover:bg-sky-600 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-medium px-5 py-2 rounded-lg transition-colors">
+          {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4" />}
+          {loading ? 'Comparing datasets...' : 'Compare Old vs New'}
+        </button>
+        {meta && !loading && (
+          <span className={`text-sm font-medium flex items-center gap-1 ${meta.driftCount > 0 ? 'text-red-600' : 'text-slate-400'}`}>
+            {meta.driftCount > 0 && <TrendingDown className="w-4 h-4" />}
+            {meta.driftCount > 0 ? `${meta.driftCount} of ${meta.total} answers drifted` : 'No knowledge drift detected'}
+          </span>
+        )}
+      </div>
+
+      {error && <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
+
+      {loading && (
+        <div className="bg-sky-50 border border-sky-200 rounded-lg px-4 py-3 text-sm text-sky-700 flex items-center gap-2">
+          <Loader2 className="w-4 h-4 animate-spin shrink-0" />
+          Asking each question to the old-dataset AI and the new-dataset AI...
+        </div>
+      )}
+
+      {/* Results */}
+      {pairs.length > 0 && meta && (
+        <div className="space-y-3 border-t border-slate-100 pt-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs font-medium uppercase tracking-wide">
+            <div className="text-amber-600 flex items-center gap-1.5"><History className="w-3.5 h-3.5" /> Old dataset ({meta.oldCutoff})</div>
+            <div className="text-green-600 flex items-center gap-1.5"><History className="w-3.5 h-3.5" /> New dataset ({meta.newCutoff})</div>
+          </div>
+          {meta.driftCount === 0 && (
+            <div className="bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 text-sm text-slate-600">
+              No drift here — these questions aren&apos;t time-sensitive, so both datasets agree. Try a fact that changed between {meta.oldCutoff} and {meta.newCutoff}, like &quot;Who is the US president?&quot; or &quot;What is the latest iPhone?&quot;
+            </div>
+          )}
+          {pairs.map((p, i) => (
+            <div key={i} className={`border rounded-lg overflow-hidden ${p.drifted ? 'border-red-200' : 'border-slate-200'}`}>
+              <div className={`px-4 py-2 flex items-center justify-between gap-3 border-b ${p.drifted ? 'bg-red-50 border-red-100' : 'bg-slate-50 border-slate-100'}`}>
+                <p className="text-sm font-medium text-slate-800">{p.question}</p>
+                {p.drifted ? (
+                  <span className="shrink-0 flex items-center gap-1 text-xs font-semibold text-red-600">
+                    <ArrowRight className="w-3.5 h-3.5" /> Knowledge drift
+                  </span>
+                ) : (
+                  <span className="shrink-0 flex items-center gap-1 text-xs font-medium text-slate-400">
+                    <Minus className="w-3.5 h-3.5" /> Same
+                  </span>
+                )}
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 divide-y sm:divide-y-0 sm:divide-x divide-slate-100">
+                <div className="px-4 py-3 bg-amber-50/40">
+                  <p className="text-xs text-amber-600 mb-1 font-medium">Old dataset says</p>
+                  <p className="text-sm text-slate-700 leading-relaxed">{p.oldAnswer}</p>
+                </div>
+                <div className="px-4 py-3 bg-green-50/40">
+                  <p className="text-xs text-green-600 mb-1 font-medium">New dataset says</p>
+                  <p className="text-sm text-slate-700 leading-relaxed">{p.newAnswer}</p>
+                </div>
+              </div>
+            </div>
+          ))}
+          <p className="text-xs text-slate-400 italic pt-1">
+            Lesson: an AI is only as fresh as its training data. If your app relies on facts that change over time,
+            the same prompt can silently go stale — that&apos;s why drift testing matters.
+          </p>
+        </div>
+      )}
+
+      {pairs.length === 0 && !loading && (
+        <div className="text-center py-10 border border-dashed border-slate-200 rounded-lg">
+          <p className="text-sm text-slate-400 font-medium">No comparison run yet</p>
+          <p className="text-xs text-slate-400 mt-1">Pick two cutoff dates and click &quot;Compare Old vs New&quot;.</p>
+        </div>
+      )}
+    </div>
   );
 }
