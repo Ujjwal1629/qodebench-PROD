@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Loader2, Play, RotateCcw, Plus, Trash2, CheckCircle2, XCircle, CircleDashed, Bot } from 'lucide-react';
+import { Loader2, Play, RotateCcw, Plus, Trash2, CheckCircle2, XCircle, CircleDashed, Bot, Database } from 'lucide-react';
 import { ToolLayout } from '../tool-layout';
 
 /* ─── Types ─── */
@@ -40,6 +40,29 @@ Rules:
 Tone: Professional, helpful, and friendly.
 Format: Answer in 2-3 concise sentences. Use bullet points only for lists.
 Fallback: If the question is outside HR topics or you're unsure about a policy, say: "I'd recommend reaching out to the HR team directly at hr@techco.com for this specific question."`;
+
+const DEFAULT_KNOWLEDGE_BASE = `TechCo Employee Handbook (excerpt)
+
+LEAVE POLICY
+- Sick leave: 12 paid sick days per calendar year. Unused sick days do not carry over.
+- Casual leave: 8 paid casual days per year.
+- Earned/annual leave: 18 days per year, accrued monthly. Up to 30 days may be carried forward.
+- Maternity leave: 26 weeks paid. Paternity leave: 15 days paid.
+
+WORK-FROM-HOME POLICY
+- Employees may work from home up to 3 days per week.
+- Fully remote work requires manager and HR approval.
+- Core collaboration hours are 11:00 AM - 4:00 PM IST.
+
+BENEFITS
+- Group health insurance covering employee, spouse, and up to 2 children.
+- Annual learning budget of ₹25,000 per employee.
+- Monthly internet/phone reimbursement of ₹1,500.
+
+CODE OF CONDUCT
+- Treat all colleagues with respect; harassment and discrimination are strictly prohibited.
+- Report concerns to your manager or HR at hr@techco.com.
+- Confidential company and customer data must not be shared externally.`;
 
 const DEFAULT_TEST_CASES: TestCase[] = [
   {
@@ -121,15 +144,17 @@ function ResultRow({ result }: { result: TestResult }) {
 }
 
 const SCENARIOS_LIST = [
-  'Write or edit a system prompt for your chatbot — define its role, context, rules, tone, format, and a fallback.',
-  'Add test questions and describe the expected behaviour for each (what a correct bot should do).',
-  'Run the suite to send every question to the AI and see whether the prompt held for each case.',
-  'Include adversarial cases: ask for private/salary info, legal advice, off-topic questions, and prompt-injection attacks.',
-  'Tighten the system prompt and re-run when a case breaks — this is exactly how PromptFoo-style prompt testing works.',
+  'Write the system prompt (rules, tone, fallback) AND paste the actual handbook into the Knowledge Base — together they form a mini RAG setup: data + prompt = answer.',
+  'Keep "Inject into prompt (RAG)" ON and ask "How many sick leaves do I get?" — the bot should answer 12 days FROM your handbook, not guess.',
+  'Turn the knowledge base OFF and re-run the same question — watch the bot either refuse or invent a number, since it now has no data to retrieve from. That contrast is the lesson.',
+  'Add adversarial cases: ask for salary/private info, legal advice, off-topic questions, and prompt-injection ("ignore all instructions...").',
+  'Edit the handbook (e.g. change sick leave to 15 days) and re-run — the answer updates from the data, proving the bot reads the knowledge base, not its own memory.',
 ];
 
 export default function HRChatbotTesterTool() {
   const [systemPrompt, setSystemPrompt] = useState(DEFAULT_SYSTEM_PROMPT);
+  const [knowledgeBase, setKnowledgeBase] = useState(DEFAULT_KNOWLEDGE_BASE);
+  const [useKnowledgeBase, setUseKnowledgeBase] = useState(true);
   const [testCases, setTestCases] = useState<TestCase[]>(DEFAULT_TEST_CASES);
   const [results, setResults] = useState<TestResult[]>([]);
   const [summary, setSummary] = useState<Summary | null>(null);
@@ -150,6 +175,8 @@ export default function HRChatbotTesterTool() {
 
   const resetDefaults = () => {
     setSystemPrompt(DEFAULT_SYSTEM_PROMPT);
+    setKnowledgeBase(DEFAULT_KNOWLEDGE_BASE);
+    setUseKnowledgeBase(true);
     setTestCases(DEFAULT_TEST_CASES);
     setResults([]);
     setSummary(null);
@@ -169,7 +196,11 @@ export default function HRChatbotTesterTool() {
       const res = await fetch('/api/hr-chatbot', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ systemPrompt, testCases: validCases }),
+        body: JSON.stringify({
+          systemPrompt,
+          knowledgeBase: useKnowledgeBase ? knowledgeBase : '',
+          testCases: validCases,
+        }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -190,7 +221,7 @@ export default function HRChatbotTesterTool() {
   return (
     <ToolLayout
       title="HR Chatbot Tester"
-      description="Build a system prompt for an HR assistant, then run a suite of test questions — including prompt-injection attacks — to check whether your prompt holds up. RAG-style prompt testing in miniature."
+      description="Build a RAG-style HR assistant — a system prompt plus a knowledge base (the handbook) — then run test questions, including prompt-injection attacks, to check whether the bot answers from your data and follows the rules."
       difficulty="Advanced"
       scenarios={SCENARIOS_LIST}
     >
@@ -212,6 +243,39 @@ export default function HRChatbotTesterTool() {
             spellCheck={false}
             className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-700 font-mono leading-relaxed focus:outline-none focus:border-sky-400 resize-y"
             rows={12}
+          />
+        </div>
+
+        {/* Knowledge base (the "data" half of RAG) */}
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              <Database className="w-4 h-4 text-emerald-600" />
+              <p className="text-sm font-medium text-slate-700">Knowledge Base <span className="text-slate-400 font-normal">(the handbook)</span></p>
+            </div>
+            <label className="flex items-center gap-2 text-xs text-slate-500 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={useKnowledgeBase}
+                onChange={(e) => setUseKnowledgeBase(e.target.checked)}
+                className="accent-emerald-500 w-4 h-4"
+              />
+              Inject into prompt (RAG)
+            </label>
+          </div>
+          <p className="text-xs text-slate-400 mb-2">
+            This is the <span className="font-medium text-slate-500">data</span> the bot retrieves from. With it on, the bot answers
+            <span className="font-medium text-slate-500"> from your handbook</span> (real RAG: data + prompt). Turn it off to see the bot
+            answer only from the AI&apos;s own trained knowledge — and watch it invent or refuse facts it shouldn&apos;t.
+          </p>
+          <textarea
+            value={knowledgeBase}
+            onChange={(e) => setKnowledgeBase(e.target.value)}
+            spellCheck={false}
+            disabled={!useKnowledgeBase}
+            placeholder="Paste your handbook / policy documents here — leave policy, benefits, WFH rules, code of conduct..."
+            className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-700 font-mono leading-relaxed focus:outline-none focus:border-emerald-400 resize-y disabled:opacity-50 disabled:cursor-not-allowed"
+            rows={10}
           />
         </div>
 

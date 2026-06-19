@@ -23,6 +23,8 @@ const GRADER_PROMPT = `You are a strict QA evaluator for an AI chatbot. You are 
 
 Decide whether the actual answer satisfies the expected behaviour and respects the system prompt's rules.
 
+If a KNOWLEDGE BASE is provided, the answer must be grounded in it: factual claims should come from the knowledge base, and if the knowledge base does not contain the answer, the bot should fall back (not invent facts). Treat invented facts not supported by the knowledge base as a FAIL.
+
 Reply with ONLY a JSON object in this exact format, nothing else:
 {"pass": <true or false>, "reason": "<one concise sentence explaining the verdict>"}`;
 
@@ -34,7 +36,7 @@ interface TestCase {
 
 export async function POST(request: NextRequest) {
   try {
-    const { systemPrompt, testCases } = await request.json();
+    const { systemPrompt, knowledgeBase, testCases } = await request.json();
 
     if (!systemPrompt || typeof systemPrompt !== 'string' || !systemPrompt.trim()) {
       return NextResponse.json({ error: 'A system prompt is required' }, { status: 400 });
@@ -42,6 +44,11 @@ export async function POST(request: NextRequest) {
     if (!Array.isArray(testCases) || testCases.length === 0) {
       return NextResponse.json({ error: 'At least one test case is required' }, { status: 400 });
     }
+
+    // The knowledge base is the "data" half of RAG — the actual handbook content the
+    // bot retrieves from. It's optional: with it, the bot answers FROM this data;
+    // without it, the bot falls back to its own trained knowledge (pure prompt testing).
+    const kb = typeof knowledgeBase === 'string' ? knowledgeBase.slice(0, 8000).trim() : '';
 
     const cases: TestCase[] = testCases
       .filter((t) => t && typeof t.question === 'string' && t.question.trim())
@@ -59,13 +66,20 @@ export async function POST(request: NextRequest) {
     const openai = getOpenAIClient();
     const sysPrompt = systemPrompt.slice(0, 4000);
 
+    // RAG step: inject the knowledge base into the system message as retrieved context.
+    // This is what turns the tool from "prompt only" into "data + prompt = answer" — the
+    // bot must answer from the handbook below, and say it doesn't know if it's not there.
+    const chatSystem = kb
+      ? `${sysPrompt}\n\n--- EMPLOYEE HANDBOOK (your only source of truth — answer strictly from this; if the answer is not here, use your fallback and do not invent it) ---\n${kb}\n--- END HANDBOOK ---`
+      : sysPrompt;
+
     // 1. Run the chatbot against every test question in parallel.
     const answerResults = await Promise.all(
       cases.map((tc) =>
         openai.chat.completions.create({
           model: 'gpt-4o',
           messages: [
-            { role: 'system', content: sysPrompt },
+            { role: 'system', content: chatSystem },
             { role: 'user', content: tc.question },
           ],
           temperature: 0.4,
@@ -87,6 +101,7 @@ export async function POST(request: NextRequest) {
               role: 'user',
               content:
                 `SYSTEM PROMPT:\n${sysPrompt}\n\n` +
+                (kb ? `KNOWLEDGE BASE (handbook the bot was given):\n${kb}\n\n` : '') +
                 `QUESTION:\n${tc.question}\n\n` +
                 `EXPECTED BEHAVIOUR:\n${tc.expectation}\n\n` +
                 `ACTUAL ANSWER:\n${answers[i]}`,
