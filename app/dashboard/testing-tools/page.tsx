@@ -36,7 +36,7 @@ const tools = [
   {
     id: 'llm-bug-hunter',
     icon: Bug,
-    title: 'LLM Bug Hunter',
+    title: 'LLM Bug Practice',
     description: 'Spot hallucinations, prompt injections, factual errors, and context leakage in AI responses. Test your eye for AI bugs.',
     tags: ['AI', 'Hallucination', 'QA'],
     difficulty: 'Intermediate',

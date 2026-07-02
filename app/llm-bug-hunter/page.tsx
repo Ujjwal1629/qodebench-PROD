@@ -110,7 +110,7 @@ export default function LLMBugHunterPage() {
       <div className="border-b border-slate-200 bg-white">
         <div className="max-w-3xl mx-auto px-4 py-4 flex items-center justify-between">
           <div>
-            <h1 className="text-lg font-semibold text-slate-900">LLM Bug Hunter</h1>
+            <h1 className="text-lg font-semibold text-slate-900">LLM Bug Practice</h1>
             <p className="text-sm text-slate-500 mt-0.5">Send prompts · review AI responses · tag the bugs</p>
           </div>
           {messages.length > 0 && (
