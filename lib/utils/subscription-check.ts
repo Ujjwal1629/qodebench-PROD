@@ -5,10 +5,8 @@ import {
   SubscriptionTier,
   SubscriptionStatus,
   UserSubscription,
-  FREE_TIER_LIMITS,
 } from '@/types/subscription';
 import { ChallengeTier } from '@/lib/constants/dashboard';
-import { FREE_CHALLENGES_PER_TIER } from '@/lib/constants/subscription';
 
 /**
  * Get user's subscription details
@@ -55,200 +53,56 @@ export async function getUserSubscription(userId?: string): Promise<UserSubscrip
 
 /**
  * Check if user has an active paid subscription
- * This is the main access control function
- * Note: Cancelled subscriptions are still considered active until the end date
+ * Always returns true — all features accessible on free tier
  */
 export async function hasActiveSubscription(userId?: string): Promise<boolean> {
-  const subscription = await getUserSubscription(userId);
-
-  if (!subscription) return false;
-
-  // Check if subscription tier is not free
-  const isPaidTier = subscription.tier !== 'free';
-
-  // Check if status is active, trial, or cancelled (cancelled users retain access until end date)
-  const isActiveStatus =
-    subscription.status === 'active' ||
-    subscription.status === 'trial' ||
-    subscription.status === 'cancelled';
-
-  // Check if subscription has not expired (this is what matters for cancelled subscriptions)
-  let notExpired = true;
-  if (subscription.endDate) {
-    notExpired = new Date(subscription.endDate) > new Date();
-  }
-  if (subscription.trialEndsAt) {
-    notExpired = notExpired && new Date(subscription.trialEndsAt) > new Date();
-  }
-
-  // For cancelled subscriptions, only grant access if end date hasn't passed
-  // For active/trial, grant access if status is valid and not expired
-  return isPaidTier && isActiveStatus && notExpired;
+  return true;
 }
 
 /**
  * Check if user can access a specific challenge tier
+ * Always returns true — all tiers accessible on free tier
  */
 export async function canAccessChallengeTier(
   tier: ChallengeTier,
   userId?: string
 ): Promise<{ canAccess: boolean; reason?: string }> {
-  // Beginner tier is always accessible
-  if (tier === 'beginner') {
-    return { canAccess: true };
-  }
-
-  // All other tiers require active subscription
-  const hasSubscription = await hasActiveSubscription(userId);
-
-  if (!hasSubscription) {
-    return {
-      canAccess: false,
-      reason: `${tier.charAt(0).toUpperCase() + tier.slice(1)} challenges require an active subscription. Upgrade to unlock!`,
-    };
-  }
-
   return { canAccess: true };
 }
 
 /**
  * Check if user can access a specific challenge
- * Enforces tier-specific position-based access:
- * - Beginner, Intermediate, Office Workflow: First 5 free
- * - Advanced: First 2 free
- * Rest require subscription
+ * Always returns true — all challenges accessible on free tier
  */
 export async function canAccessChallenge(
   challengeId: string,
   userId?: string
 ): Promise<{ canAccess: boolean; reason?: string; requiresUpgrade: boolean }> {
-  try {
-    const supabase = await createClient();
-
-    // Fetch challenge details including position in tier
-    const { data: challenge, error } = await supabase
-      .from('challenges')
-      .select('tier, is_free_tier_accessible, order_in_tier, title')
-      .eq('id', challengeId)
-      .eq('is_active', true)
-      .single();
-
-    if (error || !challenge) {
-      return { canAccess: false, reason: 'Challenge not found', requiresUpgrade: false };
-    }
-
-    // TIER-SPECIFIC POSITION-BASED ACCESS CONTROL
-    const tier = challenge.tier as ChallengeTier;
-    const freeLimit = FREE_CHALLENGES_PER_TIER[tier] || 5; // Default to 5 if tier not found
-    const isFreePosition = challenge.order_in_tier <= freeLimit;
-
-    // Special override: if challenge is explicitly marked as free-tier accessible, grant access
-    // This allows admins to make specific challenges free beyond the free limit
-    if (challenge.is_free_tier_accessible) {
-      return { canAccess: true, requiresUpgrade: false };
-    }
-
-    // If challenge is in free position, grant access
-    if (isFreePosition) {
-      return { canAccess: true, requiresUpgrade: false };
-    }
-
-    // Challenges beyond free limit require active subscription
-    const hasSubscription = await hasActiveSubscription(userId);
-
-    if (!hasSubscription) {
-      return {
-        canAccess: false,
-        reason: `This is a premium challenge. Upgrade to unlock all challenges in the ${tier} tier!`,
-        requiresUpgrade: true,
-      };
-    }
-
-    return { canAccess: true, requiresUpgrade: false };
-  } catch (error) {
-    console.error('Error in canAccessChallenge:', error);
-    return { canAccess: false, reason: 'Error checking access', requiresUpgrade: false };
-  }
+  return { canAccess: true, requiresUpgrade: false };
 }
 
 /**
  * Check if user can access interview prep mode
+ * Always returns true — interviews accessible on free tier
  */
 export async function canAccessInterviews(userId?: string): Promise<{ canAccess: boolean; reason?: string }> {
-  const hasSubscription = await hasActiveSubscription(userId);
-
-  if (!hasSubscription) {
-    return {
-      canAccess: false,
-      reason: 'Mock Interview Prep requires an active subscription. Upgrade to unlock!',
-    };
-  }
-
   return { canAccess: true };
 }
 
 /**
  * Check daily attempt limit for free users
+ * Always allows — no daily limits enforced
  */
 export async function canMakeAttempt(userId?: string): Promise<{ allowed: boolean; reason?: string; attemptsRemaining?: number }> {
-  const subscription = await getUserSubscription(userId);
-
-  if (!subscription) {
-    return { allowed: false, reason: 'User not found' };
-  }
-
-  // Paid users have unlimited attempts
-  if (subscription.tier !== 'free') {
-    return { allowed: true };
-  }
-
-  // Check if daily limit reached
-  const attemptsRemaining = FREE_TIER_LIMITS.dailyAttempts - subscription.dailyAttemptsUsed;
-
-  if (attemptsRemaining <= 0) {
-    return {
-      allowed: false,
-      reason: `You've reached your daily limit of ${FREE_TIER_LIMITS.dailyAttempts} attempts. Upgrade for unlimited access!`,
-      attemptsRemaining: 0,
-    };
-  }
-
-  return {
-    allowed: true,
-    attemptsRemaining,
-  };
+  return { allowed: true };
 }
 
 /**
  * Check daily AI feedback limit for free users
+ * Always allows — no AI feedback limits enforced
  */
 export async function canUseAIFeedback(userId?: string): Promise<{ allowed: boolean; reason?: string; feedbackRemaining?: number }> {
-  const subscription = await getUserSubscription(userId);
-
-  if (!subscription) {
-    return { allowed: false, reason: 'User not found' };
-  }
-
-  // Paid users have unlimited AI feedback
-  if (subscription.tier !== 'free') {
-    return { allowed: true };
-  }
-
-  // Check if daily limit reached
-  const feedbackRemaining = FREE_TIER_LIMITS.dailyAIFeedback - subscription.dailyAIFeedbackUsed;
-
-  if (feedbackRemaining <= 0) {
-    return {
-      allowed: false,
-      reason: `You've reached your daily limit of ${FREE_TIER_LIMITS.dailyAIFeedback} AI feedback requests. Upgrade for unlimited access!`,
-      feedbackRemaining: 0,
-    };
-  }
-
-  return {
-    allowed: true,
-    feedbackRemaining,
-  };
+  return { allowed: true };
 }
 
 /**
@@ -289,35 +143,17 @@ export async function incrementDailyUsage(
 
 /**
  * Get remaining daily limits for user
+ * Always returns unlimited — no limits enforced
  */
 export async function getDailyLimits(userId?: string): Promise<{
   attemptsRemaining: number;
   feedbackRemaining: number;
   isPaidUser: boolean;
 }> {
-  const subscription = await getUserSubscription(userId);
-
-  if (!subscription) {
-    return {
-      attemptsRemaining: 0,
-      feedbackRemaining: 0,
-      isPaidUser: false,
-    };
-  }
-
-  // Paid users have unlimited
-  if (subscription.tier !== 'free') {
-    return {
-      attemptsRemaining: -1, // -1 indicates unlimited
-      feedbackRemaining: -1,
-      isPaidUser: true,
-    };
-  }
-
   return {
-    attemptsRemaining: Math.max(0, FREE_TIER_LIMITS.dailyAttempts - subscription.dailyAttemptsUsed),
-    feedbackRemaining: Math.max(0, FREE_TIER_LIMITS.dailyAIFeedback - subscription.dailyAIFeedbackUsed),
-    isPaidUser: false,
+    attemptsRemaining: -1,
+    feedbackRemaining: -1,
+    isPaidUser: true,
   };
 }
 

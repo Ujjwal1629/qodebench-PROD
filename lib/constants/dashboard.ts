@@ -26,23 +26,31 @@ export type NavItem = {
 
 export const NAV_ITEMS: NavItem[] = [
   {
-    title: 'Dashboard',
-    href: '/dashboard',
-    icon: Home,
-    description: 'Overview of your progress',
-  },
-  {
     title: 'Learning',
     href: '/dashboard/learning',
     icon: BookOpen,
     description: 'Structured learning paths',
   },
   {
-    title: 'Challenges',
-    href: '/dashboard/challenges',
-    icon: Code2,
-    description: 'Browse coding challenges',
+    title: 'Practice',
+    href: '/dashboard/practice',
+    icon: FlaskConical,
+    description: 'JS & TypeScript coding challenges',
   },
+  // Temporarily hidden - Dashboard
+  // {
+  //   title: 'Dashboard',
+  //   href: '/dashboard',
+  //   icon: Home,
+  //   description: 'Overview of your progress',
+  // },
+  // Temporarily hidden - Challenges
+  // {
+  //   title: 'Challenges',
+  //   href: '/dashboard/challenges',
+  //   icon: Code2,
+  //   description: 'Browse coding challenges',
+  // },
   // Temporarily hidden - Coming soon
   // {
   //   title: 'Roadmap',
@@ -50,17 +58,31 @@ export const NAV_ITEMS: NavItem[] = [
   //   icon: Map,
   //   description: 'Your learning path',
   // },
+  // Temporarily hidden - Interviews
+  // {
+  //   title: 'Interviews',
+  //   href: '/dashboard/interviews',
+  //   icon: Mic,
+  //   description: 'Interview prep & mock interviews',
+  // },
+  // Temporarily hidden - Leaderboard feature
+  // {
+  //   title: 'Leaderboard',
+  //   href: '/dashboard/leaderboard',
+  //   icon: Trophy,
+  //   description: 'Compete with developers worldwide',
+  // },
   {
-    title: 'Interviews',
-    href: '/dashboard/interviews',
-    icon: Mic,
-    description: 'Interview prep & mock interviews',
+    title: 'Testing Tools',
+    href: '/dashboard/testing-tools',
+    icon: TestTube,
+    description: 'Practice automation on real web apps',
   },
   {
-    title: 'Leaderboard',
-    href: '/dashboard/leaderboard',
-    icon: Trophy,
-    description: 'Compete with developers worldwide',
+    title: 'Interview Prep',
+    href: '/dashboard/interview-prep',
+    icon: GraduationCap,
+    description: 'JS, TS & Playwright interview questions',
   },
   {
     title: 'Visitors',
@@ -162,11 +184,10 @@ export const DRAWER_NAV_GROUPS: NavGroup[] = [
 
 // Mobile navigation items (essential features)
 export const MOBILE_NAV_ITEMS: NavItem[] = [
-  NAV_ITEMS[0], // Dashboard
-  NAV_ITEMS[1], // Learning
-  NAV_ITEMS[2], // Challenges
-  NAV_ITEMS[3], // Interviews
-  NAV_ITEMS[4], // Leaderboard
+  NAV_ITEMS[0], // Learning
+  NAV_ITEMS[1], // Practice
+  NAV_ITEMS[2], // Testing Tools
+  NAV_ITEMS[3], // Interview Prep
 ];
 
 // Experience levels and point thresholds

@@ -15,12 +15,22 @@ interface SidebarProps {
     username: string;
     avatar_url: string | null;
     total_points: number;
+    is_admin?: boolean;
   } | null;
 }
 
 export function Sidebar({ user }: SidebarProps) {
   const pathname = usePathname();
   const { sidebarCollapsed, toggleSidebar } = useUIStore();
+
+  // Filter navigation items based on admin status
+  const navigationItems = NAV_ITEMS.filter(item => {
+    // Show Visitors tab only to admin users
+    if (item.href === '/dashboard/admin/visitors') {
+      return user?.is_admin === true;
+    }
+    return true;
+  });
 
   return (
     <aside
@@ -61,7 +71,7 @@ export function Sidebar({ user }: SidebarProps) {
 
         {/* Navigation */}
         <nav className="flex-1 space-y-1 overflow-y-auto p-4">
-          {NAV_ITEMS.map((item) => {
+          {navigationItems.map((item) => {
             // For Dashboard, match exact path. For others, match if path starts with href
             const isActive = item.href === '/dashboard'
               ? pathname === '/dashboard'

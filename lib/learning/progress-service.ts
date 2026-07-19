@@ -1,11 +1,16 @@
 import { createClient } from '@/lib/supabase/server';
 import { Lesson, LessonAccessCheck } from '@/types/learning';
 import { QuizService } from '@/lib/quiz/quiz-service';
+import { hasActiveSubscription } from '@/lib/utils/subscription-check';
+
+/** Number of lessons available for free in each learning path */
+export const FREE_LESSONS_PER_PATH = 4;
 
 export class ProgressService {
   /**
-   * Check if a user can access a specific lesson
-   * All lessons are now accessible - users can start from any lesson they prefer
+   * Check if a user can access a specific lesson.
+   * First FREE_LESSONS_PER_PATH lessons (by order_index) are always free.
+   * Lessons beyond that require an active paid subscription.
    */
   static async canAccessLesson(
     userId: string,
@@ -27,10 +32,21 @@ export class ProgressService {
       };
     }
 
-    // All lessons are accessible - users can start from any lesson
-    return {
-      can_access: true,
-    };
+    // First N lessons are always free
+    if (currentLesson.order_index <= FREE_LESSONS_PER_PATH) {
+      return { can_access: true };
+    }
+
+    // Lessons beyond the free limit require an active subscription
+    const isPaid = await hasActiveSubscription(userId);
+    if (!isPaid) {
+      return {
+        can_access: false,
+        reason: 'This is a premium lesson. Subscribe to unlock all lessons in this learning path!',
+      };
+    }
+
+    return { can_access: true };
   }
 
   /**
@@ -92,7 +108,10 @@ export class ProgressService {
       }
     }
 
-    // Process lessons - all lessons are now accessible
+    // Check if user has an active subscription (single check for all lessons)
+    const isPaidUser = await hasActiveSubscription(userId);
+
+    // Process lessons - first FREE_LESSONS_PER_PATH are free, rest require subscription
     const lessonsWithStatus = lessonsResult.data.map((lesson: any) => {
       // Get the latest quiz session from our map
       const latestQuiz = quizSessionMap.get(lesson.id);
@@ -100,10 +119,12 @@ export class ProgressService {
       const quizPassed = latestQuiz?.passed || false;
       const latestScore = latestQuiz?.score_percentage;
 
-      // All lessons are accessible - users can start from any lesson they prefer
+      // Access: free if within free limit OR user is paid
+      const canAccess = lesson.order_index <= FREE_LESSONS_PER_PATH || isPaidUser;
+
       return {
         ...lesson,
-        can_access: true, // All lessons unlocked
+        can_access: canAccess,
         is_completed: quizPassed,
         quiz_passed: quizPassed,
         latest_score: latestScore,
@@ -148,19 +169,13 @@ export class ProgressService {
       return [];
     }
 
-    const lessonsWithStatus = await Promise.all(
-      lessons.map(async (lesson) => {
-        const quizScore = await QuizService.getLatestQuizScore(userId, lesson.id);
-
-        return {
-          ...lesson,
-          can_access: true, // All lessons unlocked
-          is_completed: quizScore?.passed || false,
-          quiz_passed: quizScore?.passed || false,
-          latest_score: quizScore?.score_percentage,
-        };
-      })
-    );
+    const lessonsWithStatus = lessons.map((lesson) => ({
+      ...lesson,
+      can_access: true,
+      is_completed: false,
+      quiz_passed: false,
+      latest_score: undefined,
+    }));
 
     return lessonsWithStatus;
   }
@@ -241,17 +256,10 @@ export class ProgressService {
       };
     }
 
-    const completionChecks = await Promise.all(
-      lessons.map((lesson) => QuizService.hasPassedQuiz(userId, lesson.id))
-    );
-
-    const completedCount = completionChecks.filter((passed) => passed).length;
-    const progressPercentage = Math.round((completedCount / lessons.length) * 100);
-
     return {
       total_lessons: lessons.length,
-      completed_lessons: completedCount,
-      progress_percentage: progressPercentage,
+      completed_lessons: 0,
+      progress_percentage: 0,
     };
   }
 

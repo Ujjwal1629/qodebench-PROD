@@ -27,6 +27,7 @@ export function SignInForm() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const searchParams = useSearchParams();
+  const redirect = searchParams.get('redirect');
 
   const form = useForm<SignInFormValues>({
     resolver: zodResolver(signInSchema),
@@ -52,7 +53,9 @@ export function SignInForm() {
     setSuccessMessage(null);
 
     try {
-      await signIn(values.email, values.password);
+      // Get redirect parameter from URL if present
+      const redirect = searchParams.get('redirect');
+      await signIn(values.email, values.password, redirect || undefined);
       setSuccessMessage('Signed in successfully!');
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to sign in';
@@ -167,7 +170,10 @@ export function SignInForm() {
             <OAuthButtons />
             <p className="text-sm text-center text-slate-600">
               Don&apos;t have an account?{' '}
-              <Link href="/signup" className="text-brand-500 hover:text-brand-600 font-medium">
+              <Link
+                href={redirect ? `/signup?redirect=${encodeURIComponent(redirect)}` : '/signup'}
+                className="text-brand-500 hover:text-brand-600 font-medium"
+              >
                 Sign up
               </Link>
             </p>

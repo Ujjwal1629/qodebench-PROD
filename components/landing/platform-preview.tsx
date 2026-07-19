@@ -59,12 +59,12 @@ const platformFeatures = [
   },
   {
     icon: Trophy,
-    title: "Code Friday & Leaderboard",
-    description: "Weekly competitions with global rankings and recognition",
+    title: "Code Friday Challenges",
+    description: "Weekly competitions to test your skills with fresh challenges",
     highlights: [
       "Fresh challenges every Friday",
       "Compete globally",
-      "Climb the leaderboard",
+      "Earn bonus points",
       "Showcase your expertise"
     ],
     color: "from-yellow-500 to-orange-500",

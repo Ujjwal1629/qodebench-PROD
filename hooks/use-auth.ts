@@ -28,7 +28,7 @@ export function useAuth() {
     return () => subscription.unsubscribe();
   }, [supabase, setUser]);
 
-  const signIn = async (email: string, password: string) => {
+  const signIn = async (email: string, password: string, redirectTo?: string) => {
     setLoading(true);
     const { error } = await supabase.auth.signInWithPassword({
       email,
@@ -47,7 +47,14 @@ export function useAuth() {
       throw error;
     }
 
-    router.push('/dashboard');
+    // Use hard navigation instead of client-side router.push() to ensure cookies are fully set
+    // This prevents race conditions where middleware doesn't see the session on subsequent navigations
+    const destination = redirectTo || '/dashboard';
+    if (typeof window !== 'undefined') {
+      window.location.href = destination;
+    } else {
+      router.push(destination);
+    }
   };
 
   const signUp = async (

@@ -3,28 +3,23 @@ import { Suspense } from 'react';
 import { createClient } from '@/lib/supabase/server';
 import { ProgressService } from '@/lib/learning/progress-service';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
 import Link from 'next/link';
 import {
   CheckCircle2,
-  Circle,
+  CheckCircle,
   Lock,
   Clock,
-  Trophy,
   ArrowRight,
   BookOpen,
+  BookOpenCheck,
+  Crown,
 } from 'lucide-react';
-import {
-  LessonListSkeleton,
-  LearningModuleHeaderSkeleton,
-  LearningObjectivesSkeleton,
-} from '@/components/learning/lesson-list-skeleton';
+import { LessonListSkeleton } from '@/components/learning/lesson-list-skeleton';
+import { FREE_LESSONS_PER_PATH } from '@/lib/learning/progress-service';
 
-const JAVASCRIPT_PATH_ID = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
+const JAVASCRIPT_PATH_ID = 'a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d';
 
-// Separate component for lessons list with its own data fetching
 async function LessonsList({ userId }: { userId: string }) {
   const lessonsWithAccess = await ProgressService.getLessonsWithAccess(
     userId,
@@ -34,116 +29,106 @@ async function LessonsList({ userId }: { userId: string }) {
   return (
     <div className="space-y-4">
       <h2 className="text-2xl font-bold">Lessons</h2>
-      <div className="space-y-4">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {lessonsWithAccess.map((lesson) => {
           const isCompleted = lesson.is_completed;
           const canAccess = lesson.can_access;
           const isLocked = !canAccess;
 
-          return (
+          const cardContent = (
             <Card
               key={lesson.id}
-              className={`border-2 transition-all ${
+              className={`relative overflow-hidden h-full border-2 transition-all ${
                 isCompleted
-                  ? 'border-green-200 bg-green-50/50'
+                  ? 'border-green-200 bg-green-50/30 hover:border-green-400 cursor-pointer'
                   : isLocked
-                    ? 'border-slate-200 bg-slate-50'
-                    : 'border-sky-200 bg-sky-50/30 hover:border-sky-400'
+                    ? 'border-slate-200 bg-slate-50 opacity-60'
+                    : 'border-sky-200 bg-sky-50/30 hover:border-sky-400 cursor-pointer'
               }`}
             >
-              <CardContent className="p-6">
-                <div className="flex items-start gap-6">
-                  {/* Status Icon */}
-                  <div className="flex-shrink-0">
-                    {isCompleted ? (
-                      <div className="w-12 h-12 rounded-full bg-green-600 flex items-center justify-center">
-                        <CheckCircle2 className="h-6 w-6 text-white" />
-                      </div>
-                    ) : isLocked ? (
-                      <div className="w-12 h-12 rounded-full bg-slate-300 flex items-center justify-center">
-                        <Lock className="h-6 w-6 text-slate-600" />
-                      </div>
+              <CardHeader>
+                <div className="flex items-start justify-between">
+                  <div className={`rounded-lg p-3 ${
+                    isCompleted ? 'bg-green-100' : isLocked ? 'bg-slate-100' : 'bg-sky-100'
+                  }`}>
+                    {isCompleted
+                      ? <BookOpenCheck className="h-6 w-6 text-green-600" />
+                      : isLocked
+                        ? <Lock className="h-6 w-6 text-slate-400" />
+                        : <BookOpen className="h-6 w-6 text-sky-600" />
+                    }
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="secondary" className="text-xs">
+                      Lesson {lesson.order_index}
+                    </Badge>
+                    <Badge variant="outline" className="text-xs gap-1">
+                      <Clock className="h-3 w-3" />
+                      {lesson.duration_minutes}m
+                    </Badge>
+                    {lesson.order_index <= FREE_LESSONS_PER_PATH ? (
+                      <Badge className="text-xs bg-green-100 text-green-700 hover:bg-green-100">
+                        Free
+                      </Badge>
                     ) : (
-                      <div className="w-12 h-12 rounded-full bg-sky-600 flex items-center justify-center">
-                        <Circle className="h-6 w-6 text-white" />
-                      </div>
+                      <Badge className="text-xs bg-amber-100 text-amber-700 hover:bg-amber-100 gap-1">
+                        <Crown className="h-3 w-3" />
+                        Premium
+                      </Badge>
                     )}
                   </div>
-
-                  {/* Lesson Info */}
-                  <div className="flex-1 space-y-3">
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          <Badge variant="outline" className="font-semibold">
-                            Lesson {lesson.order_index}
-                          </Badge>
-                          <h3 className="text-xl font-semibold">{lesson.title}</h3>
-                        </div>
-                        <p className="text-sm text-muted-foreground">{lesson.description}</p>
-                      </div>
-
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Clock className="h-4 w-4" />
-                        <span>{lesson.duration_minutes} min</span>
-                      </div>
-                    </div>
-
-                    {/* Learning Objectives */}
-                    <div className="flex flex-wrap gap-2">
-                      {lesson.learning_objectives.slice(0, 2).map((obj: string, idx: number) => (
-                        <Badge key={idx} variant="secondary" className="text-xs">
-                          {obj}
-                        </Badge>
-                      ))}
-                      {lesson.learning_objectives.length > 2 && (
-                        <Badge variant="secondary" className="text-xs">
-                          +{lesson.learning_objectives.length - 2} more
-                        </Badge>
-                      )}
-                    </div>
-
-                    {/* Action Button */}
-                    <div className="flex items-center gap-4">
-                      {isLocked ? (
-                        <Button disabled variant="outline" className="w-40">
-                          <Lock className="mr-2 h-4 w-4" />
-                          Locked
-                        </Button>
-                      ) : isCompleted ? (
-                        <Button
-                          asChild
-                          variant="outline"
-                          className="w-40 border-green-600 text-green-700 hover:bg-green-50"
-                        >
-                          <Link href={`/dashboard/learning/javascript/${lesson.id}`}>
-                            Review Lesson
-                          </Link>
-                        </Button>
-                      ) : (
-                        <Button asChild className="w-40 bg-sky-600 hover:bg-sky-700">
-                          <Link href={`/dashboard/learning/javascript/${lesson.id}`}>
-                            Start Lesson
-                            <ArrowRight className="ml-2 h-4 w-4" />
-                          </Link>
-                        </Button>
-                      )}
-
-                      {lesson.latest_score !== undefined && (
-                        <div className="flex items-center gap-2">
-                          <Badge
-                            variant={lesson.quiz_passed ? 'default' : 'secondary'}
-                            className={lesson.quiz_passed ? 'bg-green-600' : ''}
-                          >
-                            Score: {lesson.latest_score}%
-                          </Badge>
-                        </div>
-                      )}
-                    </div>
-                  </div>
                 </div>
+                <CardTitle className="mt-4 text-base leading-snug">{lesson.title}</CardTitle>
+                <CardDescription className="line-clamp-2">{lesson.description}</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center justify-between">
+                  {isLocked ? (
+                    <div className="flex items-center gap-2 text-sm text-slate-400">
+                      <Lock className="h-4 w-4" />
+                      Locked
+                    </div>
+                  ) : isCompleted ? (
+                    <div className="flex items-center gap-2 text-sm font-medium text-green-700">
+                      <CheckCircle className="h-4 w-4" />
+                      Completed
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2 text-sm font-medium text-sky-700">
+                      <CheckCircle className="h-4 w-4" />
+                      Start Lesson
+                    </div>
+                  )}
+                  {!isLocked && <ArrowRight className="h-5 w-5 text-sky-600" />}
+                </div>
+                {lesson.latest_score !== undefined && (
+                  <Badge
+                    variant={lesson.quiz_passed ? 'default' : 'secondary'}
+                    className={`mt-2 text-xs ${lesson.quiz_passed ? 'bg-green-600' : ''}`}
+                  >
+                    Quiz: {lesson.latest_score}%
+                  </Badge>
+                )}
               </CardContent>
             </Card>
+          );
+
+          return isLocked ? (
+            <Link
+              key={lesson.id}
+              href="/pricing"
+              className="block transition-transform hover:scale-[1.02]"
+            >
+              {cardContent}
+            </Link>
+          ) : (
+            <Link
+              key={lesson.id}
+              href={`/dashboard/learning/javascript/${lesson.id}`}
+              className="block transition-transform hover:scale-[1.02]"
+            >
+              {cardContent}
+            </Link>
           );
         })}
       </div>
@@ -151,10 +136,7 @@ async function LessonsList({ userId }: { userId: string }) {
   );
 }
 
-// Separate component for header with progress
-async function ModuleHeader({ userId, learningPath }: { userId: string; learningPath: any }) {
-  const progress = await ProgressService.getLearningPathProgress(userId, JAVASCRIPT_PATH_ID);
-
+function ModuleHeader({ learningPath }: { learningPath: any }) {
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -165,50 +147,29 @@ async function ModuleHeader({ userId, learningPath }: { userId: string; learning
         <span>JavaScript Essentials</span>
       </div>
 
-      <div className="flex items-start justify-between gap-6">
-        <div className="flex-1 space-y-2">
-          <div className="flex items-center gap-3">
-            <div className="text-4xl">{learningPath.icon}</div>
-            <div>
-              <h1 className="text-3xl font-bold">{learningPath.title}</h1>
-              <Badge className="bg-green-100 text-green-800 mt-2">
-                {learningPath.difficulty}
-              </Badge>
-            </div>
+      <div className="space-y-2">
+        <div className="flex items-center gap-3">
+          <div className="text-4xl">{learningPath.icon}</div>
+          <div>
+            <h1 className="text-3xl font-bold">{learningPath.title}</h1>
+            <Badge className="bg-green-100 text-green-800 mt-2">
+              {learningPath.difficulty}
+            </Badge>
           </div>
-          <p className="text-lg text-muted-foreground">{learningPath.description}</p>
         </div>
-
-        <Card className="w-64">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium">Your Progress</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-3xl font-bold text-sky-600">
-                {progress.progress_percentage}%
-              </span>
-              <Trophy className="h-8 w-8 text-yellow-500" />
-            </div>
-            <Progress value={progress.progress_percentage} className="h-2" />
-            <p className="text-sm text-muted-foreground">
-              {progress.completed_lessons} of {progress.total_lessons} lessons completed
-            </p>
-          </CardContent>
-        </Card>
+        <p className="text-lg text-muted-foreground">{learningPath.description}</p>
       </div>
     </div>
   );
 }
 
-// Learning objectives component (static, doesn't need Suspense)
 function LearningObjectives({ learningPath }: { learningPath: any }) {
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <BookOpen className="h-5 w-5" />
-          What You'll Learn
+          What You&apos;ll Learn
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -228,7 +189,6 @@ function LearningObjectives({ learningPath }: { learningPath: any }) {
 export default async function JavaScriptLearningPage() {
   const supabase = await createClient();
 
-  // Check authentication
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -237,7 +197,6 @@ export default async function JavaScriptLearningPage() {
     redirect('/signin');
   }
 
-  // OPTIMIZED: Get learning path details (fast query)
   const { data: learningPath } = await supabase
     .from('ai_learning_paths')
     .select('*')
@@ -259,19 +218,12 @@ export default async function JavaScriptLearningPage() {
     );
   }
 
-  // OPTIMIZED: Render with Suspense boundaries for better perceived performance
-  // The header and lessons will load independently with loading states
   return (
     <div className="container space-y-8">
-      {/* Header Section with Progress - Wrapped in Suspense */}
-      <Suspense fallback={<LearningModuleHeaderSkeleton />}>
-        <ModuleHeader userId={user.id} learningPath={learningPath} />
-      </Suspense>
+      <ModuleHeader learningPath={learningPath} />
 
-      {/* Learning Objectives - Static content, no need for Suspense */}
       <LearningObjectives learningPath={learningPath} />
 
-      {/* Lessons List - Wrapped in Suspense */}
       <Suspense fallback={<LessonListSkeleton />}>
         <LessonsList userId={user.id} />
       </Suspense>

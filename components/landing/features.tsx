@@ -1,49 +1,43 @@
 "use client";
 
-import { FileText, Sparkles, TrendingUp, Mic, Trophy, Code2, Gift, Target } from "lucide-react";
+import { FileText, Sparkles, TrendingUp, Code2, Target, BookOpen } from "lucide-react";
 
 const features = [
   {
-    icon: Code2,
-    title: "100+ Real-World Challenges",
+    icon: BookOpen,
+    title: "Comprehensive Learning Modules",
     description:
-      "Master Python, JavaScript, React, Next.js, and Node.js through practical coding challenges that mirror actual development work. New challenges added every week!",
+      "Master testing fundamentals through structured courses covering test methodologies, best practices, and essential QA skills. Learn at your own pace with interactive content.",
+  },
+  {
+    icon: Code2,
+    title: "Interactive Practice Tools",
+    description:
+      "Practice testing on real tools like sliders, e-commerce sites, forms, and interactive applications. Test, validate, and get instant feedback on your work.",
   },
   {
     icon: FileText,
-    title: "Office Fundamentals",
+    title: "Test Documentation Skills",
     description:
-      "Learn essential workplace skills: writing RFCs, reviewing PRs, creating technical documentation, and mastering professional workflows",
-  },
-  {
-    icon: Mic,
-    title: "AI-Powered Mock Interviews",
-    description:
-      "Practice technical interviews with voice-interactive AI interviewer. Get real-time hints and comprehensive feedback on your performance",
-  },
-  {
-    icon: Trophy,
-    title: "Weekly Competitions",
-    description:
-      "Join weekly coding competitions, compete on global leaderboards, and prove your skills against developers worldwide",
-  },
-  {
-    icon: TrendingUp,
-    title: "7-Level Progression System",
-    description:
-      "Advance from Intern to Distinguished Engineer with structured challenges and clear career milestones at each experience level",
+      "Learn to write test plans, create test cases, and document testing results professionally. Build essential QA documentation skills.",
   },
   {
     icon: Sparkles,
     title: "AI-Powered Evaluation",
     description:
-      "Receive instant, detailed feedback on your code quality, best practices, and areas for improvement from advanced AI analysis",
+      "Receive instant, detailed feedback on your testing work and learn best practices with AI-powered analysis and personalized suggestions.",
+  },
+  {
+    icon: TrendingUp,
+    title: "Progressive Difficulty",
+    description:
+      "Start with basics and advance to complex testing scenarios. Build skills step-by-step with structured progression paths.",
   },
   {
     icon: Target,
     title: "Personalized Learning Path",
     description:
-      "Get recommended challenges based on your skill level and progress. Track your growth with detailed stats and activity insights",
+      "Get recommended content based on your skill level and progress. Track your growth with detailed stats and activity insights.",
   },
 ];
 
@@ -54,16 +48,16 @@ export function Features() {
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-16 lg:mb-24">
           <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 tracking-tight">
-            <span className="text-slate-900">Everything you need, </span>
-            <span className="bg-gradient-to-r from-brand-500 to-purple-600 bg-clip-text text-transparent">right where you work.</span>
+            <span className="text-slate-900">Everything you need to </span>
+            <span className="bg-gradient-to-r from-brand-500 to-purple-600 bg-clip-text text-transparent">master testing.</span>
           </h2>
           <p className="text-lg text-slate-600 mt-4">
-            Real-world challenges that prepare you for actual developer work
+            Learn through structured courses and practice on real interactive tools
           </p>
         </div>
 
         {/* Features Grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-10 max-w-7xl mx-auto">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-10 max-w-6xl mx-auto">
           {features.map((feature, index) => {
             const Icon = feature.icon;
             return (

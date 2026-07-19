@@ -140,18 +140,8 @@ export async function GET(request: NextRequest) {
           .eq('id', data.user.id);
       }
 
-      // Check if user needs to complete onboarding quiz
-      if (!profile || !profile.onboarding_completed) {
-        const quizUrl = new URL('/onboarding/quiz', origin);
-        const quizResponse = NextResponse.redirect(quizUrl);
-
-        // Copy cookies to quiz response
-        response.cookies.getAll().forEach(cookie => {
-          quizResponse.cookies.set(cookie);
-        });
-
-        return quizResponse;
-      }
+      // DISABLED: Onboarding quiz no longer required
+      // Users are now directed straight to dashboard after OAuth signup
 
       // Return response with cookies properly set
       return response;

@@ -193,21 +193,23 @@ export async function updateSession(request: NextRequest) {
 
       subscriptionData = dbSubscription;
 
+      // DISABLED: Onboarding quiz no longer required
       // Redirect to quiz if onboarding not completed and not already on quiz page
-      if (onboardingData && !onboardingData.onboarding_completed && !request.nextUrl.pathname.startsWith('/onboarding/quiz')) {
-        const url = request.nextUrl.clone();
-        url.pathname = '/onboarding/quiz';
-        return NextResponse.redirect(url);
-      }
+      // if (onboardingData && !onboardingData.onboarding_completed && !request.nextUrl.pathname.startsWith('/onboarding/quiz')) {
+      //   const url = request.nextUrl.clone();
+      //   url.pathname = '/onboarding/quiz';
+      //   return NextResponse.redirect(url);
+      // }
 
+      // DISABLED: Onboarding quiz no longer required
       // Redirect away from quiz if user already completed it (but allow retaking if they skipped)
       // IMPORTANT: Allow viewing results page (step=results) even after completing quiz
-      const isViewingResults = request.nextUrl.searchParams.get('step') === 'results';
-      if (onboardingData && onboardingData.onboarding_completed && onboardingData.quiz_score !== null && request.nextUrl.pathname.startsWith('/onboarding/quiz') && !isViewingResults) {
-        const url = request.nextUrl.clone();
-        url.pathname = '/dashboard';
-        return NextResponse.redirect(url);
-      }
+      // const isViewingResults = request.nextUrl.searchParams.get('step') === 'results';
+      // if (onboardingData && onboardingData.onboarding_completed && onboardingData.quiz_score !== null && request.nextUrl.pathname.startsWith('/onboarding/quiz') && !isViewingResults) {
+      //   const url = request.nextUrl.clone();
+      //   url.pathname = '/dashboard';
+      //   return NextResponse.redirect(url);
+      // }
 
       // Check subscription status for expired subscriptions
       if (subscriptionData) {

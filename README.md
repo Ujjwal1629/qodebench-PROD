@@ -1,6 +1,6 @@
 # QodeBench
 
-**Master Real-World Coding Skills**
+**Master Real-World QA & Testing Skills**
 
 A modern SaaS application built with Next.js 14, TypeScript, Tailwind CSS, and Supabase.
 
@@ -13,7 +13,7 @@ A modern SaaS application built with Next.js 14, TypeScript, Tailwind CSS, and S
 - **Authentication & Database:** Supabase
 - **Data Fetching:** TanStack React Query
 - **State Management:** Zustand
-- **Deployment:** Vercel-ready
+- **Deployment:** Vercel-ready/////
 
 ## Features
 

@@ -1,0 +1,1091 @@
+-- =====================================================
+-- Playwright Test Automation Learning Module
+-- Migration: 061
+-- Description: Complete Playwright module with 2 beginner lessons
+-- Topics: Introduction/Setup, First Test/Core Concepts
+-- =====================================================
+
+-- =====================================================
+-- STEP 1: CREATE LEARNING PATH
+-- =====================================================
+
+INSERT INTO ai_learning_paths (
+  id,
+  title,
+  description,
+  difficulty,
+  target_role,
+  tech_stack,
+  estimated_duration_hours,
+  learning_objectives,
+  prerequisites,
+  is_published,
+  order_index,
+  icon
+) VALUES (
+  'f8a9b0c1-d2e3-4f5a-6b7c-8d9e0f1a2b3c',
+  'Playwright Test Automation',
+  'Learn end-to-end testing with Playwright through hands-on practice. Perfect for beginners who want to automate browser testing.',
+  'beginner',
+  ARRAY['QA Engineer', 'Test Automation Engineer', 'Developer', 'Career Switcher'],
+  ARRAY['Playwright', 'TypeScript', 'JavaScript', 'Testing'],
+  3,
+  ARRAY[
+    'Set up Playwright with TypeScript',
+    'Understand browser automation architecture',
+    'Write your first automated test',
+    'Use locators to find elements effectively',
+    'Perform common user actions and assertions',
+    'Organize tests following best practices'
+  ],
+  ARRAY['Basic JavaScript knowledge helpful but not required'],
+  true,
+  7,
+  '🎭'
+) ON CONFLICT (id) DO UPDATE SET
+  title = EXCLUDED.title,
+  description = EXCLUDED.description,
+  is_published = EXCLUDED.is_published;
+
+-- =====================================================
+-- STEP 2: CREATE QUIZ TABLES
+-- =====================================================
+
+-- Quiz Questions Table
+CREATE TABLE IF NOT EXISTS playwright_quiz_questions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  lesson_id UUID REFERENCES ai_learning_lessons(id) ON DELETE CASCADE,
+  question_text TEXT NOT NULL,
+  question_type TEXT CHECK (question_type IN ('multiple_choice', 'true_false')),
+  options JSONB,
+  correct_answer TEXT NOT NULL,
+  explanation TEXT NOT NULL,
+  code_example TEXT,
+  order_index INTEGER NOT NULL,
+  difficulty TEXT CHECK (difficulty IN ('easy', 'medium', 'hard')),
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Quiz Attempts Table
+CREATE TABLE IF NOT EXISTS playwright_quiz_attempts (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  lesson_id UUID REFERENCES ai_learning_lessons(id) ON DELETE CASCADE,
+  quiz_question_id UUID REFERENCES playwright_quiz_questions(id) ON DELETE CASCADE,
+  user_answer TEXT,
+  is_correct BOOLEAN NOT NULL,
+  attempt_number INTEGER DEFAULT 1,
+  time_taken_seconds INTEGER,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Quiz Sessions Table
+CREATE TABLE IF NOT EXISTS playwright_quiz_sessions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  lesson_id UUID REFERENCES ai_learning_lessons(id) ON DELETE CASCADE,
+  total_questions INTEGER NOT NULL,
+  correct_answers INTEGER NOT NULL,
+  score_percentage INTEGER NOT NULL,
+  passed BOOLEAN NOT NULL,
+  time_taken_seconds INTEGER,
+  completed_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Create Indexes
+CREATE INDEX IF NOT EXISTS idx_playwright_quiz_questions_lesson ON playwright_quiz_questions(lesson_id);
+CREATE INDEX IF NOT EXISTS idx_playwright_quiz_attempts_user ON playwright_quiz_attempts(user_id);
+CREATE INDEX IF NOT EXISTS idx_playwright_quiz_attempts_lesson ON playwright_quiz_attempts(lesson_id);
+CREATE INDEX IF NOT EXISTS idx_playwright_quiz_sessions_user ON playwright_quiz_sessions(user_id);
+CREATE INDEX IF NOT EXISTS idx_playwright_quiz_sessions_lesson ON playwright_quiz_sessions(lesson_id);
+
+-- Enable RLS
+ALTER TABLE playwright_quiz_questions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE playwright_quiz_attempts ENABLE ROW LEVEL SECURITY;
+ALTER TABLE playwright_quiz_sessions ENABLE ROW LEVEL SECURITY;
+
+-- RLS Policies for Questions (public read)
+DROP POLICY IF EXISTS "Anyone can read quiz questions" ON playwright_quiz_questions;
+CREATE POLICY "Anyone can read quiz questions"
+  ON playwright_quiz_questions FOR SELECT
+  USING (true);
+
+-- RLS Policies for Attempts (user-specific)
+DROP POLICY IF EXISTS "Users can insert their own attempts" ON playwright_quiz_attempts;
+CREATE POLICY "Users can insert their own attempts"
+  ON playwright_quiz_attempts FOR INSERT
+  WITH CHECK (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Users can view their own attempts" ON playwright_quiz_attempts;
+CREATE POLICY "Users can view their own attempts"
+  ON playwright_quiz_attempts FOR SELECT
+  USING (auth.uid() = user_id);
+
+-- RLS Policies for Sessions (user-specific)
+DROP POLICY IF EXISTS "Users can insert their own sessions" ON playwright_quiz_sessions;
+CREATE POLICY "Users can insert their own sessions"
+  ON playwright_quiz_sessions FOR INSERT
+  WITH CHECK (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Users can view their own sessions" ON playwright_quiz_sessions;
+CREATE POLICY "Users can view their own sessions"
+  ON playwright_quiz_sessions FOR SELECT
+  USING (auth.uid() = user_id);
+
+-- =====================================================
+-- STEP 3: LESSON 1 - Introduction & Setup
+-- =====================================================
+
+INSERT INTO ai_learning_lessons (
+  id,
+  learning_path_id,
+  title,
+  description,
+  content_type,
+  content,
+  duration_minutes,
+  order_index,
+  learning_objectives
+) VALUES (
+  gen_random_uuid(),
+  'f8a9b0c1-d2e3-4f5a-6b7c-8d9e0f1a2b3c',
+  'Introduction to Playwright with TypeScript',
+  'Learn what Playwright is, how to install it, and understand browser automation architecture',
+  'article',
+  $$# Introduction to Playwright with TypeScript
+
+## What is Playwright?
+
+Think of Playwright as your **robot assistant that controls web browsers**. It can:
+- Open websites automatically
+- Click buttons and fill forms
+- Check if things appear correctly
+- Take screenshots and videos
+- Test your web app on different browsers
+
+**Real-world analogy:**
+- Manual testing = You clicking through your website yourself
+- Playwright = Training a robot to click through it for you, 100 times faster
+
+## Why Use Playwright?
+
+✅ **Save time** - Run tests in seconds instead of hours
+✅ **Catch bugs early** - Find issues before users do
+✅ **Test on multiple browsers** - Chrome, Firefox, Safari automatically
+✅ **Reliable** - No more "flaky" tests that randomly fail
+✅ **Built for modern web** - Works with React, Vue, Next.js, etc.
+
+## Installation & Setup
+
+:::playwright-practice language=typescript | height=400px | title=Your First Playwright Test | testUrl=https://playwright.dev
+import { test, expect } from '@playwright/test';
+
+test('basic test example', async ({ page }) => {
+  // Navigate to Playwright website
+  await page.goto('https://playwright.dev');
+
+  // Check page title
+  await expect(page).toHaveTitle(/Playwright/);
+
+  console.log('✅ Test passed!');
+});
+:::
+
+## Understanding Playwright Architecture
+
+Playwright has a simple 3-level structure:
+
+### 1. Browser (Top Level)
+The whole browser application (Chrome, Firefox, Safari)
+
+### 2. Context (Middle Level)
+A private browsing session (like incognito mode). Each context is isolated.
+
+### 3. Page (Bottom Level)
+A single tab within a context. This is where you do most of your work!
+
+**Diagram:**
+```
+Browser
+  ├── Context 1 (isolated session)
+  │     ├── Page 1 (tab)
+  │     └── Page 2 (tab)
+  └── Context 2 (different isolated session)
+        └── Page 1 (tab)
+```
+
+:::tip Key Point
+Most tests use the `page` fixture which Playwright gives you automatically. You don't need to create browser/context manually!
+:::
+
+## Configuration Basics
+
+The `playwright.config.ts` file controls how tests run:
+
+```typescript
+import { defineConfig } from '@playwright/test';
+
+export default defineConfig({
+  testDir: './tests',           // Where your tests are
+  timeout: 30000,               // 30 seconds max per test
+  retries: 2,                   // Retry failed tests twice
+  use: {
+    baseURL: 'http://localhost:3000',  // Your app URL
+    screenshot: 'only-on-failure',     // Take screenshots when tests fail
+    video: 'retain-on-failure',        // Record video of failures
+  },
+  projects: [
+    { name: 'chromium', use: { browserName: 'chromium' } },
+    { name: 'firefox', use: { browserName: 'firefox' } },
+    { name: 'webkit', use: { browserName: 'webkit' } },
+  ],
+});
+```
+
+:::playwright-practice language=typescript | height=400px | title=Test Playwright Configuration | testUrl=https://example.com
+import { test, expect } from '@playwright/test';
+
+test('verify configuration works', async ({ page }) => {
+  // This test will run with default config
+  await page.goto('https://example.com');
+
+  // Verify page loaded
+  await expect(page).toHaveTitle(/Example Domain/);
+
+  // Find the heading
+  const heading = page.getByRole('heading');
+  await expect(heading).toBeVisible();
+
+  console.log('✅ Configuration working!');
+});
+:::
+
+## Running Tests
+
+**Command line basics:**
+```bash
+# Run all tests
+npx playwright test
+
+# Run specific test file
+npx playwright test tests/login.spec.ts
+
+# Run in headed mode (see the browser)
+npx playwright test --headed
+
+# Run in debug mode (step through slowly)
+npx playwright test --debug
+
+# Generate HTML report
+npx playwright show-report
+```
+
+:::warning Common Beginner Mistake
+Tests run in **headless mode** by default (no visible browser). Use `--headed` flag to see what's happening while learning!
+:::
+
+## TypeScript Benefits
+
+Playwright works great with TypeScript:
+
+```typescript
+import { test, expect, Page } from '@playwright/test';
+
+// TypeScript knows what 'page' can do
+test('typed example', async ({ page }) => {
+  await page.goto('https://example.com');
+
+  // Autocomplete works! Your editor suggests methods
+  await page.click('button');
+  await page.fill('input[name="email"]', 'test@example.com');
+
+  // Type-safe assertions
+  await expect(page.locator('h1')).toHaveText('Welcome');
+});
+```
+
+## Summary
+
+**What you learned:**
+- ✅ Playwright automates browser testing
+- ✅ Installation: `npm init playwright@latest`
+- ✅ Architecture: Browser → Context → Page
+- ✅ Configuration in `playwright.config.ts`
+- ✅ Run tests with `npx playwright test`
+- ✅ TypeScript provides autocomplete and type safety
+
+**Next lesson:** Write your first real test and learn core concepts!
+$$,
+  35,
+  1,
+  ARRAY[
+    'Understand what Playwright is and its benefits',
+    'Install and configure Playwright with TypeScript',
+    'Understand browser automation architecture',
+    'Run tests using command line options'
+  ]
+);
+
+-- =====================================================
+-- STEP 4: LESSON 2 - First Test & Core Concepts
+-- =====================================================
+
+INSERT INTO ai_learning_lessons (
+  id,
+  learning_path_id,
+  title,
+  description,
+  content_type,
+  content,
+  duration_minutes,
+  order_index,
+  learning_objectives
+) VALUES (
+  gen_random_uuid(),
+  'f8a9b0c1-d2e3-4f5a-6b7c-8d9e0f1a2b3c',
+  'Writing Your First Playwright Test',
+  'Learn test structure, locators, actions, and assertions through hands-on examples',
+  'article',
+  $$# Writing Your First Playwright Test
+
+## Test Anatomy
+
+Every Playwright test has this structure:
+
+```typescript
+import { test, expect } from '@playwright/test';
+
+test('description of what you are testing', async ({ page }) => {
+  // 1. Navigate
+  await page.goto('https://example.com');
+
+  // 2. Interact (click, type, etc.)
+  await page.click('button');
+
+  // 3. Assert (check results)
+  await expect(page.locator('h1')).toBeVisible();
+});
+```
+
+:::tip Test Structure
+**AAA Pattern:**
+- **Arrange** - Set up (navigate to page)
+- **Act** - Do something (click, fill forms)
+- **Assert** - Verify results (check what happened)
+:::
+
+## Your First Real Test
+
+:::playwright-practice language=typescript | height=450px | title=Write Your First Test | testUrl=https://playwright.dev
+import { test, expect } from '@playwright/test';
+
+test('homepage loads correctly', async ({ page }) => {
+  // Arrange: Go to the website
+  await page.goto('https://playwright.dev');
+
+  // Act: Wait for page to load (automatic)
+
+  // Assert: Check the title
+  await expect(page).toHaveTitle(/Playwright/);
+
+  // Assert: Check heading is visible
+  const heading = page.locator('h1');
+  await expect(heading).toBeVisible();
+
+  console.log('✅ Test passed!');
+});
+:::
+
+## Page Fixtures Deep Dive
+
+The `{ page }` in your test is a **fixture** - Playwright automatically:
+1. Creates a fresh browser context
+2. Opens a new page
+3. Gives it to your test
+4. Closes everything after the test
+
+**Benefits:**
+- ✅ Each test is isolated (fresh start)
+- ✅ No manual cleanup needed
+- ✅ Tests can run in parallel
+
+```typescript
+test('fixture example', async ({ page }) => {
+  // 'page' is ready to use immediately
+  await page.goto('https://example.com');
+
+  // After test finishes, page is automatically closed
+});
+```
+
+## Locators: Finding Elements
+
+**Locators** tell Playwright which element to interact with. Think of them as GPS coordinates for page elements.
+
+### Locator Priority Order (Best to Worst)
+
+1. **getByRole** (BEST - accessible, semantic)
+2. **getByLabel** (Good for forms)
+3. **getByPlaceholder** (Good for inputs)
+4. **getByText** (Good for links/buttons)
+5. **getByTestId** (Stable, requires setup)
+6. **CSS/XPath** (LAST RESORT - fragile)
+
+### 1. getByRole (Recommended!)
+
+```typescript
+// Buttons
+await page.getByRole('button', { name: 'Submit' }).click();
+
+// Links
+await page.getByRole('link', { name: 'About Us' }).click();
+
+// Headings
+await page.getByRole('heading', { name: 'Welcome' });
+
+// Text inputs
+await page.getByRole('textbox', { name: 'Email' }).fill('test@example.com');
+
+// Checkboxes
+await page.getByRole('checkbox', { name: 'I agree' }).check();
+```
+
+:::success Why getByRole?
+- ✅ Matches how screen readers work (accessibility)
+- ✅ Resilient to UI changes
+- ✅ Semantic and readable
+:::
+
+### 2. getByLabel (Forms)
+
+```typescript
+// Labels are connected to inputs
+await page.getByLabel('Email address').fill('user@example.com');
+await page.getByLabel('Password').fill('secret123');
+await page.getByLabel('Remember me').check();
+```
+
+### 3. getByText
+
+```typescript
+// Click a button by its text
+await page.getByText('Sign In').click();
+
+// Find specific text
+await expect(page.getByText('Welcome back!')).toBeVisible();
+```
+
+### 4. getByTestId (Stable IDs)
+
+```typescript
+// In your HTML: <button data-testid="submit-btn">Submit</button>
+await page.getByTestId('submit-btn').click();
+
+// Good for dynamic content
+await expect(page.getByTestId('user-profile')).toContainText('John');
+```
+
+:::playwright-practice language=typescript | height=450px | title=Practice Locators | testUrl=https://playwright.dev
+import { test, expect } from '@playwright/test';
+
+test('practice different locators', async ({ page }) => {
+  await page.goto('https://playwright.dev');
+
+  // Try getByRole - most reliable!
+  const getStartedLink = page.getByRole('link', { name: 'Get started' });
+  await expect(getStartedLink).toBeVisible();
+
+  // Try finding heading by role
+  const heading = page.getByRole('heading', { level: 1 });
+  await expect(heading).toBeVisible();
+
+  console.log('✅ Locators working perfectly!');
+});
+:::
+
+## Common Actions
+
+### Navigation
+```typescript
+// Go to URL
+await page.goto('https://example.com');
+
+// Go back/forward
+await page.goBack();
+await page.goForward();
+
+// Reload
+await page.reload();
+```
+
+### Clicks
+```typescript
+// Simple click
+await page.getByRole('button', { name: 'Submit' }).click();
+
+// Double click
+await page.getByText('Select').dblclick();
+
+// Right click
+await page.getByText('Menu').click({ button: 'right' });
+```
+
+### Typing
+```typescript
+// Fill input (clears first, then types)
+await page.getByLabel('Email').fill('test@example.com');
+
+// Type (doesn't clear first)
+await page.locator('input').type('hello');
+
+// Press keyboard keys
+await page.getByLabel('Search').press('Enter');
+await page.keyboard.press('Tab');
+```
+
+### Checkboxes & Radio Buttons
+```typescript
+// Check
+await page.getByLabel('I agree').check();
+
+// Uncheck
+await page.getByLabel('Newsletter').uncheck();
+
+// Radio button
+await page.getByLabel('Option A').check();
+```
+
+### Dropdowns
+```typescript
+// Select by label
+await page.locator('select').selectOption('Option 1');
+
+// Select by value
+await page.locator('select').selectOption({ value: 'opt1' });
+```
+
+## Assertions (Checking Results)
+
+```typescript
+// Page assertions
+await expect(page).toHaveTitle('My App');
+await expect(page).toHaveURL('https://example.com/dashboard');
+
+// Element visibility
+await expect(page.getByText('Welcome')).toBeVisible();
+await expect(page.getByText('Loading...')).toBeHidden();
+
+// Text content
+await expect(page.locator('h1')).toHaveText('Dashboard');
+await expect(page.locator('.message')).toContainText('Success');
+
+// Counts
+await expect(page.locator('.item')).toHaveCount(5);
+
+// Attributes
+await expect(page.locator('input')).toHaveAttribute('type', 'email');
+
+// States
+await expect(page.getByLabel('Email')).toBeEnabled();
+await expect(page.getByRole('button')).toBeDisabled();
+```
+
+:::warning Wait for It!
+Playwright automatically waits for elements, but you can adjust:
+```typescript
+// Custom timeout
+await expect(page.locator('.slow-element')).toBeVisible({ timeout: 10000 });
+```
+:::
+
+## Complete Example: Login Test
+
+:::playwright-practice language=typescript | height=500px | title=Complete Example Test | testUrl=https://example.com
+import { test, expect } from '@playwright/test';
+
+test('verify example.com page', async ({ page }) => {
+  // Arrange: Navigate to page
+  await page.goto('https://example.com');
+
+  // Assert: Check page title
+  await expect(page).toHaveTitle(/Example Domain/);
+
+  // Assert: Find heading using getByRole
+  const heading = page.getByRole('heading');
+  await expect(heading).toBeVisible();
+  await expect(heading).toContainText('Example');
+
+  // Assert: Find paragraph text
+  const paragraph = page.getByText('This domain is for use');
+  await expect(paragraph).toBeVisible();
+
+  // Assert: Find "More information" link
+  const moreInfoLink = page.getByRole('link', { name: 'More information' });
+  await expect(moreInfoLink).toBeVisible();
+
+  console.log('✅ All assertions passed! Test complete.');
+});
+:::
+
+## Test Organization Best Practices
+
+### 1. Descriptive Test Names
+```typescript
+// ❌ Bad
+test('test 1', async ({ page }) => {});
+
+// ✅ Good
+test('user can add item to cart', async ({ page }) => {});
+test('displays error for invalid email', async ({ page }) => {});
+```
+
+### 2. Group Related Tests
+```typescript
+import { test, expect } from '@playwright/test';
+
+test.describe('Authentication', () => {
+  test('user can log in', async ({ page }) => {
+    // Login test
+  });
+
+  test('user can log out', async ({ page }) => {
+    // Logout test
+  });
+
+  test('shows error for wrong password', async ({ page }) => {
+    // Error test
+  });
+});
+```
+
+### 3. Use beforeEach for Setup
+```typescript
+test.describe('Dashboard Tests', () => {
+  test.beforeEach(async ({ page }) => {
+    // This runs before EACH test
+    await page.goto('https://example.com');
+    await page.getByLabel('Email').fill('user@example.com');
+    await page.getByLabel('Password').fill('password123');
+    await page.getByRole('button', { name: 'Sign In' }).click();
+  });
+
+  test('can view profile', async ({ page }) => {
+    // Already logged in from beforeEach!
+    await page.getByRole('link', { name: 'Profile' }).click();
+    await expect(page.locator('h1')).toHaveText('My Profile');
+  });
+
+  test('can update settings', async ({ page }) => {
+    // Also already logged in!
+    await page.getByRole('link', { name: 'Settings' }).click();
+  });
+});
+```
+
+## Summary
+
+**What you learned:**
+- ✅ Test structure: import, test(), async/await, page fixture
+- ✅ AAA pattern: Arrange, Act, Assert
+- ✅ Locator priority: getByRole → getByLabel → getByText → getByTestId
+- ✅ Common actions: goto, click, fill, check
+- ✅ Assertions: toBeVisible, toHaveText, toHaveURL
+- ✅ Test organization: describe, beforeEach, clear names
+
+**Next steps:**
+- Practice writing tests for your own web apps
+- Learn about advanced patterns (Page Objects, fixtures)
+- Explore CI/CD integration for automated testing
+$$,
+  40,
+  2,
+  ARRAY[
+    'Write well-structured Playwright tests',
+    'Use semantic locators effectively',
+    'Perform common browser actions',
+    'Create assertions to verify behavior',
+    'Organize tests with describe and beforeEach'
+  ]
+);
+
+-- =====================================================
+-- STEP 5: INSERT QUIZ QUESTIONS
+-- =====================================================
+
+DO $$
+DECLARE
+  lesson1_id UUID;
+  lesson2_id UUID;
+BEGIN
+  -- Get Lesson 1 ID (Introduction & Setup)
+  SELECT id INTO lesson1_id
+  FROM ai_learning_lessons
+  WHERE learning_path_id = 'f8a9b0c1-d2e3-4f5a-6b7c-8d9e0f1a2b3c'
+    AND order_index = 1;
+
+  -- Get Lesson 2 ID (First Test & Core Concepts)
+  SELECT id INTO lesson2_id
+  FROM ai_learning_lessons
+  WHERE learning_path_id = 'f8a9b0c1-d2e3-4f5a-6b7c-8d9e0f1a2b3c'
+    AND order_index = 2;
+
+  -- =====================================================
+  -- LESSON 1 QUIZ QUESTIONS (6 questions)
+  -- =====================================================
+
+  IF lesson1_id IS NOT NULL THEN
+    -- Question 1
+    INSERT INTO playwright_quiz_questions (
+      lesson_id,
+      question_text,
+      question_type,
+      options,
+      correct_answer,
+      explanation,
+      order_index,
+      difficulty
+    ) VALUES (
+      lesson1_id,
+      'What is Playwright primarily used for?',
+      'multiple_choice',
+      '{"A": "Creating websites", "B": "Automating browser testing", "C": "Designing UI", "D": "Managing databases"}'::jsonb,
+      'B',
+      'Playwright is a testing framework that automates browser interactions to test web applications. It allows you to write scripts that control browsers like Chrome, Firefox, and Safari to verify your app works correctly.',
+      1,
+      'easy'
+    );
+
+    -- Question 2
+    INSERT INTO playwright_quiz_questions (
+      lesson_id,
+      question_text,
+      question_type,
+      options,
+      correct_answer,
+      explanation,
+      order_index,
+      difficulty
+    ) VALUES (
+      lesson1_id,
+      'Which command installs Playwright in a new project?',
+      'multiple_choice',
+      '{"A": "npm install playwright", "B": "npm init playwright@latest", "C": "playwright init", "D": "npm create playwright"}'::jsonb,
+      'B',
+      'The correct command is npm init playwright@latest which sets up a new Playwright project with TypeScript configuration, example tests, and all necessary dependencies.',
+      2,
+      'easy'
+    );
+
+    -- Question 3
+    INSERT INTO playwright_quiz_questions (
+      lesson_id,
+      question_text,
+      question_type,
+      options,
+      correct_answer,
+      explanation,
+      order_index,
+      difficulty
+    ) VALUES (
+      lesson1_id,
+      'In Playwright's architecture, what is a "Context"?',
+      'multiple_choice',
+      '{"A": "The entire browser application", "B": "An isolated browsing session", "C": "A single test file", "D": "A configuration setting"}'::jsonb,
+      'B',
+      'A context is like an incognito window - an isolated browsing session that doesn't share cookies or storage with other contexts. This isolation ensures tests don't interfere with each other.',
+      3,
+      'medium'
+    );
+
+    -- Question 4
+    INSERT INTO playwright_quiz_questions (
+      lesson_id,
+      question_text,
+      question_type,
+      options,
+      correct_answer,
+      explanation,
+      order_index,
+      difficulty
+    ) VALUES (
+      lesson1_id,
+      'Where do you write your test files by default?',
+      'multiple_choice',
+      '{"A": "src/ folder", "B": "test/ folder", "C": "tests/ folder", "D": "spec/ folder"}'::jsonb,
+      'C',
+      'By default, Playwright uses the tests/ directory for test files. This is configured in playwright.config.ts with the testDir option.',
+      4,
+      'easy'
+    );
+
+    -- Question 5
+    INSERT INTO playwright_quiz_questions (
+      lesson_id,
+      question_text,
+      question_type,
+      options,
+      correct_answer,
+      explanation,
+      order_index,
+      difficulty
+    ) VALUES (
+      lesson1_id,
+      'What flag shows the browser window when running tests?',
+      'multiple_choice',
+      '{"A": "--visible", "B": "--headed", "C": "--show", "D": "--debug"}'::jsonb,
+      'B',
+      'The --headed flag runs tests in headed mode where you can see the browser window. By default, tests run in headless mode (no visible window) for speed.',
+      5,
+      'easy'
+    );
+
+    -- Question 6
+    INSERT INTO playwright_quiz_questions (
+      lesson_id,
+      question_text,
+      question_type,
+      options,
+      correct_answer,
+      explanation,
+      order_index,
+      difficulty
+    ) VALUES (
+      lesson1_id,
+      'Which browsers does Playwright support?',
+      'multiple_choice',
+      '{"A": "Only Chrome", "B": "Chrome and Firefox", "C": "Chrome, Firefox, and Safari", "D": "All browsers including Internet Explorer"}'::jsonb,
+      'C',
+      'Playwright supports Chromium (Chrome/Edge), Firefox, and WebKit (Safari). It provides consistent APIs across all three, but does not support legacy browsers like Internet Explorer.',
+      6,
+      'easy'
+    );
+  END IF;
+
+  -- =====================================================
+  -- LESSON 2 QUIZ QUESTIONS (8 questions)
+  -- =====================================================
+
+  IF lesson2_id IS NOT NULL THEN
+    -- Question 1
+    INSERT INTO playwright_quiz_questions (
+      lesson_id,
+      question_text,
+      question_type,
+      options,
+      correct_answer,
+      explanation,
+      code_example,
+      order_index,
+      difficulty
+    ) VALUES (
+      lesson2_id,
+      'What does the async keyword do in a Playwright test?',
+      'multiple_choice',
+      '{"A": "Makes tests run faster", "B": "Allows using await for asynchronous operations", "C": "Creates multiple test instances", "D": "Enables parallel execution"}'::jsonb,
+      'B',
+      'The async keyword allows you to use await to wait for promises to resolve, which is necessary for Playwright's asynchronous operations like page.goto() or page.click().',
+      'test('example', async ({ page }) => { await page.goto('...'); });',
+      1,
+      'easy'
+    );
+
+    -- Question 2
+    INSERT INTO playwright_quiz_questions (
+      lesson_id,
+      question_text,
+      question_type,
+      options,
+      correct_answer,
+      explanation,
+      order_index,
+      difficulty
+    ) VALUES (
+      lesson2_id,
+      'What is the recommended locator strategy in Playwright?',
+      'multiple_choice',
+      '{"A": "CSS selectors", "B": "XPath", "C": "getByRole", "D": "jQuery"}'::jsonb,
+      'C',
+      'getByRole is recommended because it matches accessibility roles (like how screen readers work), making tests resilient to UI changes and ensuring your app is accessible.',
+      2,
+      'easy'
+    );
+
+    -- Question 3
+    INSERT INTO playwright_quiz_questions (
+      lesson_id,
+      question_text,
+      question_type,
+      options,
+      correct_answer,
+      explanation,
+      order_index,
+      difficulty
+    ) VALUES (
+      lesson2_id,
+      'What does the page fixture provide in a test?',
+      'multiple_choice',
+      '{"A": "A fresh browser page for each test", "B": "The test configuration", "C": "Test results", "D": "Browser console logs"}'::jsonb,
+      'A',
+      'The page fixture is automatically created by Playwright and provides an isolated browser page for each test. It's automatically cleaned up after the test completes.',
+      3,
+      'medium'
+    );
+
+    -- Question 4
+    INSERT INTO playwright_quiz_questions (
+      lesson_id,
+      question_text,
+      question_type,
+      options,
+      correct_answer,
+      explanation,
+      code_example,
+      order_index,
+      difficulty
+    ) VALUES (
+      lesson2_id,
+      'Which assertion checks if an element is visible on the page?',
+      'multiple_choice',
+      '{"A": "toExist()", "B": "toBeVisible()", "C": "toAppear()", "D": "toDisplay()"}'::jsonb,
+      'B',
+      'toBeVisible() checks that an element is both attached to the DOM and visible (not hidden by CSS display:none or visibility:hidden).',
+      'await expect(page.locator('h1')).toBeVisible();',
+      4,
+      'easy'
+    );
+
+    -- Question 5
+    INSERT INTO playwright_quiz_questions (
+      lesson_id,
+      question_text,
+      question_type,
+      options,
+      correct_answer,
+      explanation,
+      order_index,
+      difficulty
+    ) VALUES (
+      lesson2_id,
+      'What is the purpose of test.beforeEach()?',
+      'multiple_choice',
+      '{"A": "Run once before all tests", "B": "Run before each test in the describe block", "C": "Run after each test", "D": "Run only on test failure"}'::jsonb,
+      'B',
+      'beforeEach() runs before every single test in the describe block. It's useful for common setup like logging in or navigating to a specific page.',
+      5,
+      'medium'
+    );
+
+    -- Question 6
+    INSERT INTO playwright_quiz_questions (
+      lesson_id,
+      question_text,
+      question_type,
+      options,
+      correct_answer,
+      explanation,
+      code_example,
+      order_index,
+      difficulty
+    ) VALUES (
+      lesson2_id,
+      'How do you click a button by its accessible name?',
+      'multiple_choice',
+      '{"A": "page.click('button')", "B": "page.getByRole('button', { name: 'Submit' }).click()", "C": "page.locator('button[name=\"Submit\"]').click()", "D": "page.find('Submit').click()"}'::jsonb,
+      'B',
+      'getByRole with the name option finds buttons by their accessible name (text content or aria-label). This is the most reliable and accessible way to locate elements.',
+      'await page.getByRole('button', { name: 'Submit' }).click();',
+      6,
+      'easy'
+    );
+
+    -- Question 7
+    INSERT INTO playwright_quiz_questions (
+      lesson_id,
+      question_text,
+      question_type,
+      options,
+      correct_answer,
+      explanation,
+      order_index,
+      difficulty
+    ) VALUES (
+      lesson2_id,
+      'What does the fill() method do?',
+      'multiple_choice',
+      '{"A": "Only types text without clearing", "B": "Clears the input first, then types the text", "C": "Selects all text in the input", "D": "Validates the input value"}'::jsonb,
+      'B',
+      'fill() clears the existing value first, then fills in the new value. This ensures the input has exactly the text you want. Use type() if you don't want to clear first.',
+      7,
+      'medium'
+    );
+
+    -- Question 8
+    INSERT INTO playwright_quiz_questions (
+      lesson_id,
+      question_text,
+      question_type,
+      options,
+      correct_answer,
+      explanation,
+      order_index,
+      difficulty
+    ) VALUES (
+      lesson2_id,
+      'What does the AAA pattern stand for in testing?',
+      'multiple_choice',
+      '{"A": "Act, Assert, Analyze", "B": "Arrange, Act, Assert", "C": "Allocate, Apply, Assess", "D": "Access, Action, Approve"}'::jsonb,
+      'B',
+      'AAA stands for Arrange (setup), Act (perform action), Assert (verify outcome). This is a standard test structure pattern that makes tests clear and easy to understand.',
+      8,
+      'easy'
+    );
+  END IF;
+
+  RAISE NOTICE 'Playwright quiz questions inserted successfully';
+  RAISE NOTICE 'Lesson 1: % questions', (SELECT COUNT(*) FROM playwright_quiz_questions WHERE lesson_id = lesson1_id);
+  RAISE NOTICE 'Lesson 2: % questions', (SELECT COUNT(*) FROM playwright_quiz_questions WHERE lesson_id = lesson2_id);
+END $$;
+
+-- =====================================================
+-- VERIFICATION & SUMMARY
+-- =====================================================
+
+DO $$
+DECLARE
+  path_count INTEGER;
+  lesson_count INTEGER;
+  quiz_question_count INTEGER;
+BEGIN
+  SELECT COUNT(*) INTO path_count
+  FROM ai_learning_paths
+  WHERE id = 'f8a9b0c1-d2e3-4f5a-6b7c-8d9e0f1a2b3c';
+
+  SELECT COUNT(*) INTO lesson_count
+  FROM ai_learning_lessons
+  WHERE learning_path_id = 'f8a9b0c1-d2e3-4f5a-6b7c-8d9e0f1a2b3c';
+
+  SELECT COUNT(*) INTO quiz_question_count
+  FROM playwright_quiz_questions;
+
+  RAISE NOTICE '========================================';
+  RAISE NOTICE 'Playwright Learning Module - Migration Complete';
+  RAISE NOTICE '========================================';
+  RAISE NOTICE 'Learning paths created: %', path_count;
+  RAISE NOTICE 'Lessons created: %', lesson_count;
+  RAISE NOTICE 'Quiz questions created: %', quiz_question_count;
+  RAISE NOTICE 'Quiz tables: playwright_quiz_questions, playwright_quiz_attempts, playwright_quiz_sessions';
+  RAISE NOTICE 'RLS policies: Enabled and configured';
+  RAISE NOTICE '========================================';
+  RAISE NOTICE 'Next step: Update lib/quiz/quiz-service.ts mapping';
+  RAISE NOTICE 'Add: 'f8a9b0c1-d2e3-4f5a-6b7c-8d9e0f1a2b3c': 'playwright'';
+  RAISE NOTICE '========================================';
+END $$;
+
+-- =====================================================
+-- MIGRATION COMPLETE
+-- =====================================================
+
+COMMENT ON TABLE playwright_quiz_questions IS 'Quiz questions for Playwright learning module';
+COMMENT ON TABLE playwright_quiz_attempts IS 'Individual question attempts for Playwright quizzes';
+COMMENT ON TABLE playwright_quiz_sessions IS 'Overall quiz session results for Playwright lessons';

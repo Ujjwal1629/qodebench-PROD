@@ -5,7 +5,21 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Check } from "lucide-react";
 
-const pricingTiers = [
+interface PricingTier {
+  name: string;
+  description: string;
+  features: string[];
+  cta: string;
+  ctaLink: string;
+
+  monthlyPrice?: string;
+  yearlyPrice?: string;
+  popular?: boolean;
+  badge?: string;
+  originalPrice?: string;
+}
+
+const pricingTiers: PricingTier[] = [
   {
     name: "Free",
     monthlyPrice: "₹0",
@@ -20,25 +34,7 @@ const pricingTiers = [
     ],
     cta: "Get Started",
     ctaLink: "/signup",
-  },
-  {
-    name: "Launch Offer",
-    monthlyPrice: "₹199",
-    yearlyPrice: "₹199",
-    originalPrice: "₹999",
-    description: "21-day launch offer",
-    features: [
-      "All challenges (beginner to advanced)",
-      "Interview prep mode (6 stages)",
-      "Unlimited attempts",
-      "Unlimited AI hints & feedback",
-      "System design discussions",
-      "Professional interview reports",
-    ],
-    cta: "Get Launch Offer",
-    ctaLink: "/pricing",
-    popular: true,
-    badge: "Limited Time",
+    popular: false,
   },
   {
     name: "Premium Plans",
@@ -46,7 +42,7 @@ const pricingTiers = [
     yearlyPrice: "₹4,999",
     description: "Choose your commitment",
     features: [
-      "Everything in Launch Offer",
+      "Everything in Free Tier",
       "3-Month Offer: ₹1,999 (Introductory)",
       "6-Month Plan: ₹4,999 (Best value)",
       "Cancel anytime",
@@ -55,6 +51,7 @@ const pricingTiers = [
     ],
     cta: "View All Plans",
     ctaLink: "/pricing",
+    popular: true,
   },
 ];
 
@@ -78,7 +75,7 @@ export function Pricing() {
           </h2>
 
           <p className="text-xl text-slate-600 mb-8">
-            Start with <strong className="text-brand-600">free beginner challenges</strong> or try our launch offer for just ₹199 for 21 days.
+            Start with <strong className="text-brand-600">free beginner challenges</strong> or upgrade to unlock everything.
           </p>
 
           {/* Toggle */}
@@ -92,9 +89,8 @@ export function Pricing() {
               style={{ background: isYearly ? 'linear-gradient(to right, #0ea5e9, #a855f7)' : '' }}
             >
               <span
-                className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform ${
-                  isYearly ? 'translate-x-7' : 'translate-x-1'
-                }`}
+                className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform ${isYearly ? 'translate-x-7' : 'translate-x-1'
+                  }`}
               />
             </button>
             <span className={`text-sm ${isYearly ? 'text-slate-900 font-medium' : 'text-slate-500'}`}>
@@ -112,11 +108,10 @@ export function Pricing() {
           {pricingTiers.map((tier, index) => (
             <div
               key={index}
-              className={`relative bg-white rounded-2xl p-8 transition-all duration-300 hover:-translate-y-1 ${
-                tier.popular
-                  ? 'border-2 border-transparent bg-gradient-to-br from-brand-50 to-purple-50 shadow-2xl shadow-brand-500/20'
-                  : 'border-2 border-slate-200 hover:border-brand-300 hover:shadow-xl'
-              }`}
+              className={`relative bg-white rounded-2xl p-8 transition-all duration-300 hover:-translate-y-1 ${tier.popular
+                ? 'border-2 border-transparent bg-gradient-to-br from-brand-50 to-purple-50 shadow-2xl shadow-brand-500/20'
+                : 'border-2 border-slate-200 hover:border-brand-300 hover:shadow-xl'
+                }`}
             >
               {/* Popular Badge */}
               {tier.popular && (
@@ -166,11 +161,10 @@ export function Pricing() {
               {/* CTA Button */}
               <Button
                 asChild
-                className={`w-full mb-6 font-semibold transition-all duration-300 ${
-                  tier.popular
-                    ? 'bg-gradient-to-r from-brand-500 to-purple-500 hover:from-brand-600 hover:to-purple-600 text-white shadow-lg shadow-brand-500/30 hover:shadow-xl hover:shadow-brand-500/40'
-                    : 'bg-white hover:bg-slate-50 text-slate-900 border-2 border-slate-200 hover:border-brand-400'
-                }`}
+                className={`w-full mb-6 font-semibold transition-all duration-300 ${tier.popular
+                  ? 'bg-gradient-to-r from-brand-500 to-purple-500 hover:from-brand-600 hover:to-purple-600 text-white shadow-lg shadow-brand-500/30 hover:shadow-xl hover:shadow-brand-500/40'
+                  : 'bg-white hover:bg-slate-50 text-slate-900 border-2 border-slate-200 hover:border-brand-400'
+                  }`}
               >
                 <Link href={tier.ctaLink}>{tier.cta}</Link>
               </Button>

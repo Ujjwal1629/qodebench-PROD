@@ -153,21 +153,19 @@ export function calculateSubscriptionEndDate(tier: string, startDate: Date = new
   const endDate = new Date(startDate);
 
   switch (tier) {
-    case 'launch_offer':
-      endDate.setDate(endDate.getDate() + 21);
-      break;
     case 'monthly':
-      endDate.setMonth(endDate.getMonth() + 1);
+      endDate.setMonth(endDate.getMonth() + 1); // Monthly
       break;
     case 'quarterly':
-      endDate.setMonth(endDate.getMonth() + 3);
-      break;
-    case 'yearly':
-      endDate.setFullYear(endDate.getFullYear() + 1);
+      endDate.setMonth(endDate.getMonth() + 3); // Quarterly
       break;
     default:
-      throw new Error(`Invalid subscription tier: ${tier}`);
+      // Fallback for legacy tiers if needed, or throw error
+      if (tier === 'launch_offer') endDate.setDate(endDate.getDate() + 21);
+      else if (tier === 'monthly') endDate.setMonth(endDate.getMonth() + 1);
+      else if (tier === 'quarterly') endDate.setMonth(endDate.getMonth() + 3);
+      else if (tier === 'yearly') endDate.setFullYear(endDate.getFullYear() + 1);
+      else throw new Error(`Invalid subscription tier: ${tier}`);
   }
-
   return endDate;
 }

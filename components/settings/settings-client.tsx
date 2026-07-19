@@ -90,10 +90,10 @@ export function SettingsClient({ profile, email }: SettingsClientProps) {
                 <span className="text-xs sm:text-sm font-medium">Subscription Tier</span>
                 <span className="text-xs sm:text-sm text-muted-foreground capitalize break-words">
                   {subscriptionTier === 'free' ? 'Free Tier' :
-                   subscriptionTier === 'launch_offer' ? 'Launch Offer (₹199)' :
-                   subscriptionTier === 'monthly' ? 'Monthly (₹999)' :
-                   subscriptionTier === 'quarterly' ? 'Quarterly (₹1,999)' :
-                   subscriptionTier === 'yearly' ? 'Yearly (₹4,999)' : 'Free Tier'}
+
+                    subscriptionTier === 'monthly' ? 'Monthly (₹999)' :
+                      subscriptionTier === 'quarterly' ? 'Quarterly (₹1,999)' :
+                        subscriptionTier === 'yearly' ? 'Yearly (₹4,999)' : 'Free Tier'}
                 </span>
               </div>
 

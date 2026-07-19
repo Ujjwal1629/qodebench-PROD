@@ -6,7 +6,7 @@ import { Code2, Users, Target, Sparkles, Award, Zap } from 'lucide-react';
 
 export const metadata: Metadata = {
   title: 'About Us | QodeBench',
-  description: 'Learn about QodeBench - A platform empowering developers with AI-powered coding challenges',
+  description: 'Learn about QodeBench - A platform empowering QA engineers with AI-powered testing scenarios',
 };
 
 export default function AboutPage() {
@@ -28,8 +28,8 @@ export default function AboutPage() {
             About QodeBench
           </h1>
           <p className="text-xl text-slate-600 leading-relaxed">
-            QodeBench is an AI-powered platform designed to help developers improve their coding
-            skills through hands-on challenges, mock interviews, and personalized learning experiences.
+            QodeBench is an AI-powered platform designed to help QA engineers improve their testing
+            skills through hands-on scenarios, mock interviews, and personalized learning experiences.
           </p>
         </div>
       </section>
@@ -43,13 +43,13 @@ export default function AboutPage() {
           <Card>
             <CardContent className="p-8">
               <p className="text-lg text-slate-600 leading-relaxed mb-4">
-                We are a team of developers, educators, and AI enthusiasts passionate about making
-                quality coding education accessible to everyone. QodeBench was built to bridge the
-                gap between learning and real-world development skills.
+                We are a team of QA professionals, educators, and AI enthusiasts passionate about making
+                quality testing education accessible to everyone. QodeBench was built to bridge the
+                gap between learning and real-world QA skills.
               </p>
               <p className="text-lg text-slate-600 leading-relaxed">
-                Our platform combines traditional coding challenges with cutting-edge AI technology
-                to provide personalized feedback, hints, and learning paths tailored to each developer's
+                Our platform combines traditional testing scenarios with cutting-edge AI technology
+                to provide personalized feedback, hints, and learning paths tailored to each QA engineer's
                 needs and skill level.
               </p>
             </CardContent>
@@ -71,11 +71,11 @@ export default function AboutPage() {
                     <Code2 className="h-6 w-6 text-brand-600" />
                   </div>
                   <h3 className="text-xl font-semibold text-slate-900">
-                    Coding Challenges
+                    Testing Scenarios
                   </h3>
                 </div>
                 <p className="text-slate-600">
-                  Practice with hundreds of real-world coding challenges across multiple categories
+                  Practice with hundreds of real-world testing scenarios across multiple categories
                   and difficulty levels, from beginner to advanced.
                 </p>
               </CardContent>
@@ -127,7 +127,7 @@ export default function AboutPage() {
                 </div>
                 <p className="text-slate-600">
                   Track your learning journey with detailed progress analytics, skill assessments,
-                  achievements, and leaderboard rankings.
+                  achievements, and performance metrics.
                 </p>
               </CardContent>
             </Card>

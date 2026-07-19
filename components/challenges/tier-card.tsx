@@ -9,7 +9,6 @@ import { Progress } from '@/components/ui/progress';
 import { Lock, Unlock, ChevronDown, ChevronUp, CheckCircle2, Circle, PlayCircle, ChevronRight } from 'lucide-react';
 import { TierProgressStats } from '@/app/actions/challenges';
 import { cn } from '@/lib/utils';
-import { FREE_CHALLENGES_PER_TIER } from '@/lib/constants/subscription';
 
 interface TierCardProps {
   tierStats: TierProgressStats;
@@ -199,14 +198,6 @@ export function TierCard({ tierStats, challenges, onUnlock, hasActiveSubscriptio
                   const isCompleted = challenge.userProgress?.status === 'completed';
                   const isInProgress = challenge.userProgress?.status === 'in_progress';
                   const isLocked = !challenge.isUnlocked;
-                  const isFreeAccessible = challenge.is_free_tier_accessible;
-
-                  // TIER-SPECIFIC POSITION-BASED PREMIUM CHECK
-                  // Each tier has different free limits (Advanced: 2, Others: 5)
-                  const freeLimit = FREE_CHALLENGES_PER_TIER[tier] || 5;
-                  const isPremiumPosition = challenge.order_in_tier > freeLimit;
-                  const requiresSubscription = isPremiumPosition && !isFreeAccessible;
-                  const isSubscriptionLocked = requiresSubscription && !hasActiveSubscription;
                   const isMobileExpanded = expandedChallengeId === challenge.id;
 
                   return (
@@ -216,9 +207,8 @@ export function TierCard({ tierStats, challenges, onUnlock, hasActiveSubscriptio
                         'rounded-lg border transition-all max-w-full overflow-hidden',
                         isCompleted && 'bg-green-50 border-green-200',
                         isInProgress && 'bg-blue-50 border-blue-200',
-                        isSubscriptionLocked && 'bg-amber-50 border-amber-200 hover:border-amber-300',
-                        !isCompleted && !isInProgress && isLocked && !isSubscriptionLocked && 'bg-slate-50 border-slate-200 opacity-60',
-                        !isCompleted && !isInProgress && !isLocked && !isSubscriptionLocked && 'bg-white border-slate-200 hover:border-slate-300'
+                        !isCompleted && !isInProgress && isLocked && 'bg-slate-50 border-slate-200 opacity-60',
+                        !isCompleted && !isInProgress && !isLocked && 'bg-white border-slate-200 hover:border-slate-300'
                       )}
                     >
                       {/* Main Row - Clickable on mobile to expand */}
@@ -228,9 +218,7 @@ export function TierCard({ tierStats, challenges, onUnlock, hasActiveSubscriptio
                       >
                         {/* Challenge Status Icon */}
                         <div className="flex-shrink-0">
-                          {isSubscriptionLocked ? (
-                            <Lock className="h-4 w-4 text-amber-600" />
-                          ) : isLocked ? (
+                          {isLocked ? (
                             <Lock className="h-4 w-4 text-slate-400" />
                           ) : isCompleted ? (
                             <CheckCircle2 className="h-4 w-4 text-green-600" />
@@ -247,41 +235,16 @@ export function TierCard({ tierStats, challenges, onUnlock, hasActiveSubscriptio
                             <p className={cn(
                               'text-xs sm:text-sm font-medium min-w-0',
                               isMobileExpanded ? 'break-words flex-1' : 'truncate flex-1',
-                              (isLocked || isSubscriptionLocked) && 'text-slate-500'
+                              isLocked && 'text-slate-500'
                             )}>
                               {index + 1}. {challenge.title}
                             </p>
-                            {(isFreeAccessible && tier !== 'beginner' && challenge.order_in_tier <= freeLimit) || requiresSubscription ? (
-                              <div className="flex-shrink-0 ml-1">
-                                {isFreeAccessible && tier !== 'beginner' && challenge.order_in_tier <= freeLimit && (
-                                  <Badge variant="outline" className="text-[10px] py-0 px-1 bg-green-50 text-green-700 border-green-200">
-                                    Free
-                                  </Badge>
-                                )}
-                                {requiresSubscription && (
-                                  <Badge variant="outline" className="text-[10px] py-0 px-1 bg-amber-50 text-amber-700 border-amber-200">
-                                    Pro
-                                  </Badge>
-                                )}
-                              </div>
-                            ) : null}
                           </div>
                         </div>
 
                         {/* Desktop Action Button - Hidden on mobile */}
                         <div className="hidden sm:block">
-                          {isSubscriptionLocked ? (
-                            <Button
-                              asChild
-                              variant="outline"
-                              size="sm"
-                              className="flex-shrink-0 border-amber-600 text-amber-700 hover:bg-amber-600 hover:text-white"
-                            >
-                              <Link href={`/dashboard/challenges/${challenge.slug}`}>
-                                Upgrade
-                              </Link>
-                            </Button>
-                          ) : !isLocked && (
+                          {!isLocked && (
                             <Button
                               asChild
                               variant={isCompleted ? 'outline' : 'default'}
@@ -308,25 +271,11 @@ export function TierCard({ tierStats, challenges, onUnlock, hasActiveSubscriptio
                       {isMobileExpanded && (
                         <div className="sm:hidden px-2 pb-2 pt-0 border-t border-slate-100">
                           <div className="pt-2 flex flex-col gap-2">
-                            {/* Show unlock requirement or subscription message */}
-                            {isSubscriptionLocked ? (
-                              <p className="text-xs text-amber-700">Upgrade to unlock premium challenges</p>
-                            ) : challenge.unlockReason && !isFreeAccessible && (
+                            {challenge.unlockReason && (
                               <p className="text-xs text-slate-500">{challenge.unlockReason}</p>
                             )}
                             {/* Mobile Action Button */}
-                            {isSubscriptionLocked ? (
-                              <Button
-                                asChild
-                                variant="outline"
-                                size="sm"
-                                className="w-full border-amber-600 text-amber-700 hover:bg-amber-600 hover:text-white"
-                              >
-                                <Link href={`/dashboard/challenges/${challenge.slug}`}>
-                                  Upgrade to Premium
-                                </Link>
-                              </Button>
-                            ) : !isLocked ? (
+                            {!isLocked ? (
                               <Button
                                 asChild
                                 variant={isCompleted ? 'outline' : 'default'}

@@ -6,7 +6,7 @@ import { Globe, Users, Sparkles, Target } from 'lucide-react';
 
 export const metadata: Metadata = {
   title: 'Our Mission | QodeBench',
-  description: 'Learn about QodeBench mission and vision for developer education',
+  description: 'Learn about QodeBench mission and vision for QA engineer education',
 };
 
 export default function MissionPage() {
@@ -28,7 +28,7 @@ export default function MissionPage() {
             Our Mission
           </h1>
           <p className="text-2xl text-slate-600 leading-relaxed font-medium">
-            Empowering developers worldwide through accessible, high-quality coding education
+            Empowering QA engineers worldwide through accessible, high-quality testing education
             and AI-powered learning experiences
           </p>
         </div>
@@ -44,9 +44,9 @@ export default function MissionPage() {
                 What Drives Us
               </h2>
               <p className="text-lg text-slate-600 leading-relaxed text-center">
-                At QodeBench, we believe that quality coding education should be accessible
+                At QodeBench, we believe that quality testing education should be accessible
                 to everyone, regardless of their background, location, or financial situation.
-                We're committed to breaking down barriers and providing developers with the
+                We're committed to breaking down barriers and providing QA engineers with the
                 tools, practice, and guidance they need to succeed in their careers.
               </p>
             </CardContent>

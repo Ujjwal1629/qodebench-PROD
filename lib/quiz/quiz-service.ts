@@ -18,6 +18,8 @@ const LEARNING_PATH_TABLES: Record<string, string> = {
   'd2f2f7f7-c823-4f4a-aa7e-42ab8e061537': 'react_nextjs', // React & Next.js Mastery
   'f5e4d3c2-b1a0-9876-5432-10fedcba9876': 'backend', // Backend & APIs
   'b1c2d3e4-f5a6-7b8c-9d0e-1f2a3b4c5d6e': 'office_fundamentals', // Office Fundamentals for Developers
+  'c3d4e5f6-a7b8-9c0d-1e2f-3a4b5c6d7e8f': 'typescript', // TypeScript Essentials
+  'f8a9b0c1-d2e3-4f5a-6b7c-8d9e0f1a2b3c': 'playwright', // Playwright Test Automation
 };
 
 export class QuizService {
@@ -58,7 +60,14 @@ export class QuizService {
    */
   static async getQuestionsForLesson(lessonId: string): Promise<QuizQuestion[]> {
     const supabase = await createClient();
-    const tablePrefix = await this.getTablePrefix(lessonId);
+
+    let tablePrefix: string;
+    try {
+      tablePrefix = await this.getTablePrefix(lessonId);
+    } catch {
+      // No quiz tables for this learning path — return empty
+      return [];
+    }
 
     const { data, error } = await supabase
       .from(`${tablePrefix}_quiz_questions`)

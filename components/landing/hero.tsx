@@ -26,15 +26,15 @@ export function Hero() {
           {/* Main Headline */}
           <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold leading-tight tracking-tight">
             <span className="bg-gradient-to-r from-brand-500 via-brand-600 to-purple-600 bg-clip-text text-transparent">
-              Learn by doing real work
+              Master QA Testing with Real Tools
             </span>
             <br />
-            <span className="text-slate-900">Build experience freshers dream of</span>
+            <span className="text-slate-900">Practice on Live Applications</span>
           </h1>
 
           {/* Subheadline */}
           <p className="text-lg md:text-xl text-slate-600 leading-relaxed max-w-3xl mx-auto">
-            Bridge the gap between college and your first developer job through real-world simulations, production-like challenges, and AI-powered mentorship
+            Learn software testing by practicing on real tools like sliders, e-commerce sites, and interactive applications. Build hands-on testing skills with AI-powered guidance.
           </p>
 
           {/* Dual CTAs */}
@@ -44,7 +44,7 @@ export function Hero() {
               size="lg"
               className="bg-gradient-to-r from-brand-500 via-brand-600 to-purple-600 hover:from-brand-600 hover:via-brand-700 hover:to-purple-700 text-white text-lg px-10 h-14 rounded-2xl font-semibold transition-all shadow-2xl shadow-brand-500/30 hover:shadow-3xl hover:shadow-brand-500/40 hover:scale-105"
             >
-              <Link href="/dashboard/learning">Start Your Journey</Link>
+              <Link href="/dashboard/learning">Start Learning</Link>
             </Button>
             <Button
               asChild
@@ -52,11 +52,11 @@ export function Hero() {
               variant="outline"
               className="border-2 border-brand-500 text-brand-600 hover:bg-brand-50 text-lg px-10 h-14 rounded-2xl font-semibold transition-all hover:scale-105"
             >
-              <Link href="/dashboard/challenges">See Learning Path</Link>
+              <Link href="/dashboard/challenges">Try Practice Tools</Link>
             </Button>
           </div>
           <p className="text-sm text-slate-500 mt-4">
-            Start free • Launch offer at ₹199 for 21 days
+            Start free • Premium plans available
           </p>
 
           {/* Outcome Stats */}
@@ -67,15 +67,15 @@ export function Hero() {
             <div className="flex flex-wrap justify-center gap-4 text-sm text-slate-600">
               <div className="flex items-center gap-2 bg-white/60 backdrop-blur-sm border border-slate-200/50 rounded-full px-4 py-2">
                 <span className="text-green-600">✓</span>
-                <span>Real-world challenges</span>
+                <span>Interactive testing tools</span>
               </div>
               <div className="flex items-center gap-2 bg-white/60 backdrop-blur-sm border border-slate-200/50 rounded-full px-4 py-2">
                 <span className="text-green-600">✓</span>
-                <span>Mock interviews</span>
+                <span>Live practice environments</span>
               </div>
               <div className="flex items-center gap-2 bg-white/60 backdrop-blur-sm border border-slate-200/50 rounded-full px-4 py-2">
                 <span className="text-green-600">✓</span>
-                <span>Weekly competitions</span>
+                <span>Structured learning paths</span>
               </div>
               <div className="flex items-center gap-2 bg-white/60 backdrop-blur-sm border border-slate-200/50 rounded-full px-4 py-2">
                 <span className="text-green-600">✓</span>

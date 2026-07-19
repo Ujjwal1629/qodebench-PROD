@@ -40,8 +40,6 @@ const exploreItems = [
 export default async function DashboardHomePage() {
   const [stats, profile, subscription] = await Promise.all([
     getUserStats(),
-    getRecentSubmissions(5),
-    getRecommendedChallenges(3),
     getUserProfile(),
     getSubscription(),
   ]);

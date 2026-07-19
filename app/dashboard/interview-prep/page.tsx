@@ -1,25 +1,448 @@
-import { Metadata } from 'next';
-import { Suspense } from 'react';
-import { InterviewPrepHub } from '@/components/interview-prep/interview-prep-hub';
+'use client';
 
-export const metadata: Metadata = {
-  title: 'Interview Prep - MERN Stack Questions | QodeBench',
-  description: 'Practice MERN stack interview questions for free. Flashcard mode and practice mode with AI feedback.',
-};
+import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  ChevronDown, ChevronRight, ArrowRight, ArrowLeft, Search,
+  GraduationCap, BookOpen, Code2, Lock, Crown,
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
+import {
+  INTERVIEW_SECTIONS,
+  TOTAL_QUESTIONS,
+  PLAYWRIGHT_FRAMEWORK_SECTIONS,
+  TOTAL_PLAYWRIGHT_FRAMEWORK_QUESTIONS,
+  type InterviewSection,
+  type InterviewQuestion,
+} from '@/lib/constants/interview-questions';
+
+const FREE_SECTIONS_PER_BANK = 4;
+
+type View = 'home' | 'bank' | 'section';
+type QuestionBank = 'js-ts' | 'playwright';
+
+// ─── Code block renderer ─────────────────────────────────────────────────────
+
+function CodeBlock({ code }: { code: string }) {
+  return (
+    <pre className="bg-slate-900 text-slate-100 rounded-lg p-4 text-xs overflow-x-auto font-mono leading-relaxed">
+      {code}
+    </pre>
+  );
+}
+
+// ─── Question card (expandable) ──────────────────────────────────────────────
+
+function QuestionCard({ q, index }: { q: InterviewQuestion; index: number }) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <Card
+      className={cn(
+        'border transition-all cursor-pointer',
+        open
+          ? 'border-sky-300 bg-sky-50/30 shadow-sm'
+          : 'border-slate-200 hover:border-sky-200 hover:bg-slate-50'
+      )}
+    >
+      <div onClick={() => setOpen(!open)} className="p-4 flex items-start gap-3">
+        <div className={cn(
+          'flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold',
+          open ? 'bg-sky-600 text-white' : 'bg-slate-200 text-slate-600'
+        )}>
+          {index + 1}
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className={cn(
+            'font-medium text-sm leading-snug',
+            open ? 'text-sky-900' : 'text-slate-800'
+          )}>
+            {q.question}
+          </p>
+        </div>
+        {open ? (
+          <ChevronDown className="h-4 w-4 text-sky-600 flex-shrink-0 mt-0.5" />
+        ) : (
+          <ChevronRight className="h-4 w-4 text-slate-400 flex-shrink-0 mt-0.5" />
+        )}
+      </div>
+
+      {open && (
+        <div className="px-4 pb-4 space-y-3 border-t border-sky-200 pt-3 ml-10">
+          <div>
+            <Badge variant="outline" className="text-xs mb-2 text-sky-700 border-sky-300">
+              Answer
+            </Badge>
+            <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-line">
+              {q.answer}
+            </p>
+          </div>
+          {q.example && (
+            <div>
+              <Badge variant="outline" className="text-xs mb-2 text-purple-700 border-purple-300">
+                Example
+              </Badge>
+              <CodeBlock code={q.example} />
+            </div>
+          )}
+        </div>
+      )}
+    </Card>
+  );
+}
+
+// ─── Section detail view ─────────────────────────────────────────────────────
+
+function SectionView({
+  section,
+  bankLabel,
+  onBack,
+}: {
+  section: InterviewSection;
+  bankLabel: string;
+  onBack: () => void;
+}) {
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const filtered = searchQuery
+    ? section.questions.filter(
+        (q) =>
+          q.question.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          q.answer.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    : section.questions;
+
+  return (
+    <div className="space-y-6">
+      {/* Breadcrumb */}
+      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <button onClick={onBack} className="hover:text-sky-600 transition-colors flex items-center gap-1">
+          <ArrowLeft className="h-3.5 w-3.5" />
+          {bankLabel}
+        </button>
+        <span>/</span>
+        <span>{section.title}</span>
+      </div>
+
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 flex items-center gap-3">
+            <span className="text-3xl">{section.icon}</span>
+            {section.title}
+          </h1>
+          <p className="mt-1 text-sm text-slate-600">
+            {section.questions.length} questions in this section
+          </p>
+        </div>
+      </div>
+
+      {/* Search */}
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+        <input
+          type="text"
+          placeholder="Search questions in this section..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="w-full pl-10 pr-4 py-2.5 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 bg-white"
+        />
+      </div>
+
+      {/* Questions */}
+      <div className="space-y-3">
+        {filtered.map((q, i) => (
+          <QuestionCard key={q.id} q={q} index={i} />
+        ))}
+        {filtered.length === 0 && (
+          <div className="text-center py-10 text-slate-500">
+            No questions match your search.
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── Bank sections list view ─────────────────────────────────────────────────
+
+function BankView({
+  bank,
+  onBack,
+  onOpenSection,
+  isPaidUser,
+}: {
+  bank: QuestionBank;
+  onBack: () => void;
+  onOpenSection: (section: InterviewSection, index: number) => void;
+  isPaidUser: boolean;
+}) {
+  const sections = bank === 'js-ts' ? INTERVIEW_SECTIONS : PLAYWRIGHT_FRAMEWORK_SECTIONS;
+  const totalQuestions = bank === 'js-ts' ? TOTAL_QUESTIONS : TOTAL_PLAYWRIGHT_FRAMEWORK_QUESTIONS;
+  const title = bank === 'js-ts' ? 'JavaScript & TypeScript' : 'Playwright Framework';
+  const accent = bank === 'js-ts' ? 'sky' : 'purple';
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const filteredSections = searchQuery
+    ? sections.filter(
+        (s) =>
+          s.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          s.questions.some(
+            (q) =>
+              q.question.toLowerCase().includes(searchQuery.toLowerCase()) ||
+              q.answer.toLowerCase().includes(searchQuery.toLowerCase())
+          )
+      )
+    : sections;
+
+  return (
+    <div className="space-y-6">
+      {/* Breadcrumb */}
+      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <button onClick={onBack} className="hover:text-sky-600 transition-colors flex items-center gap-1">
+          <ArrowLeft className="h-3.5 w-3.5" />
+          Interview Prep
+        </button>
+        <span>/</span>
+        <span>{title}</span>
+      </div>
+
+      {/* Header */}
+      <div>
+        <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 flex items-center gap-3">
+          {bank === 'js-ts' ? <Code2 className="h-8 w-8 text-sky-600" /> : <span className="text-3xl">🎭</span>}
+          {title}
+        </h1>
+        <p className="mt-1 text-sm text-slate-600">
+          {sections.length} sections &middot; {totalQuestions} questions with answers &amp; code examples
+        </p>
+      </div>
+
+      {/* Search */}
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+        <input
+          type="text"
+          placeholder="Search sections or questions..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="w-full pl-10 pr-4 py-2.5 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 bg-white"
+        />
+      </div>
+
+      {/* Section Cards Grid */}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {filteredSections.map((section, index) => {
+          const originalIndex = sections.indexOf(section);
+          const isLocked = originalIndex >= FREE_SECTIONS_PER_BANK && !isPaidUser;
+
+          return (
+            <Card
+              key={section.id}
+              className={cn(
+                'relative overflow-hidden h-full border-2 cursor-pointer transition-all hover:scale-[1.02] hover:shadow-md',
+                isLocked
+                  ? 'border-slate-200 bg-slate-50 opacity-70 hover:border-slate-300'
+                  : accent === 'sky'
+                    ? 'border-sky-200 bg-sky-50/30 hover:border-sky-400'
+                    : 'border-purple-200 bg-purple-50/30 hover:border-purple-400'
+              )}
+              onClick={() => onOpenSection(section, originalIndex)}
+            >
+              <CardHeader className="pb-3">
+                <div className="flex items-start justify-between">
+                  <span className="text-2xl">{isLocked ? '🔒' : section.icon}</span>
+                  <div className="flex items-center gap-1.5">
+                    <Badge variant="secondary" className="text-xs">
+                      {section.questions.length} Q&apos;s
+                    </Badge>
+                    {isLocked && (
+                      <Badge className="text-xs bg-amber-100 text-amber-700 hover:bg-amber-100 gap-1">
+                        <Crown className="h-3 w-3" />
+                        Premium
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+                <CardTitle className="mt-2 text-base leading-snug">
+                  {section.title}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <div className="flex items-center justify-between">
+                  {isLocked ? (
+                    <div className="flex items-center gap-2 text-sm text-slate-400">
+                      <Lock className="h-4 w-4" />
+                      Locked
+                    </div>
+                  ) : (
+                    <div className={cn(
+                      'flex items-center gap-2 text-sm font-medium',
+                      accent === 'sky' ? 'text-sky-700' : 'text-purple-700'
+                    )}>
+                      <BookOpen className="h-4 w-4" />
+                      View Questions
+                    </div>
+                  )}
+                  <ArrowRight className={cn('h-4 w-4', isLocked ? 'text-slate-400' : accent === 'sky' ? 'text-sky-600' : 'text-purple-600')} />
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
+
+      {filteredSections.length === 0 && (
+        <div className="text-center py-10 text-slate-500">
+          No sections match your search.
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Page ────────────────────────────────────────────────────────────────────
 
 export default function InterviewPrepPage() {
+  const router = useRouter();
+  const [view, setView] = useState<View>('home');
+  const [activeBank, setActiveBank] = useState<QuestionBank>('js-ts');
+  const [activeSection, setActiveSection] = useState<InterviewSection | null>(null);
+  const [isPaidUser, setIsPaidUser] = useState(false);
+
+  // Fetch subscription status on mount
+  useEffect(() => {
+    fetch('/api/payments/subscription-status')
+      .then(res => res.ok ? res.json() : null)
+      .then(data => {
+        if (data?.subscription?.isActive) {
+          setIsPaidUser(true);
+        }
+      })
+      .catch(() => { /* stay as free user on error */ });
+  }, []);
+
+  const allTotalQuestions = TOTAL_QUESTIONS + TOTAL_PLAYWRIGHT_FRAMEWORK_QUESTIONS;
+
+  const openBank = (bank: QuestionBank) => {
+    setActiveBank(bank);
+    setView('bank');
+  };
+
+  const openSection = (section: InterviewSection, index: number) => {
+    if (index >= FREE_SECTIONS_PER_BANK && !isPaidUser) {
+      router.push('/pricing');
+      return;
+    }
+    setActiveSection(section);
+    setView('section');
+  };
+
+  const goHome = () => {
+    setView('home');
+    setActiveSection(null);
+  };
+
+  const goToBank = () => {
+    setView('bank');
+    setActiveSection(null);
+  };
+
+  const bankLabel = activeBank === 'js-ts' ? 'JavaScript & TypeScript' : 'Playwright Framework';
+
+  // ─── Section detail view ─────────────────────────────────────────
+  if (view === 'section' && activeSection) {
+    return (
+      <div className="space-y-8">
+        <SectionView section={activeSection} bankLabel={bankLabel} onBack={goToBank} />
+      </div>
+    );
+  }
+
+  // ─── Bank sections list view ─────────────────────────────────────
+  if (view === 'bank') {
+    return (
+      <div className="space-y-8">
+        <BankView bank={activeBank} onBack={goHome} onOpenSection={openSection} isPaidUser={isPaidUser} />
+      </div>
+    );
+  }
+
+  // ─── Home view (two cards) ───────────────────────────────────────
   return (
-    <div className="min-h-screen">
-      <Suspense fallback={
-        <div className="flex items-center justify-center py-20">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-600 mx-auto mb-4"></div>
-            <p className="text-slate-600">Loading interview questions...</p>
-          </div>
-        </div>
-      }>
-        <InterviewPrepHub />
-      </Suspense>
+    <div className="space-y-8">
+      {/* Header */}
+      <div>
+        <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 flex items-center gap-3">
+          <GraduationCap className="h-8 w-8 text-sky-600" />
+          Interview Preparation
+        </h1>
+        <p className="mt-2 text-sm sm:text-base text-slate-600">
+          {allTotalQuestions} curated questions with detailed answers &amp; code examples to ace your interviews.
+        </p>
+      </div>
+
+      {/* Two Bank Cards */}
+      <div className="grid gap-6 sm:grid-cols-2">
+        {/* JS & TypeScript Card */}
+        <Card
+          className="border-2 border-sky-200 bg-gradient-to-br from-sky-50 to-white cursor-pointer transition-all hover:scale-[1.02] hover:shadow-lg hover:border-sky-400"
+          onClick={() => openBank('js-ts')}
+        >
+          <CardHeader className="pb-4">
+            <div className="w-14 h-14 rounded-xl bg-sky-100 flex items-center justify-center mb-3">
+              <Code2 className="h-7 w-7 text-sky-600" />
+            </div>
+            <CardTitle className="text-xl">JavaScript & TypeScript</CardTitle>
+            <p className="text-sm text-slate-600 mt-1">
+              Core JS concepts, ES6+, TypeScript types, async patterns, closures, prototypes &amp; more.
+            </p>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Badge variant="secondary" className="bg-sky-100 text-sky-700 border-sky-200">
+                  {INTERVIEW_SECTIONS.length} Sections
+                </Badge>
+                <Badge variant="outline">
+                  {TOTAL_QUESTIONS} Questions
+                </Badge>
+              </div>
+              <ArrowRight className="h-5 w-5 text-sky-600" />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Playwright Card */}
+        <Card
+          className="border-2 border-purple-200 bg-gradient-to-br from-purple-50 to-white cursor-pointer transition-all hover:scale-[1.02] hover:shadow-lg hover:border-purple-400"
+          onClick={() => openBank('playwright')}
+        >
+          <CardHeader className="pb-4">
+            <div className="w-14 h-14 rounded-xl bg-purple-100 flex items-center justify-center mb-3">
+              <span className="text-3xl">🎭</span>
+            </div>
+            <CardTitle className="text-xl">Playwright Framework</CardTitle>
+            <p className="text-sm text-slate-600 mt-1">
+              Selectors, assertions, page objects, API testing, fixtures, parallelism &amp; CI/CD integration.
+            </p>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Badge variant="secondary" className="bg-purple-100 text-purple-700 border-purple-200">
+                  {PLAYWRIGHT_FRAMEWORK_SECTIONS.length} Sections
+                </Badge>
+                <Badge variant="outline">
+                  {TOTAL_PLAYWRIGHT_FRAMEWORK_QUESTIONS} Questions
+                </Badge>
+              </div>
+              <ArrowRight className="h-5 w-5 text-purple-600" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

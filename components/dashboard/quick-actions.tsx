@@ -1,34 +1,35 @@
 import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Code2, Mic, Calendar } from 'lucide-react';
+import { BookOpen, GraduationCap, Lightbulb } from 'lucide-react';
 
 export function QuickActions() {
   const actions = [
     {
-      title: 'Start a Challenge',
-      description: 'Browse and solve coding challenges',
-      icon: Code2,
-      href: '/dashboard/challenges',
-      buttonText: 'Browse Challenges',
-      color: 'text-blue-600',
-      bgColor: 'bg-blue-50',
-    },
-    {
-      title: 'Practice Interview',
-      description: 'Sharpen your interview skills',
-      icon: Mic,
-      href: '/dashboard/interviews',
-      buttonText: 'Start Interview',
+      title: 'Continue Learning',
+      description: 'Resume your learning modules',
+      icon: BookOpen,
+      href: '/dashboard/learning',
+      buttonText: 'Start Learning',
       color: 'text-purple-600',
       bgColor: 'bg-purple-50',
     },
     {
-      title: "This Week's Challenge",
-      description: 'Compete in Code Friday',
-      icon: Calendar,
-      href: '/dashboard/challenges?weekly=true',
-      buttonText: 'Join Challenge',
+      title: 'Explore Courses',
+      description: 'Browse all available courses',
+      icon: GraduationCap,
+      href: 'https://www.journeytoautomation.org/',
+      buttonText: 'View Courses',
+      color: 'text-blue-600',
+      bgColor: 'bg-blue-50',
+      external: true,
+    },
+    {
+      title: 'Learning Resources',
+      description: 'Access guides and tutorials',
+      icon: Lightbulb,
+      href: '/dashboard/learning',
+      buttonText: 'Get Started',
       color: 'text-orange-600',
       bgColor: 'bg-orange-50',
     },
@@ -49,9 +50,15 @@ export function QuickActions() {
                   <h3 className="text-base sm:text-lg font-semibold text-slate-900">{action.title}</h3>
                   <p className="mt-1 text-xs sm:text-sm text-slate-600">{action.description}</p>
                 </div>
-                <Button asChild className="w-full">
-                  <Link href={action.href}>{action.buttonText}</Link>
-                </Button>
+                {action.external ? (
+                  <Button asChild className="w-full">
+                    <a href={action.href} target="_blank" rel="noopener noreferrer">{action.buttonText}</a>
+                  </Button>
+                ) : (
+                  <Button asChild className="w-full">
+                    <Link href={action.href}>{action.buttonText}</Link>
+                  </Button>
+                )}
               </div>
             </CardContent>
           </Card>
