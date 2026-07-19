@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { Settings, HelpCircle, LogOut, Menu, Crown, X } from 'lucide-react';
+import { Settings, HelpCircle, LogOut, Menu, Crown, Home } from 'lucide-react';
+import Image from 'next/image';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   DropdownMenu,
@@ -17,9 +18,8 @@ import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/hooks/use-auth';
 import { useRouter, usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { useUIStore } from '@/store/ui-store';
 import { getUserInitials } from '@/lib/utils/format';
-import { MOBILE_NAV_ITEMS } from '@/lib/constants/dashboard';
+import { DRAWER_NAV_GROUPS } from '@/lib/constants/dashboard';
 import Link from 'next/link';
 
 interface TopBarProps {
@@ -30,80 +30,67 @@ interface TopBarProps {
     full_name: string | null;
     subscription_tier?: string;
     subscription_status?: string;
+    is_admin?: boolean;
   } | null;
 }
 
-export function TopBar({ pageTitle, user }: TopBarProps) {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+export function TopBar({ user }: TopBarProps) {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { signOut } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
-  const { sidebarCollapsed } = useUIStore();
 
   const handleSignOut = async () => {
     await signOut();
     router.push('/signin');
   };
 
-  // Determine dynamic page title based on current route
-  const getDynamicPageTitle = (): string => {
-    if (pageTitle) return pageTitle; // Use provided title if available
-
-    // Extract the main section from the pathname
-    const pathSegments = pathname.split('/').filter(Boolean);
-
-    if (pathSegments.length === 0 || pathSegments[0] !== 'dashboard') {
-      return 'Dashboard';
-    }
-
-    if (pathSegments.length === 1) {
-      return 'Dashboard'; // /dashboard root
-    }
-
-    // Map routes to titles
-    const section = pathSegments[1];
-    const titleMap: Record<string, string> = {
-      'challenges': 'Challenges',
-      'learning': 'Learning',
-      'interviews': 'Mock Interviews',
-      'leaderboard': 'Leaderboard',
-      'rewards': 'Rewards',
-      'settings': 'Settings',
-      'help': 'Help & Support',
-      'profile': 'Profile',
-    };
-
-    return titleMap[section] || section.charAt(0).toUpperCase() + section.slice(1);
-  };
-
-  const displayTitle = getDynamicPageTitle();
+  // Hide admin-only items from non-admins
+  const navGroups = DRAWER_NAV_GROUPS.map((group) => ({
+    ...group,
+    items: group.items.filter((item) =>
+      item.href === '/dashboard/admin/visitors' ? user?.is_admin === true : true
+    ),
+  })).filter((group) => group.items.length > 0);
 
   return (
-    <header
-      className={cn(
-        'fixed top-0 z-30 h-16 w-full border-b border-slate-200 bg-white transition-all duration-300',
-        sidebarCollapsed ? 'lg:pl-20' : 'lg:pl-64'
-      )}
-    >
+    <header className="fixed top-0 z-30 h-16 w-full border-b border-slate-200 bg-white">
       <div className="flex h-full items-center justify-between px-4 sm:px-6 lg:px-8">
-        {/* Left: Page title */}
-        <div className="flex items-center gap-2 sm:gap-4">
+        {/* Left: hamburger + logo */}
+        <div className="flex items-center gap-3">
           <Button
             variant="ghost"
             size="icon"
-            className="lg:hidden -ml-2"
-            onClick={() => setIsMobileMenuOpen(true)}
+            className="-ml-2"
+            onClick={() => setIsMenuOpen(true)}
+            aria-label="Open menu"
           >
-            <Menu className="h-6 w-6" />
+            <Menu className="h-6 w-6 text-slate-700" />
           </Button>
-          <h1 className="text-base font-bold text-slate-900 sm:text-lg lg:text-xl">
-            {displayTitle}
-          </h1>
+          <Link href="/dashboard" className="flex items-center">
+            <Image
+              src="/qodeb.png"
+              alt="QodeBench"
+              width={140}
+              height={36}
+              className="h-9 w-auto object-contain"
+              priority
+            />
+          </Link>
         </div>
 
-        {/* Right: User menu */}
-        <div className="flex items-center gap-2 sm:gap-4">
-          {/* User dropdown */}
+        {/* Right: upgrade hint + user menu */}
+        <div className="flex items-center gap-3">
+          {user?.subscription_tier === 'free' && (
+            <Button
+              asChild
+              size="sm"
+              className="hidden sm:inline-flex bg-slate-950 hover:bg-slate-800 text-white font-medium rounded-md"
+            >
+              <Link href="/pricing">Enroll Now</Link>
+            </Button>
+          )}
+
           <DropdownMenu modal={false}>
             <DropdownMenuTrigger asChild>
               <Button
@@ -138,15 +125,17 @@ export function TopBar({ pageTitle, user }: TopBarProps) {
                   </div>
                   <p className="text-xs text-slate-500">@{user?.username}</p>
                   <p className="text-xs text-muted-foreground capitalize">
-                    {user?.subscription_tier === 'free' ? 'Free Tier' :
-                     user?.subscription_tier === 'launch_offer' ? 'Launch Offer' :
-                     user?.subscription_tier === 'monthly' ? 'Monthly Plan' :
-                     user?.subscription_tier === 'quarterly' ? 'Quarterly Plan' :
-                     user?.subscription_tier === 'yearly' ? 'Yearly Plan' : 'Free Tier'}
+                    {user?.subscription_tier === 'monthly' ? 'Monthly Plan' :
+                      user?.subscription_tier === 'quarterly' ? 'Quarterly Plan' :
+                        user?.subscription_tier === 'yearly' ? 'Yearly Plan' : 'Free Tier'}
                   </p>
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => router.push('/dashboard')}>
+                <Home className="mr-2 h-4 w-4" />
+                <span>Home</span>
+              </DropdownMenuItem>
               <DropdownMenuItem onClick={() => router.push('/dashboard/settings')}>
                 <Settings className="mr-2 h-4 w-4" />
                 <span>Settings</span>
@@ -154,7 +143,7 @@ export function TopBar({ pageTitle, user }: TopBarProps) {
               {user?.subscription_tier === 'free' && (
                 <DropdownMenuItem onClick={() => router.push('/pricing')}>
                   <Crown className="mr-2 h-4 w-4" />
-                  <span>Upgrade to Pro</span>
+                  <span>Enroll Now</span>
                 </DropdownMenuItem>
               )}
               <DropdownMenuItem onClick={() => router.push('/dashboard/help')}>
@@ -171,38 +160,75 @@ export function TopBar({ pageTitle, user }: TopBarProps) {
         </div>
       </div>
 
-      {/* Mobile Navigation Drawer */}
-      <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
-        <SheetContent side="left" className="w-[280px] p-0">
+      {/* Navigation Drawer */}
+      <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
+        <SheetContent side="left" className="w-[320px] p-0">
           <div className="flex flex-col h-full">
-            <div className="px-6 py-4 border-b bg-gradient-to-r from-sky-500 to-blue-600">
-              <SheetTitle className="text-lg font-bold text-white">Navigation</SheetTitle>
-              <p className="text-xs text-sky-50 mt-1">Quick access to all sections</p>
+            <div className="flex items-center px-6 h-16 border-b border-slate-200">
+              <SheetTitle className="sr-only">Navigation</SheetTitle>
+              <Image
+                src="/qodeb.png"
+                alt="QodeBench"
+                width={130}
+                height={34}
+                className="h-8 w-auto object-contain"
+              />
             </div>
-            <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-              {MOBILE_NAV_ITEMS.map((item) => {
-                const isActive = item.href === '/dashboard'
-                  ? pathname === '/dashboard'
-                  : pathname.startsWith(item.href);
-                const Icon = item.icon;
 
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className={cn(
-                      'flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition-colors',
-                      isActive
-                        ? 'bg-sky-50 text-sky-700 border-l-4 border-sky-600'
-                        : 'text-gray-700 hover:bg-gray-100'
-                    )}
-                  >
-                    <Icon className={cn('h-5 w-5', isActive ? 'text-sky-600' : 'text-gray-500')} />
-                    <span>{item.title}</span>
-                  </Link>
-                );
-              })}
+            <nav className="flex-1 overflow-y-auto py-4">
+              {navGroups.map((group, gi) => (
+                <div
+                  key={group.label ?? `group-${gi}`}
+                  className={cn(gi > 0 && 'mt-2 pt-4 border-t border-slate-100')}
+                >
+                  {group.label && (
+                    <p className="px-6 pb-2 text-[11px] font-semibold tracking-[0.14em] uppercase text-slate-400">
+                      {group.label}
+                    </p>
+                  )}
+                  <div className="px-3 space-y-0.5">
+                    {group.items.map((item) => {
+                      const isActive =
+                        item.href === '/dashboard'
+                          ? pathname === '/dashboard'
+                          : pathname.startsWith(item.href);
+                      const Icon = item.icon;
+
+                      return (
+                        <Link
+                          key={item.href}
+                          href={item.href}
+                          onClick={() => setIsMenuOpen(false)}
+                          className={cn(
+                            'flex items-start gap-3 rounded-lg px-3 py-2.5 transition-colors',
+                            isActive
+                              ? 'bg-brand-50 text-brand-700'
+                              : 'text-slate-700 hover:bg-slate-100'
+                          )}
+                        >
+                          <Icon
+                            className={cn(
+                              'h-5 w-5 mt-0.5 flex-shrink-0',
+                              isActive ? 'text-brand-600' : 'text-slate-400'
+                            )}
+                          />
+                          <span>
+                            <span className="block text-sm font-medium">{item.title}</span>
+                            <span
+                              className={cn(
+                                'block text-xs mt-0.5',
+                                isActive ? 'text-brand-600/80' : 'text-slate-500'
+                              )}
+                            >
+                              {item.description}
+                            </span>
+                          </span>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
             </nav>
           </div>
         </SheetContent>

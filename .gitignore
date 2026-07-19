@@ -50,3 +50,7 @@ next-env.d.ts
 .env.production
 *.md    
 *.sql
+# Local junk - not for repo
+.playwright-mcp/
+public/*.mp4
+public/*.docx

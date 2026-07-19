@@ -115,6 +115,8 @@ export async function updateSession(request: NextRequest) {
     '/tutorials',
     '/auth/callback',
     '/pricing', // Pricing page is public so expired users can upgrade
+    '/courses', // Public course catalog with curriculum
+    '/llm-bug-hunter',
   ];
 
   const isPublicRoute = publicRoutes.some(route =>
@@ -128,10 +130,14 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // Redirect authenticated users away from auth pages
+  // Redirect authenticated users away from auth pages (honouring ?redirect= if it's a safe internal path)
   if (user && (request.nextUrl.pathname.startsWith('/signin') || request.nextUrl.pathname.startsWith('/signup'))) {
+    const redirectParam = request.nextUrl.searchParams.get('redirect');
     const url = request.nextUrl.clone();
-    url.pathname = '/dashboard';
+    url.pathname = redirectParam && redirectParam.startsWith('/') && !redirectParam.startsWith('//')
+      ? redirectParam
+      : '/dashboard';
+    url.search = '';
     return NextResponse.redirect(url);
   }
 

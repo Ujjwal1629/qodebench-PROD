@@ -1,7 +1,6 @@
 import { ReactNode, cache } from 'react';
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
-import { Sidebar } from '@/components/dashboard/sidebar';
 import { TopBar } from '@/components/dashboard/topbar';
 import { MainContentWrapper } from '@/components/dashboard/main-content-wrapper';
 import { ScrollToTop } from '@/components/scroll-to-top';
@@ -53,10 +52,7 @@ export default async function DashboardLayout({
       {/* Scroll to top on route change */}
       <ScrollToTop />
 
-      {/* Sidebar for desktop */}
-      <Sidebar user={userData} />
-
-      {/* Top bar */}
+      {/* Top bar with hamburger navigation drawer */}
       <TopBar user={userData} />
 
       {/* Main content with dynamic padding based on sidebar state */}

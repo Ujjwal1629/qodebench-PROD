@@ -1,38 +1,36 @@
-import { HeroConversion } from "@/components/landing/hero-conversion";
-import { ProductModules } from "@/components/landing/product-modules";
-import { ValueProposition } from "@/components/landing/value-proposition";
-import { SocialProof } from "@/components/landing/social-proof";
-import { JourneyAndPricing } from "@/components/landing/journey-and-pricing";
-import { FinalCTA } from "@/components/landing/cta";
-import { Footer } from "@/components/landing/footer";
+import { Hero } from "@/components/landing/v2/hero";
+import { VideoSection } from "@/components/landing/v2/video-section";
+import { Courses } from "@/components/landing/v2/courses";
+import { Testimonials } from "@/components/landing/v2/testimonials";
+import { StayConnected } from "@/components/landing/v2/stay-connected";
+import { SubscribePopup } from "@/components/landing/v2/subscribe-popup";
+import { Footer } from "@/components/landing/v2/footer";
 import { WhatsAppFloat } from "@/components/landing/whatsapp-float";
 
 export default function Home() {
   return (
-    <div className="min-h-screen">
-      {/* Section 1: Conversion-Focused Hero with Lead Form */}
-      <HeroConversion />
+    <div className="min-h-screen bg-white">
+      {/* What this is, in one screen */}
+      <Hero />
 
-      {/* Section 2: Product Modules + Learning Path Preview */}
-      <ProductModules />
+      {/* Course walkthrough video */}
+      <VideoSection />
 
-      {/* Section 4: Why + Features (merged) */}
-      <ValueProposition />
+      {/* Courses with curriculum inside each card */}
+      <Courses />
 
-      {/* Section 5: Stats + Testimonials (merged) */}
-      <SocialProof />
+      {/* Learner stories */}
+      <Testimonials />
 
-      {/* Section 6: Journey + Pricing (side-by-side) */}
-      <JourneyAndPricing />
+      {/* Newsletter + WhatsApp channel */}
+      <StayConnected />
 
-      {/* Section 7: Final CTA */}
-      <FinalCTA />
-
-      {/* Section 8: Footer */}
       <Footer />
 
-      {/* WhatsApp Floating Button */}
       <WhatsAppFloat />
+
+      {/* Newsletter/WhatsApp popup for logged-out first-time visitors */}
+      <SubscribePopup />
     </div>
   );
 }

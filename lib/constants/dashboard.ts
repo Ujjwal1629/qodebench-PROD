@@ -8,6 +8,11 @@ import {
   Trophy,
   Gift,
   Users,
+  FlaskConical,
+  GraduationCap,
+  TestTube,
+  Settings,
+  HelpCircle,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -70,6 +75,89 @@ export const NAV_ITEMS: NavItem[] = [
   //   icon: Gift,
   //   description: 'Redeem exclusive merch',
   // },
+];
+
+// Grouped navigation for the hamburger drawer (Scaler-style)
+export type NavGroup = {
+  label?: string;
+  items: NavItem[];
+};
+
+export const DRAWER_NAV_GROUPS: NavGroup[] = [
+  {
+    items: [
+      {
+        title: 'Home',
+        href: '/dashboard',
+        icon: Home,
+        description: 'Your courses and performance',
+      },
+    ],
+  },
+  {
+    label: 'Learn and Practice',
+    items: [
+      {
+        title: 'Courses & Curriculum',
+        href: '/dashboard/courses',
+        icon: BookOpen,
+        description: 'Your enrolled courses and syllabus',
+      },
+      {
+        title: 'Learning Modules',
+        href: '/dashboard/learning',
+        icon: GraduationCap,
+        description: 'Free modules, lessons and quizzes',
+      },
+      {
+        title: 'Practice',
+        href: '/dashboard/practice',
+        icon: FlaskConical,
+        description: 'JS & TypeScript coding challenges',
+      },
+      {
+        title: 'Assignments',
+        href: '/dashboard/challenges',
+        icon: Code2,
+        description: 'Real-world QA scenarios',
+      },
+      {
+        title: 'Testing Tools',
+        href: '/dashboard/testing-tools',
+        icon: TestTube,
+        description: 'Practice automation on real web apps',
+      },
+      {
+        title: 'Interview Prep',
+        href: '/dashboard/interview-prep',
+        icon: GraduationCap,
+        description: 'JS, TS & Playwright interview questions',
+      },
+    ],
+  },
+  {
+    label: 'Account',
+    items: [
+      {
+        title: 'Settings',
+        href: '/dashboard/settings',
+        icon: Settings,
+        description: 'Profile and subscription',
+      },
+      {
+        title: 'Help & Support',
+        href: '/dashboard/help',
+        icon: HelpCircle,
+        description: 'Get help from the team',
+      },
+      {
+        title: 'Visitors',
+        href: '/dashboard/admin/visitors',
+        icon: Users,
+        description: 'Track visitors and leads (Admin only)',
+      },
+    ],
+  },
 ];
 
 // Mobile navigation items (essential features)
