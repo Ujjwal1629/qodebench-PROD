@@ -113,7 +113,7 @@ export default async function InterviewsPage() {
       </div>
 
       {/* Info Banner */}
-      <div className="rounded-lg bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 p-4 sm:p-5 md:p-6">
+      <div className="rounded-lg bg-slate-50 border border-slate-200 p-4 sm:p-5 md:p-6">
         <h2 className="text-base sm:text-lg font-semibold text-slate-900 mb-2 flex items-center gap-2">
           🎯 Choose Your Interview Path
         </h2>

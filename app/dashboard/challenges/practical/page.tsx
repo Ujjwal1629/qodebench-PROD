@@ -35,7 +35,7 @@ export default async function PracticalChallengesPage() {
       {/* Page Header */}
       <div className="space-y-4">
         <div className="flex flex-col sm:flex-row items-center sm:items-center gap-3 sm:gap-3 text-center sm:text-left">
-          <div className="rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 p-3 shadow-lg">
+          <div className="rounded-2xl bg-brand-600 p-3 shadow-lg">
             <Code2 className="h-7 w-7 text-white" />
           </div>
           <div>
@@ -63,7 +63,7 @@ export default async function PracticalChallengesPage() {
       </div>
 
       {/* Info Banner */}
-      <div className="rounded-lg bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 p-4 sm:p-5 md:p-6">
+      <div className="rounded-lg bg-slate-50 border border-blue-200 p-4 sm:p-5 md:p-6">
         <h2 className="text-base sm:text-lg font-semibold text-slate-900 mb-2">
           Your Coding Journey
         </h2>

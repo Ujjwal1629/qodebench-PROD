@@ -126,7 +126,7 @@ function getContentTypeIcon(type: string) {
 function getContentTypeColor(type: string) {
   switch (type) {
     case 'video':
-      return 'bg-purple-100 text-purple-700';
+      return 'bg-brand-100 text-brand-700';
     case 'article':
       return 'bg-blue-100 text-blue-700';
     case 'interactive':
@@ -192,7 +192,7 @@ export default async function LearningPathDetailPage({ params }: PageProps) {
       </Link>
 
       {/* Path Header */}
-      <div className="rounded-lg bg-gradient-to-br from-blue-50 to-purple-50 p-6 md:p-8">
+      <div className="rounded-lg bg-slate-50 p-6 md:p-8">
         <div className="space-y-4">
           <div className="flex items-start justify-between">
             <div className="flex items-start gap-4">

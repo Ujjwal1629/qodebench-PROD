@@ -48,7 +48,7 @@ async function LessonsList({ userId }: { userId: string }) {
                   ? 'border-green-200 bg-green-50/50'
                   : isLocked
                     ? 'border-slate-200 bg-slate-50'
-                    : 'border-sky-200 bg-sky-50/30 hover:border-sky-400'
+                    : 'border-brand-200 bg-brand-50/30 hover:border-brand-400'
               }`}
             >
               <CardContent className="p-4 sm:p-6">
@@ -64,7 +64,7 @@ async function LessonsList({ userId }: { userId: string }) {
                         <Lock className="h-5 w-5 sm:h-6 sm:w-6 text-slate-600" />
                       </div>
                     ) : (
-                      <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-sky-600 flex items-center justify-center">
+                      <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-brand-600 flex items-center justify-center">
                         <Circle className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                       </div>
                     )}
@@ -122,7 +122,7 @@ async function LessonsList({ userId }: { userId: string }) {
                           </Link>
                         </Button>
                       ) : (
-                        <Button asChild size="sm" className="w-full sm:w-auto sm:min-w-[140px] bg-sky-600 hover:bg-sky-700">
+                        <Button asChild size="sm" className="w-full sm:w-auto sm:min-w-[140px] bg-brand-600 hover:bg-brand-700">
                           <Link href={`/dashboard/learning/html-css/${lesson.id}`}>
                             Start Lesson
                             <ArrowRight className="ml-2 h-4 w-4" />
@@ -159,7 +159,7 @@ async function ModuleHeader({ userId, learningPath }: { userId: string; learning
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
-        <Link href="/dashboard/learning" className="hover:text-sky-600 transition-colors">
+        <Link href="/dashboard/learning" className="hover:text-brand-600 transition-colors">
           Learning
         </Link>
         <span>/</span>
@@ -186,7 +186,7 @@ async function ModuleHeader({ userId, learningPath }: { userId: string; learning
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-2xl sm:text-3xl font-bold text-sky-600">
+              <span className="text-2xl sm:text-3xl font-bold text-brand-600">
                 {progress.progress_percentage}%
               </span>
               <Trophy className="h-6 w-6 sm:h-8 sm:w-8 text-yellow-500" />

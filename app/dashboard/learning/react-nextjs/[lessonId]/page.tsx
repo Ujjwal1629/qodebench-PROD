@@ -55,7 +55,7 @@ export default async function LessonPage({ params }: { params: Promise<{ lessonI
       <div className="container max-w-4xl py-10 space-y-4">
         <Link
           href="/dashboard/learning/react-nextjs"
-          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-sky-600"
+          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-brand-600"
         >
           <ArrowLeft className="h-4 w-4" />
           Back to Lessons
@@ -68,7 +68,7 @@ export default async function LessonPage({ params }: { params: Promise<{ lessonI
             {accessCheck.required_lesson && (
               <div className="mt-4">
                 <p className="text-sm mb-2">Complete this lesson first:</p>
-                <Button asChild className="bg-sky-600 hover:bg-sky-700">
+                <Button asChild className="bg-brand-600 hover:bg-brand-700">
                   <Link href={`/dashboard/learning/react-nextjs/${accessCheck.required_lesson.id}`}>
                     Go to {accessCheck.required_lesson.title}
                   </Link>
@@ -93,7 +93,7 @@ export default async function LessonPage({ params }: { params: Promise<{ lessonI
       <div className="space-y-8">
         <Link
           href="/dashboard/learning/react-nextjs"
-          className="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-sky-600 transition-colors font-medium"
+          className="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-brand-600 transition-colors font-medium"
         >
           <ArrowLeft className="h-4 w-4" />
           Back to React & Next.js
@@ -102,7 +102,7 @@ export default async function LessonPage({ params }: { params: Promise<{ lessonI
         {/* Lesson Header */}
         <div className="space-y-4">
           <div className="flex items-center gap-3 flex-wrap">
-            <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-sky-700 bg-sky-100 px-3 py-1.5 rounded-full border border-sky-200">
+            <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-brand-700 bg-brand-100 px-3 py-1.5 rounded-full border border-brand-200">
               <BookOpen className="h-3.5 w-3.5" />
               Lesson {lesson.order_index}
             </span>
@@ -126,9 +126,9 @@ export default async function LessonPage({ params }: { params: Promise<{ lessonI
 
         {/* Quiz Section */}
         {quizQuestions.length > 0 && (
-          <div className="mt-16 bg-gradient-to-br from-sky-50 via-white to-purple-50 rounded-3xl p-8 space-y-6">
+          <div className="mt-16 bg-slate-50 rounded-3xl p-8 space-y-6">
             <div className="flex flex-col items-center text-center">
-              <div className="bg-gradient-to-br from-sky-500 to-purple-600 p-4 rounded-2xl shadow-lg mb-6">
+              <div className="bg-brand-600 p-4 rounded-2xl shadow-lg mb-6">
                 <CheckCircle2 className="h-8 w-8 text-white" />
               </div>
               <div>

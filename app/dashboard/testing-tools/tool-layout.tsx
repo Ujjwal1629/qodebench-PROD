@@ -67,7 +67,7 @@ export function ToolLayout({ title, description, difficulty, scenarios, playwrig
     <div className="space-y-6">
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
-        <Link href="/dashboard/testing-tools" className="hover:text-sky-600 transition-colors flex items-center gap-1">
+        <Link href="/dashboard/testing-tools" className="hover:text-brand-600 transition-colors flex items-center gap-1">
           <ArrowLeft className="h-3.5 w-3.5" />
           Testing Tools
         </Link>

@@ -43,7 +43,7 @@ const features = [
     description: 'Browse and fork 1000+ battle-tested AI prompts for coding',
     icon: Library,
     href: '/dashboard/ai-tools/prompts',
-    color: 'bg-purple-100 text-purple-600',
+    color: 'bg-brand-100 text-brand-600',
     stats: 'Community Prompts',
     available: false, // Coming after beta
   },
@@ -159,7 +159,7 @@ export default async function AIToolsPage() {
   return (
     <div className="space-y-8">
       {/* Under Development Banner */}
-      <div className="rounded-lg border-2 border-orange-200 bg-gradient-to-r from-orange-50 to-yellow-50 p-6">
+      <div className="rounded-lg border border-slate-200 bg-slate-50 p-6">
         <div className="flex items-start gap-4">
           <div className="rounded-lg bg-orange-100 p-2">
             <Construction className="h-6 w-6 text-orange-600" />
@@ -186,7 +186,7 @@ export default async function AIToolsPage() {
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 p-2">
+            <div className="rounded-lg bg-brand-600 p-2">
               <Sparkles className="h-6 w-6 text-white" />
             </div>
             <div>
@@ -211,7 +211,7 @@ export default async function AIToolsPage() {
             )}
             {userStats.savedPrompts > 0 && (
               <Badge variant="outline" className="px-3 py-1 text-sm">
-                <span className="font-semibold text-purple-600">
+                <span className="font-semibold text-brand-600">
                   {userStats.savedPrompts}
                 </span>
                 <span className="ml-1 text-slate-500">Prompts Saved</span>
@@ -238,7 +238,7 @@ export default async function AIToolsPage() {
       </div>
 
       {/* What You'll Gain Section */}
-      <div className="rounded-lg bg-gradient-to-br from-blue-50 to-purple-50 p-6">
+      <div className="rounded-lg bg-slate-50 p-6">
         <h2 className="mb-4 text-lg font-semibold text-slate-900">
           Why Master AI Tools?
         </h2>

@@ -167,7 +167,7 @@ export default async function WorkflowsPage() {
             {featuredWorkflows.map((workflow) => (
               <Card
                 key={workflow.id}
-                className="group border-2 border-yellow-200 bg-gradient-to-br from-yellow-50 to-orange-50 hover:shadow-lg transition-all"
+                className="group border-2 border-yellow-200 bg-slate-50 hover:shadow-lg transition-all"
               >
                 <CardHeader>
                   <div className="flex items-start justify-between">

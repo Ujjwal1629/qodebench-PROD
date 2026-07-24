@@ -74,16 +74,16 @@ export default async function LearningPage() {
           const cardContent = (
             <Card className={`relative overflow-hidden h-full ${
               path.available
-                ? 'border-2 border-sky-200 bg-sky-50/30 hover:border-sky-400 cursor-pointer'
+                ? 'border-2 border-brand-200 bg-brand-50/30 hover:border-brand-400 cursor-pointer'
                 : ''
             }`}>
               <CardHeader>
                 <div className="flex items-start justify-between">
                   <div className={`rounded-lg p-3 ${
-                    path.available ? 'bg-sky-100' : 'bg-primary/10'
+                    path.available ? 'bg-brand-100' : 'bg-primary/10'
                   }`}>
                     <Icon className={`h-6 w-6 ${
-                      path.available ? 'text-sky-600' : 'text-primary'
+                      path.available ? 'text-brand-600' : 'text-primary'
                     }`} />
                   </div>
                   <Badge variant="secondary">{path.lessons} lessons</Badge>
@@ -94,11 +94,11 @@ export default async function LearningPage() {
               <CardContent>
                 {path.available ? (
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 text-sm font-medium text-sky-700">
+                    <div className="flex items-center gap-2 text-sm font-medium text-brand-700">
                       <CheckCircle className="h-4 w-4" />
                       Available Now
                     </div>
-                    <ArrowRight className="h-5 w-5 text-sky-600" />
+                    <ArrowRight className="h-5 w-5 text-brand-600" />
                   </div>
                 ) : (
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">

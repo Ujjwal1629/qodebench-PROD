@@ -57,8 +57,8 @@ export default function SandboxPage() {
 
         <Card>
           <CardHeader>
-            <div className="rounded-lg bg-purple-100 p-2 w-fit">
-              <BarChart3 className="h-5 w-5 text-purple-600" />
+            <div className="rounded-lg bg-brand-100 p-2 w-fit">
+              <BarChart3 className="h-5 w-5 text-brand-600" />
             </div>
             <CardTitle className="text-lg">Real-Time Metrics</CardTitle>
             <CardDescription>
@@ -81,7 +81,7 @@ export default function SandboxPage() {
       </div>
 
       {/* Coming Soon Message */}
-      <Card className="bg-gradient-to-br from-orange-50 to-yellow-50">
+      <Card className="bg-slate-50">
         <CardContent className="pt-6">
           <div className="text-center space-y-4">
             <FlaskConical className="mx-auto h-16 w-16 text-orange-600" />

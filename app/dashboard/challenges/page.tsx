@@ -34,7 +34,7 @@ export default async function ChallengesPage() {
       {/* Page Header */}
       <div className="space-y-4">
         <div className="flex flex-col sm:flex-row items-center sm:items-center gap-3 sm:gap-3 text-center sm:text-left">
-          <div className="rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 p-3 shadow-lg">
+          <div className="rounded-2xl bg-brand-600 p-3 shadow-lg">
             <Code2 className="h-7 w-7 text-white" />
           </div>
           <div>
@@ -56,14 +56,14 @@ export default async function ChallengesPage() {
           <Badge variant="outline" className="px-3 py-1 text-sm">
             <span className="text-slate-600">4 Categories Available</span>
           </Badge>
-          <Badge variant="default" className="px-3 py-1 text-sm bg-gradient-to-r from-blue-500 to-purple-600">
+          <Badge variant="default" className="px-3 py-1 text-sm bg-brand-600">
             <span className="text-white">🎯 New Challenges Every Week</span>
           </Badge>
         </div>
       </div>
 
       {/* Learning Path Info */}
-      <div className="rounded-lg bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 p-4 sm:p-5 md:p-6">
+      <div className="rounded-lg bg-slate-50 border border-slate-200 p-4 sm:p-5 md:p-6">
         <h2 className="text-base sm:text-lg font-semibold text-slate-900 mb-2">
           Choose Your Challenge Path
         </h2>
@@ -80,10 +80,10 @@ export default async function ChallengesPage() {
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {/* Category 1: Practical Coding Challenges */}
-          <Card className="border-2 border-blue-200 hover:border-blue-400 hover:shadow-lg transition-all duration-300 group overflow-visible">
-            <CardHeader className="bg-gradient-to-br from-blue-50 to-sky-50 rounded-t-xl">
+          <Card className="border border-slate-200 hover:border-slate-300 hover:shadow-lg transition-all duration-300 group overflow-visible">
+            <CardHeader className="bg-slate-50 rounded-t-xl">
               <div className="flex items-start justify-between">
-                <div className="p-3 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 shadow-lg group-hover:scale-110 transition-transform">
+                <div className="p-3 rounded-xl bg-brand-600 shadow-lg group-hover:scale-110 transition-transform">
                   <Code2 className="h-6 w-6 text-white" />
                 </div>
                 <Badge variant="outline" className="bg-white">
@@ -143,10 +143,10 @@ export default async function ChallengesPage() {
           </Card>
 
           {/* Category 2: Software Engineering Essentials */}
-          <Card className="border-2 border-orange-200 hover:border-orange-400 hover:shadow-lg transition-all duration-300 group overflow-visible">
-            <CardHeader className="bg-gradient-to-br from-orange-50 to-amber-50 rounded-t-xl">
+          <Card className="border border-slate-200 hover:border-slate-300 hover:shadow-lg transition-all duration-300 group overflow-visible">
+            <CardHeader className="bg-slate-50 rounded-t-xl">
               <div className="flex items-start justify-between">
-                <div className="p-3 rounded-xl bg-gradient-to-br from-orange-500 to-amber-600 shadow-lg group-hover:scale-110 transition-transform">
+                <div className="p-3 rounded-xl bg-brand-600 shadow-lg group-hover:scale-110 transition-transform">
                   <Briefcase className="h-6 w-6 text-white" />
                 </div>
                 <Badge variant="outline" className="bg-white">
@@ -196,10 +196,10 @@ export default async function ChallengesPage() {
           </Card>
 
           {/* Category 3: Product & Feature Planning */}
-          <Card className="border-2 border-indigo-200 hover:border-indigo-400 hover:shadow-lg transition-all duration-300 group overflow-visible">
-            <CardHeader className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-t-xl">
+          <Card className="border border-slate-200 hover:border-slate-300 hover:shadow-lg transition-all duration-300 group overflow-visible">
+            <CardHeader className="bg-slate-50 rounded-t-xl">
               <div className="flex items-start justify-between">
-                <div className="p-3 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 shadow-lg group-hover:scale-110 transition-transform">
+                <div className="p-3 rounded-xl bg-brand-600 shadow-lg group-hover:scale-110 transition-transform">
                   <Target className="h-6 w-6 text-white" />
                 </div>
                 <Badge variant="outline" className="bg-white">
@@ -254,13 +254,13 @@ export default async function ChallengesPage() {
       <div className="space-y-6">
         <h2 className="text-xl sm:text-2xl font-bold text-slate-900">Elite Level</h2>
 
-        <Card className="border-2 border-purple-200 hover:border-purple-400 hover:shadow-lg transition-all duration-300 group overflow-visible">
+        <Card className="border border-slate-200 hover:border-slate-300 hover:shadow-lg transition-all duration-300 group overflow-visible">
           <div className="grid md:grid-cols-2 gap-6">
             {/* Left side - Info */}
-            <CardHeader className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-tl-xl">
+            <CardHeader className="bg-slate-50 rounded-tl-xl">
               <div className="space-y-4">
                 <div className="flex items-start justify-between">
-                  <div className="p-3 rounded-xl bg-gradient-to-br from-purple-500 to-pink-600 shadow-lg group-hover:scale-110 transition-transform">
+                  <div className="p-3 rounded-xl bg-brand-600 shadow-lg group-hover:scale-110 transition-transform">
                     <Rocket className="h-6 w-6 text-white" />
                   </div>
                   <Badge variant="outline" className="bg-white">
@@ -278,15 +278,15 @@ export default async function ChallengesPage() {
 
                   <div className="space-y-2 text-sm text-slate-700">
                     <p className="flex items-start gap-2">
-                      <span className="text-purple-600 font-bold">•</span>
+                      <span className="text-brand-600 font-bold">•</span>
                       <span>Complex debugging & system architecture</span>
                     </p>
                     <p className="flex items-start gap-2">
-                      <span className="text-purple-600 font-bold">•</span>
+                      <span className="text-brand-600 font-bold">•</span>
                       <span>Performance optimization at scale</span>
                     </p>
                     <p className="flex items-start gap-2">
-                      <span className="text-purple-600 font-bold">•</span>
+                      <span className="text-brand-600 font-bold">•</span>
                       <span>End-to-end feature development</span>
                     </p>
                   </div>
@@ -306,7 +306,7 @@ export default async function ChallengesPage() {
                     </span>
                   </div>
                   <div className="flex items-center gap-1">
-                    <div className="w-2 h-2 rounded-full bg-purple-500"></div>
+                    <div className="w-2 h-2 rounded-full bg-brand-500"></div>
                     <span className="text-slate-600">1 tier</span>
                   </div>
                 </div>
@@ -322,7 +322,7 @@ export default async function ChallengesPage() {
                 </div>
               </div>
 
-              <Button asChild size="lg" className="w-full mt-6 group-hover:bg-purple-700">
+              <Button asChild size="lg" className="w-full mt-6 group-hover:bg-brand-700">
                 <Link href="/dashboard/challenges/advanced">
                   Take on Advanced Challenges
                   <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />

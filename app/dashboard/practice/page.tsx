@@ -1905,33 +1905,14 @@ console.log(engine.getByText("Not Here")); // null
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
 const DIFFICULTY_STYLES: Record<Difficulty, string> = {
-  Easy:   'bg-green-100 text-green-700 border-green-200',
-  Medium: 'bg-yellow-100 text-yellow-700 border-yellow-200',
-  Hard:   'bg-red-100 text-red-700 border-red-200',
+  Easy:   'bg-emerald-50 text-emerald-700 border-emerald-200',
+  Medium: 'bg-amber-50 text-amber-700 border-amber-200',
+  Hard:   'bg-red-50 text-red-700 border-red-200',
 };
 
-const TOPIC_ICON_STYLES: Record<string, string> = {
-  'Variables & Template Literals': 'bg-sky-100 text-sky-600',
-  'Functions & Conditionals':      'bg-purple-100 text-purple-600',
-  'Interfaces & Types':            'bg-indigo-100 text-indigo-600',
-  'Classes & Access Modifiers':    'bg-orange-100 text-orange-600',
-  'Async/Await & Promises':        'bg-pink-100 text-pink-600',
-  'TypeScript Functions':          'bg-cyan-100 text-cyan-600',
-  'Scope & Closures':              'bg-lime-100 text-lime-600',
-  'Abstract Classes & Inheritance':'bg-fuchsia-100 text-fuchsia-600',
-  'Async Advanced Patterns':       'bg-red-100 text-red-600',
-  'Arrow Functions':               'bg-yellow-100 text-yellow-600',
-  'Locators & Selectors':          'bg-emerald-100 text-emerald-600',
-  'Assertions & expect()':         'bg-teal-100 text-teal-600',
-  'Config & Test Settings':        'bg-amber-100 text-amber-600',
-  'Hooks & Test Lifecycle':        'bg-violet-100 text-violet-600',
-  'POM Design Pattern':            'bg-rose-100 text-rose-600',
-  'First Test & Page Fixture':     'bg-sky-100 text-sky-600',
-  'enterText, Clicks & Inputs':    'bg-orange-100 text-orange-600',
-  'iFrames & FrameLocator':        'bg-indigo-100 text-indigo-600',
-  'Dialogs: Alert, Confirm, Prompt':'bg-pink-100 text-pink-600',
-  'GetBy Methods & Locator Options':'bg-purple-100 text-purple-600',
-};
+// One neutral accent for every topic — the dashboard uses a single brand blue,
+// not a rainbow of per-topic colors.
+const TOPIC_ICON_STYLE = 'bg-brand-50 text-brand-600';
 
 // ─── Description renderer ─────────────────────────────────────────────────────
 
@@ -1943,7 +1924,7 @@ function InlineText({ text }: { text: string }) {
         if (part.startsWith('**') && part.endsWith('**'))
           return <strong key={i} className="font-semibold text-slate-900">{part.slice(2, -2)}</strong>;
         if (part.startsWith('`') && part.endsWith('`'))
-          return <code key={i} className="bg-purple-50 text-purple-700 px-1.5 py-0.5 rounded text-xs font-mono">{part.slice(1, -1)}</code>;
+          return <code key={i} className="bg-brand-50 text-brand-700 px-1.5 py-0.5 rounded text-xs font-mono">{part.slice(1, -1)}</code>;
         return <span key={i}>{part}</span>;
       })}
     </>
@@ -1985,8 +1966,8 @@ function DescriptionRenderer({ text }: { text: string }) {
       result.push(
         <div key={k()} className="overflow-x-auto my-2">
           <table className="w-full text-xs border-collapse">
-            <thead className="bg-sky-50">
-              <tr>{headers.map((h, j) => <th key={j} className="px-3 py-2 text-left font-semibold text-sky-700 border border-slate-200">{h}</th>)}</tr>
+            <thead className="bg-slate-50">
+              <tr>{headers.map((h, j) => <th key={j} className="px-3 py-2 text-left font-semibold text-slate-700 border border-slate-200">{h}</th>)}</tr>
             </thead>
             <tbody>
               {rows.map((row, rIdx) => (
@@ -2073,17 +2054,17 @@ function ChallengeCard({
   onToggleComplete: () => void;
   isLocked: boolean;
 }) {
-  const iconStyle = TOPIC_ICON_STYLES[challenge.topic] ?? 'bg-slate-100 text-slate-600';
+  const iconStyle = TOPIC_ICON_STYLE;
 
   return (
     <Card
       className={cn(
-        'relative overflow-hidden h-full border-2 cursor-pointer transition-transform hover:scale-[1.02]',
+        'relative overflow-hidden h-full border cursor-pointer transition-all hover:shadow-sm',
         isLocked
           ? 'border-slate-200 bg-slate-50 opacity-70 hover:border-slate-300'
           : completed
-            ? 'border-green-200 bg-green-50/30 hover:border-green-400'
-            : 'border-sky-200 bg-sky-50/30 hover:border-sky-400'
+            ? 'border-emerald-200 bg-white hover:border-emerald-300'
+            : 'border-slate-200 bg-white hover:border-slate-300'
       )}
       onClick={onOpen}
     >
@@ -2123,17 +2104,17 @@ function ChallengeCard({
               Locked
             </div>
           ) : completed ? (
-            <div className="flex items-center gap-2 text-sm font-medium text-green-700">
+            <div className="flex items-center gap-2 text-sm font-medium text-emerald-700">
               <CheckCircle className="h-4 w-4" />
               Completed
             </div>
           ) : (
-            <div className="flex items-center gap-2 text-sm font-medium text-sky-700">
+            <div className="flex items-center gap-2 text-sm font-medium text-brand-700">
               <CheckCircle className="h-4 w-4" />
               Start Challenge
             </div>
           )}
-          <ArrowRight className="h-5 w-5 text-sky-600" />
+          <ArrowRight className="h-5 w-5 text-brand-600" />
         </div>
       </CardContent>
     </Card>
@@ -2150,9 +2131,6 @@ function ChallengeListView({
   onToggleComplete,
   onBack,
   title,
-  gradientFrom,
-  gradientTo,
-  borderColor,
   categoryLabel,
   isPaidUser,
 }: {
@@ -2163,9 +2141,6 @@ function ChallengeListView({
   onToggleComplete: (id: number) => void;
   onBack: () => void;
   title: string;
-  gradientFrom: string;
-  gradientTo: string;
-  borderColor: string;
   categoryLabel: string;
   isPaidUser: boolean;
 }) {
@@ -2177,14 +2152,14 @@ function ChallengeListView({
         {/* Back button at the top */}
         <button
           onClick={() => onOpenChallenge(null)}
-          className="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-sky-600 transition-colors font-medium"
+          className="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-brand-600 transition-colors font-medium"
         >
           <ArrowRight className="h-4 w-4 rotate-180" />
           Back to challenges
         </button>
 
         <div className="flex items-center gap-3">
-          <div className={cn('rounded-lg p-3', TOPIC_ICON_STYLES[openChallenge.topic] ?? 'bg-slate-100 text-slate-600')}>
+          <div className={cn('rounded-lg p-3', TOPIC_ICON_STYLE)}>
             <Code2 className="h-6 w-6" />
           </div>
           <div>
@@ -2200,7 +2175,7 @@ function ChallengeListView({
           <div className="ml-auto">
             <Button
               size="sm"
-              className={cn('gap-2', completed.has(openChallenge.id) ? 'bg-green-600 hover:bg-green-700' : 'bg-sky-600 hover:bg-sky-700')}
+              className={cn('gap-2', completed.has(openChallenge.id) ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-brand-600 hover:bg-brand-700')}
               onClick={() => onToggleComplete(openChallenge.id)}
             >
               <CheckCircle2 className="h-4 w-4" />
@@ -2220,7 +2195,7 @@ function ChallengeListView({
     <div className="space-y-6">
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
-        <button onClick={onBack} className="hover:text-sky-600 transition-colors">
+        <button onClick={onBack} className="hover:text-brand-600 transition-colors">
           Practice
         </button>
         <span>/</span>
@@ -2235,15 +2210,15 @@ function ChallengeListView({
       </div>
 
       {/* Progress */}
-      <div className={cn('flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r border', gradientFrom, gradientTo, borderColor)}>
+      <div className="flex items-center gap-4 p-4 rounded-xl bg-white border border-slate-200">
         <div className="flex-1 space-y-1">
           <div className="flex justify-between text-sm font-medium text-slate-700">
             <span>Your Progress</span>
             <span>{completedCount} / {challenges.length} completed</span>
           </div>
-          <div className="h-2 w-full rounded-full bg-slate-200">
+          <div className="h-2 w-full rounded-full bg-slate-100">
             <div
-              className={cn('h-2 rounded-full bg-gradient-to-r transition-all duration-500', gradientFrom.replace('from-', 'from-').replace('-50', '-500'), gradientTo.replace('to-', 'to-').replace('-50', '-500'))}
+              className="h-2 rounded-full bg-brand-600 transition-all duration-500"
               style={{ width: `${(completedCount / challenges.length) * 100}%` }}
             />
           </div>
@@ -2392,13 +2367,13 @@ export default function PracticePage() {
               return (
                 <Card
                   key={cat.id}
-                  className="relative overflow-hidden h-full border-2 border-sky-200 bg-sky-50/30 hover:border-sky-400 cursor-pointer transition-transform hover:scale-[1.02]"
+                  className="relative overflow-hidden h-full border border-slate-200 bg-white hover:border-slate-300 hover:shadow-sm cursor-pointer transition-all"
                   onClick={() => setView(cat.id)}
                 >
                   <CardHeader>
                     <div className="flex items-start justify-between">
-                      <div className="rounded-lg p-3 bg-sky-100">
-                        <Icon className="h-6 w-6 text-sky-600" />
+                      <div className="rounded-lg p-3 bg-brand-50">
+                        <Icon className="h-6 w-6 text-brand-600" />
                       </div>
                       <Badge variant="secondary">{cat.count} challenges</Badge>
                     </div>
@@ -2408,17 +2383,17 @@ export default function PracticePage() {
                   <CardContent>
                     <div className="flex items-center justify-between">
                       {cat.completedCount > 0 ? (
-                        <div className="flex items-center gap-2 text-sm font-medium text-green-700">
+                        <div className="flex items-center gap-2 text-sm font-medium text-emerald-700">
                           <CheckCircle className="h-4 w-4" />
                           {cat.completedCount} / {cat.count} completed
                         </div>
                       ) : (
-                        <div className="flex items-center gap-2 text-sm font-medium text-sky-700">
+                        <div className="flex items-center gap-2 text-sm font-medium text-brand-700">
                           <CheckCircle className="h-4 w-4" />
                           Start Practicing
                         </div>
                       )}
-                      <ArrowRight className="h-5 w-5 text-sky-600" />
+                      <ArrowRight className="h-5 w-5 text-brand-600" />
                     </div>
                   </CardContent>
                 </Card>
@@ -2442,9 +2417,6 @@ export default function PracticePage() {
           onToggleComplete={toggleComplete}
           onBack={goToLanding}
           title="JavaScript Challenges"
-          gradientFrom="from-sky-50"
-          gradientTo="to-blue-50"
-          borderColor="border-sky-200"
           categoryLabel="JavaScript"
           isPaidUser={isPaidUser}
         />
@@ -2464,9 +2436,6 @@ export default function PracticePage() {
           onToggleComplete={toggleComplete}
           onBack={goToLanding}
           title="TypeScript Challenges"
-          gradientFrom="from-purple-50"
-          gradientTo="to-indigo-50"
-          borderColor="border-purple-200"
           categoryLabel="TypeScript"
           isPaidUser={isPaidUser}
         />
@@ -2485,9 +2454,6 @@ export default function PracticePage() {
         onToggleComplete={toggleComplete}
         onBack={goToLanding}
         title="Playwright Challenges"
-        gradientFrom="from-emerald-50"
-        gradientTo="to-teal-50"
-        borderColor="border-emerald-200"
         categoryLabel="Playwright"
         isPaidUser={isPaidUser}
       />

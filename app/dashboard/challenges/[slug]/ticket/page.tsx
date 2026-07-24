@@ -158,7 +158,7 @@ export default async function TicketPage({ params }: TicketPageProps) {
         {/* Page Header */}
         <div className="mb-6">
           <div className="flex items-center gap-2 mb-3">
-            <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
+            <Badge variant="outline" className="bg-brand-50 text-brand-700 border-brand-200">
               <Zap className="h-3 w-3 mr-1" />
               Advanced Challenge
             </Badge>
@@ -182,7 +182,7 @@ export default async function TicketPage({ params }: TicketPageProps) {
 
         {/* Action Button */}
         <div className="flex justify-center">
-          <Button asChild size="lg" className="bg-purple-600 hover:bg-purple-700 text-white gap-2">
+          <Button asChild size="lg" className="bg-brand-600 hover:bg-brand-700 text-white gap-2">
             <Link href={`/dashboard/challenges/${slug}/workspace`}>
               Go to Workspace
               <ArrowRight className="h-4 w-4" />

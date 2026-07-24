@@ -31,7 +31,7 @@ const tools = [
     description: 'Sortable, filterable, paginated table. Practice locating rows, editing, deleting, and verifying data.',
     tags: ['Tables', 'Sorting', 'Pagination'],
     difficulty: 'Intermediate',
-    color: 'bg-purple-500',
+    color: 'bg-brand-500',
   },
   {
     id: 'llm-bug-hunter',
@@ -58,7 +58,7 @@ const tools = [
     description: 'Run the same question suite over time and track if AI quality drops — even when nothing in your code has changed.',
     tags: ['AI Drift', 'Eval', 'LLM QA'],
     difficulty: 'Advanced',
-    color: 'bg-sky-600',
+    color: 'bg-brand-600',
   },
   {
     id: 'hr-chatbot',
@@ -83,7 +83,7 @@ export default function TestingToolsPage() {
       {/* Header */}
       <div>
         <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 flex items-center gap-3">
-          <TestTube className="h-7 w-7 text-sky-600" />
+          <TestTube className="h-7 w-7 text-brand-600" />
           Testing Tools
         </h1>
         <p className="mt-2 text-sm sm:text-base text-slate-600">
@@ -94,7 +94,7 @@ export default function TestingToolsPage() {
             100% Free
           </Badge>
           <Badge variant="outline">{tools.length} Tools</Badge>
-          <Badge variant="secondary" className="bg-sky-100 text-sky-700 border-sky-200">New: HR Chatbot Tester</Badge>
+          <Badge variant="secondary" className="bg-brand-100 text-brand-700 border-brand-200">New: HR Chatbot Tester</Badge>
         </div>
       </div>
 
@@ -105,7 +105,7 @@ export default function TestingToolsPage() {
           const href = `/dashboard/testing-tools/${tool.id}`;
           return (
             <Link key={tool.id} href={href}>
-              <Card className="h-full border border-slate-200 hover:border-sky-300 hover:shadow-lg cursor-pointer transition-all hover:-translate-y-0.5">
+              <Card className="h-full border border-slate-200 hover:border-brand-300 hover:shadow-lg cursor-pointer transition-all hover:-translate-y-0.5">
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between">
                     <div className={`inline-flex items-center justify-center w-10 h-10 rounded-lg ${tool.color}`}>
@@ -128,7 +128,7 @@ export default function TestingToolsPage() {
                       </span>
                     ))}
                   </div>
-                  <div className="flex items-center gap-1 text-sm font-medium text-sky-600">
+                  <div className="flex items-center gap-1 text-sm font-medium text-brand-600">
                     Open Tool
                     <ArrowRight className="h-4 w-4" />
                   </div>

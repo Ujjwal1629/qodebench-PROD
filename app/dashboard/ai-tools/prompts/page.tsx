@@ -151,7 +151,7 @@ function getCategoryColor(category: string) {
   const colors: Record<string, string> = {
     code_generation: 'bg-blue-100 text-blue-700',
     debugging: 'bg-red-100 text-red-700',
-    code_review: 'bg-purple-100 text-purple-700',
+    code_review: 'bg-brand-100 text-brand-700',
     refactoring: 'bg-green-100 text-green-700',
     documentation: 'bg-yellow-100 text-yellow-700',
     testing: 'bg-pink-100 text-pink-700',
@@ -183,8 +183,8 @@ export default async function PromptsLibraryPage({ searchParams }: PageProps) {
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="rounded-lg bg-purple-100 p-2">
-              <Library className="h-6 w-6 text-purple-600" />
+            <div className="rounded-lg bg-brand-100 p-2">
+              <Library className="h-6 w-6 text-brand-600" />
             </div>
             <div>
               <h1 className="text-3xl font-bold text-slate-900">Prompt Library</h1>
@@ -204,7 +204,7 @@ export default async function PromptsLibraryPage({ searchParams }: PageProps) {
         {/* Stats */}
         <div className="flex flex-wrap items-center gap-3">
           <Badge variant="outline" className="px-3 py-1 text-sm">
-            <span className="font-semibold text-purple-600">{prompts.length}</span>
+            <span className="font-semibold text-brand-600">{prompts.length}</span>
             <span className="ml-1 text-slate-500">Prompts</span>
           </Badge>
           <Badge variant="outline" className="px-3 py-1 text-sm">
@@ -233,7 +233,7 @@ export default async function PromptsLibraryPage({ searchParams }: PageProps) {
             {featuredPrompts.map((prompt) => (
               <Card
                 key={prompt.id}
-                className="group border-2 border-yellow-200 bg-gradient-to-br from-yellow-50 to-orange-50 hover:shadow-lg transition-all"
+                className="group border border-slate-200 bg-slate-50 hover:shadow-lg transition-all"
               >
                 <CardHeader>
                   <div className="flex items-start justify-between">

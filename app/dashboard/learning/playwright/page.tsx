@@ -48,19 +48,19 @@ async function LessonsList({ userId }: { userId: string }) {
                   ? 'border-green-200 bg-green-50/30 hover:border-green-400 cursor-pointer'
                   : isLocked
                     ? 'border-slate-200 bg-slate-50 opacity-60'
-                    : 'border-sky-200 bg-sky-50/30 hover:border-sky-400 cursor-pointer'
+                    : 'border-brand-200 bg-brand-50/30 hover:border-brand-400 cursor-pointer'
               }`}
             >
               <CardHeader>
                 <div className="flex items-start justify-between">
                   <div className={`rounded-lg p-3 ${
-                    isCompleted ? 'bg-green-100' : isLocked ? 'bg-slate-100' : 'bg-sky-100'
+                    isCompleted ? 'bg-green-100' : isLocked ? 'bg-slate-100' : 'bg-brand-100'
                   }`}>
                     {isCompleted
                       ? <BookOpenCheck className="h-6 w-6 text-green-600" />
                       : isLocked
                         ? <Lock className="h-6 w-6 text-slate-400" />
-                        : <BookOpen className="h-6 w-6 text-sky-600" />
+                        : <BookOpen className="h-6 w-6 text-brand-600" />
                     }
                   </div>
                   <div className="flex items-center gap-2">
@@ -99,12 +99,12 @@ async function LessonsList({ userId }: { userId: string }) {
                       Completed
                     </div>
                   ) : (
-                    <div className="flex items-center gap-2 text-sm font-medium text-sky-700">
+                    <div className="flex items-center gap-2 text-sm font-medium text-brand-700">
                       <CheckCircle className="h-4 w-4" />
                       Start Lesson
                     </div>
                   )}
-                  {!isLocked && <ArrowRight className="h-5 w-5 text-sky-600" />}
+                  {!isLocked && <ArrowRight className="h-5 w-5 text-brand-600" />}
                 </div>
                 {lesson.latest_score !== undefined && (
                   <Badge
@@ -145,7 +145,7 @@ function ModuleHeader({ learningPath }: { learningPath: any }) {
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
-        <Link href="/dashboard/learning" className="hover:text-sky-600 transition-colors">
+        <Link href="/dashboard/learning" className="hover:text-brand-600 transition-colors">
           Learning
         </Link>
         <span>/</span>

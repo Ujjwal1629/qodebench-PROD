@@ -79,7 +79,7 @@ function getCategoryColor(category: string) {
     case 'code_completion':
       return 'bg-blue-100 text-blue-700';
     case 'chat_assistant':
-      return 'bg-purple-100 text-purple-700';
+      return 'bg-brand-100 text-brand-700';
     case 'code_generation':
       return 'bg-green-100 text-green-700';
     case 'ide_integration':
@@ -374,7 +374,7 @@ export default async function CompareToolsPage() {
       )}
 
       {/* CTA */}
-      <Card className="bg-gradient-to-br from-blue-50 to-purple-50">
+      <Card className="bg-slate-50">
         <CardContent className="pt-6">
           <div className="text-center">
             <h3 className="text-lg font-semibold text-slate-900">

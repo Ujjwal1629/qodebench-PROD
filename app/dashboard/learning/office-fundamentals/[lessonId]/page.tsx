@@ -55,7 +55,7 @@ export default async function LessonPage({ params }: { params: Promise<{ lessonI
       <div className="container max-w-4xl py-10 space-y-4">
         <Link
           href="/dashboard/learning/office-fundamentals"
-          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-sky-600"
+          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-brand-600"
         >
           <ArrowLeft className="h-4 w-4" />
           Back to Lessons
@@ -68,7 +68,7 @@ export default async function LessonPage({ params }: { params: Promise<{ lessonI
             {accessCheck.required_lesson && (
               <div className="mt-4">
                 <p className="text-sm mb-2">Complete this lesson first:</p>
-                <Button asChild className="bg-sky-600 hover:bg-sky-700">
+                <Button asChild className="bg-brand-600 hover:bg-brand-700">
                   <Link href={`/dashboard/learning/office-fundamentals/${accessCheck.required_lesson.id}`}>
                     Go to {accessCheck.required_lesson.title}
                   </Link>
@@ -93,7 +93,7 @@ export default async function LessonPage({ params }: { params: Promise<{ lessonI
       <div className="space-y-8">
         <Link
           href="/dashboard/learning/office-fundamentals"
-          className="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-sky-600 transition-colors font-medium"
+          className="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-brand-600 transition-colors font-medium"
         >
           <ArrowLeft className="h-4 w-4" />
           Back to Office Fundamentals
@@ -102,7 +102,7 @@ export default async function LessonPage({ params }: { params: Promise<{ lessonI
         {/* Lesson Header */}
         <div className="space-y-4">
           <div className="flex items-center gap-3 flex-wrap">
-            <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-sky-700 bg-sky-100 px-3 py-1.5 rounded-full border border-sky-200">
+            <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-brand-700 bg-brand-100 px-3 py-1.5 rounded-full border border-brand-200">
               <BookOpen className="h-3.5 w-3.5" />
               Lesson {lesson.order_index}
             </span>
@@ -140,9 +140,9 @@ export default async function LessonPage({ params }: { params: Promise<{ lessonI
 
         {/* Additional Resources */}
         {lesson.resources && lesson.resources.external_links && (
-          <Card className="bg-sky-50 border-2 border-sky-200 shadow-md">
+          <Card className="bg-brand-50 border-2 border-brand-200 shadow-md">
             <CardContent className="p-6">
-              <h3 className="font-bold text-lg mb-4 text-sky-900 flex items-center gap-2">
+              <h3 className="font-bold text-lg mb-4 text-brand-900 flex items-center gap-2">
                 <span className="text-2xl">📚</span>
                 Additional Resources
               </h3>
@@ -153,7 +153,7 @@ export default async function LessonPage({ params }: { params: Promise<{ lessonI
                       href={link}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-base text-sky-600 hover:text-sky-800 hover:underline font-medium transition-colors"
+                      className="text-base text-brand-600 hover:text-brand-800 hover:underline font-medium transition-colors"
                     >
                       {link}
                     </a>

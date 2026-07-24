@@ -34,7 +34,7 @@ export default async function AdvancedChallengesPage() {
       {/* Page Header */}
       <div className="space-y-4">
         <div className="flex flex-col sm:flex-row items-center sm:items-center gap-3 sm:gap-3 text-center sm:text-left">
-          <div className="rounded-2xl bg-gradient-to-br from-purple-500 to-pink-600 p-3 shadow-lg">
+          <div className="rounded-2xl bg-brand-600 p-3 shadow-lg">
             <Rocket className="h-7 w-7 text-white" />
           </div>
           <div>
@@ -62,7 +62,7 @@ export default async function AdvancedChallengesPage() {
       </div>
 
       {/* Info Banner */}
-      <div className="rounded-lg bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 p-4 sm:p-5 md:p-6">
+      <div className="rounded-lg bg-slate-50 border border-brand-200 p-4 sm:p-5 md:p-6">
         <h2 className="text-base sm:text-lg font-semibold text-slate-900 mb-2">
           Elite Developer Skills
         </h2>
