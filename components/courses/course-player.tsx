@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import {
   ArrowLeft,
   ChevronDown,
@@ -14,6 +15,7 @@ import {
   Mic,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { isPracticeTitle } from '@/lib/course-utils';
 import { CourseNotes } from '@/components/courses/course-notes';
 import { LessonVideo } from '@/components/courses/lesson-video';
 import { LessonQuiz } from '@/components/courses/lesson-quiz';
@@ -32,10 +34,23 @@ export interface ModuleNotes {
 
 type LessonTab = 'notes' | 'mcq';
 
-// Merged content modules list their practice items alongside the session
-// recording; the title prefix marks an item as practice (works even before
-// its practice set is authored).
-const isPracticeTitle = (title: string) => /^(Practice|Assignment):/.test(title);
+// Parse a "phase:module:lesson" deep-link param into a valid [p, m, l] tuple,
+// clamped to the course structure. Returns [0, 0, 0] for anything malformed or
+// out of range, so a stale/bad link never lands on an empty lesson.
+function parseLessonParam(
+  raw: string | null,
+  course: Course,
+): [number, number, number] {
+  const fallback: [number, number, number] = [0, 0, 0];
+  if (!raw) return fallback;
+  const parts = raw.split(':').map((n) => Number(n));
+  if (parts.length !== 3 || parts.some((n) => !Number.isInteger(n) || n < 0)) {
+    return fallback;
+  }
+  const [p, m, l] = parts;
+  const lesson = course.phases[p]?.modules[m]?.lessons[l];
+  return lesson !== undefined ? [p, m, l] : fallback;
+}
 
 // Sidebar bullet icon per module kind.
 const KIND_ICON: Record<ModuleKind, typeof Dumbbell> = {
@@ -69,10 +84,15 @@ export function CoursePlayer({
   mcqsBySession = {},
   practiceBySession = {},
 }: CoursePlayerProps) {
-  const [activePhase, setActivePhase] = useState(0);
-  const [openModule, setOpenModule] = useState<number | null>(0);
+  // Deep link: ?lesson=phase:module:lesson opens straight to that item (used by
+  // the dashboard's Resume / Next up links). Falls back to the first lesson.
+  const searchParams = useSearchParams();
+  const initial = parseLessonParam(searchParams.get('lesson'), course);
+
+  const [activePhase, setActivePhase] = useState(initial[0]);
+  const [openModule, setOpenModule] = useState<number | null>(initial[1]);
   // Selected session: [phaseIndex, moduleIndex, lessonIndex]
-  const [selected, setSelected] = useState<[number, number, number]>([0, 0, 0]);
+  const [selected, setSelected] = useState<[number, number, number]>(initial);
   // Below-video tab; Revision Notes is the default.
   const [tab, setTab] = useState<LessonTab>('notes');
 

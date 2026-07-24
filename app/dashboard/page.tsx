@@ -4,16 +4,14 @@ import {
   FlaskConical,
   TestTube,
   GraduationCap,
-  Trophy,
-  Flame,
-  CheckCircle2,
-  Star,
   Radio,
   PlayCircle,
+  CheckCircle2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { getUserStats, getUserProfile } from '@/app/actions/dashboard';
+import { getUserProfile } from '@/app/actions/dashboard';
 import { getSubscription } from '@/lib/get-subscription';
+import { getCourseProgress } from '@/lib/course-progress';
 import { COURSES } from '@/lib/course-catalog';
 
 const exploreItems = [
@@ -37,11 +35,18 @@ const exploreItems = [
   },
 ];
 
+// Deep-link a lesson key into the course player.
+function lessonHref(slug: string, lessonKey: string | null) {
+  return lessonKey
+    ? `/dashboard/courses/${slug}?lesson=${lessonKey}`
+    : `/dashboard/courses/${slug}`;
+}
+
 export default async function DashboardHomePage() {
-  const [stats, profile, subscription] = await Promise.all([
-    getUserStats(),
+  const [profile, subscription, progress] = await Promise.all([
     getUserProfile(),
     getSubscription(),
+    getCourseProgress(),
   ]);
 
   if (!profile) {
@@ -57,28 +62,18 @@ export default async function DashboardHomePage() {
   const firstName =
     profile.full_name?.split(' ')[0] || profile.username || 'there';
 
-  const performanceRows = [
-    {
-      label: 'Total points',
-      value: stats ? stats.totalPoints.toLocaleString('en-IN') : '0',
-      icon: Star,
-    },
-    {
-      label: 'Current streak',
-      value: stats ? `${stats.currentStreak} day${stats.currentStreak === 1 ? '' : 's'}` : '0 days',
-      icon: Flame,
-    },
-    {
-      label: 'Challenges completed',
-      value: stats ? String(stats.challengesCompleted) : '0',
-      icon: CheckCircle2,
-    },
-    {
-      label: 'Global rank',
-      value: stats?.globalRank ? `#${stats.globalRank}` : '—',
-      icon: Trophy,
-    },
-  ];
+  // The course to resume: the one the learner touched most recently, else the
+  // one furthest along, else the first course. Only surfaced when enrolled.
+  const resumeCourse = isEnrolled
+    ? [...progress].sort((a, b) => {
+        if (a.lastActivityAt && b.lastActivityAt) {
+          return b.lastActivityAt.localeCompare(a.lastActivityAt);
+        }
+        if (a.lastActivityAt) return -1;
+        if (b.lastActivityAt) return 1;
+        return b.percent - a.percent;
+      })[0]
+    : null;
 
   return (
     <div className="grid lg:grid-cols-[1fr_320px] gap-6 items-start">
@@ -96,6 +91,37 @@ export default async function DashboardHomePage() {
           </p>
         </div>
 
+        {/* Continue learning strip (enrolled only) */}
+        {resumeCourse && resumeCourse.nextLessonTitle && (
+          <Link
+            href={lessonHref(resumeCourse.slug, resumeCourse.nextLessonKey)}
+            className="group block bg-slate-950 rounded-xl p-5 hover:bg-slate-900 transition-colors"
+          >
+            <div className="flex items-center gap-4">
+              <div className="h-11 w-11 rounded-lg bg-white/10 flex items-center justify-center shrink-0">
+                <PlayCircle className="h-6 w-6 text-white" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-[11px] font-medium uppercase tracking-wide text-slate-400 mb-0.5">
+                  {resumeCourse.lastActivityAt ? 'Continue where you left off' : 'Start learning'}
+                </p>
+                <h3 className="text-[15px] font-semibold text-white truncate">
+                  {resumeCourse.nextLessonTitle}
+                </h3>
+                <p className="text-[12.5px] text-slate-400 truncate">
+                  {resumeCourse.title}
+                  {resumeCourse.nextModuleTitle
+                    ? ` · ${resumeCourse.nextModuleTitle}`
+                    : ''}
+                </p>
+              </div>
+              <span className="hidden sm:inline-flex items-center gap-1.5 text-[13px] font-medium text-white bg-white/10 group-hover:bg-white/15 px-3.5 py-2 rounded-md shrink-0 transition-colors">
+                Resume <ArrowRight className="h-3.5 w-3.5" />
+              </span>
+            </div>
+          </Link>
+        )}
+
         {/* Courses */}
         <section className="bg-white rounded-xl border border-slate-200">
           <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-slate-100">
@@ -111,64 +137,81 @@ export default async function DashboardHomePage() {
           </div>
 
           <div className="divide-y divide-slate-100">
-            {COURSES.map((course) => (
-              <div
-                key={course.slug}
-                className="px-6 py-5 flex flex-col sm:flex-row sm:items-center gap-4"
-              >
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2.5 mb-1.5">
-                    <h3 className="text-[15px] font-semibold text-slate-950">
-                      {course.title}
-                    </h3>
-                    <span
-                      className={`text-[11px] font-medium px-2 py-0.5 rounded-full border ${course.statusColor}`}
-                    >
-                      {course.status}
-                    </span>
+            {COURSES.map((course) => {
+              const p = progress.find((x) => x.slug === course.slug);
+              return (
+                <div
+                  key={course.slug}
+                  className="px-6 py-5 flex flex-col sm:flex-row sm:items-center gap-4"
+                >
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2.5 mb-1.5">
+                      <h3 className="text-[15px] font-semibold text-slate-950">
+                        {course.title}
+                      </h3>
+                      <span
+                        className={`text-[11px] font-medium px-2 py-0.5 rounded-full border ${course.statusColor}`}
+                      >
+                        {course.status}
+                      </span>
+                    </div>
+                    <p className="text-[13px] text-slate-600 leading-relaxed line-clamp-2 mb-2">
+                      {course.description}
+                    </p>
+                    {isEnrolled && p && p.totalPractice > 0 ? (
+                      <div className="flex items-center gap-2.5 max-w-xs">
+                        <div className="flex-1 h-1.5 rounded-full bg-slate-100 overflow-hidden">
+                          <div
+                            className="h-full bg-brand-600 rounded-full"
+                            style={{ width: `${p.percent}%` }}
+                          />
+                        </div>
+                        <span className="text-[12px] text-slate-500 shrink-0">
+                          {p.passedPractice}/{p.totalPractice} practice
+                        </span>
+                      </div>
+                    ) : (
+                      <p className="text-[12px] text-slate-500">
+                        {course.meta.map((m) => m.value).join(' · ')}
+                      </p>
+                    )}
                   </div>
-                  <p className="text-[13px] text-slate-600 leading-relaxed line-clamp-2 mb-2">
-                    {course.description}
-                  </p>
-                  <p className="text-[12px] text-slate-500">
-                    {course.meta.map((m) => m.value).join(' · ')}
-                  </p>
-                </div>
 
-                <div className="flex gap-2.5 shrink-0">
-                  {isEnrolled ? (
-                    <Button
-                      asChild
-                      size="sm"
-                      className="bg-brand-600 hover:bg-brand-700 text-white font-medium rounded-md"
-                    >
-                      <Link href={`/dashboard/courses/${course.slug}`}>
-                        <PlayCircle className="h-4 w-4 mr-1.5" />
-                        Continue Learning
-                      </Link>
-                    </Button>
-                  ) : (
-                    <>
+                  <div className="flex gap-2.5 shrink-0">
+                    {isEnrolled ? (
                       <Button
                         asChild
                         size="sm"
-                        variant="outline"
-                        className="border-slate-300 text-slate-700 font-medium rounded-md"
+                        className="bg-brand-600 hover:bg-brand-700 text-white font-medium rounded-md"
                       >
-                        <Link href={`/courses#${course.slug}`}>View Curriculum</Link>
+                        <Link href={lessonHref(course.slug, p?.nextLessonKey ?? null)}>
+                          <PlayCircle className="h-4 w-4 mr-1.5" />
+                          Continue Learning
+                        </Link>
                       </Button>
-                      <Button
-                        asChild
-                        size="sm"
-                        className="bg-slate-950 hover:bg-slate-800 text-white font-medium rounded-md"
-                      >
-                        <Link href="/pricing">Enroll Now</Link>
-                      </Button>
-                    </>
-                  )}
+                    ) : (
+                      <>
+                        <Button
+                          asChild
+                          size="sm"
+                          variant="outline"
+                          className="border-slate-300 text-slate-700 font-medium rounded-md"
+                        >
+                          <Link href={`/courses#${course.slug}`}>View Curriculum</Link>
+                        </Button>
+                        <Button
+                          asChild
+                          size="sm"
+                          className="bg-slate-950 hover:bg-slate-800 text-white font-medium rounded-md"
+                        >
+                          <Link href="/pricing">Enroll Now</Link>
+                        </Button>
+                      </>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </section>
 
@@ -200,41 +243,79 @@ export default async function DashboardHomePage() {
         </section>
       </div>
 
-      {/* Right column — performance */}
+      {/* Right column */}
       <aside className="space-y-6">
+        {/* Your progress + next up */}
         <section className="bg-white rounded-xl border border-slate-200">
           <div className="px-5 pt-5 pb-4 border-b border-slate-100">
-            <h2 className="text-[15px] font-semibold text-slate-950">Performance</h2>
+            <h2 className="text-[15px] font-semibold text-slate-950">
+              {isEnrolled ? 'Your progress' : 'What you get'}
+            </h2>
           </div>
-          <div className="px-5 py-2">
-            {performanceRows.map((row, i) => {
-              const Icon = row.icon;
-              return (
-                <div
-                  key={row.label}
-                  className={`flex items-center justify-between py-3.5 ${
-                    i < performanceRows.length - 1 ? 'border-b border-slate-100' : ''
-                  }`}
-                >
-                  <div className="flex items-center gap-2.5">
-                    <Icon className="h-4 w-4 text-slate-400" />
-                    <span className="text-[13px] text-slate-600">{row.label}</span>
+
+          {isEnrolled ? (
+            <div className="px-5 py-4 space-y-4">
+              {progress.map((p) => (
+                <div key={p.slug}>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-[13px] font-medium text-slate-800 truncate pr-2">
+                      {p.title}
+                    </span>
+                    <span className="text-[12px] text-slate-500 shrink-0">
+                      {p.percent}%
+                    </span>
                   </div>
-                  <span className="text-[14px] font-semibold text-slate-950">
-                    {row.value}
-                  </span>
+                  <div className="h-1.5 rounded-full bg-slate-100 overflow-hidden">
+                    <div
+                      className="h-full bg-brand-600 rounded-full"
+                      style={{ width: `${p.percent}%` }}
+                    />
+                  </div>
+                  <p className="text-[11.5px] text-slate-500 mt-1">
+                    {p.passedPractice} of {p.totalPractice} practice sets done
+                  </p>
                 </div>
-              );
-            })}
-          </div>
-          <div className="px-5 pb-5">
-            <Link
-              href="/dashboard/leaderboard"
-              className="text-[13px] font-medium text-brand-700 hover:text-brand-800 inline-flex items-center gap-1"
-            >
-              View leaderboard <ArrowRight className="h-3.5 w-3.5" />
-            </Link>
-          </div>
+              ))}
+
+              {resumeCourse && resumeCourse.nextLessonTitle && (
+                <div className="pt-3 border-t border-slate-100">
+                  <p className="text-[11px] font-medium uppercase tracking-wide text-slate-400 mb-1">
+                    Next up
+                  </p>
+                  <Link
+                    href={lessonHref(resumeCourse.slug, resumeCourse.nextLessonKey)}
+                    className="group flex items-center gap-2 text-[13px] font-medium text-brand-700 hover:text-brand-800"
+                  >
+                    <span className="truncate">{resumeCourse.nextLessonTitle}</span>
+                    <ArrowRight className="h-3.5 w-3.5 shrink-0" />
+                  </Link>
+                </div>
+              )}
+            </div>
+          ) : (
+            <ul className="px-5 py-4 space-y-2.5">
+              {[
+                'Full course video library',
+                'Hands-on practice & assignments',
+                'Live weekend Q&A with the instructor',
+                'Mock interviews & career support',
+              ].map((line) => (
+                <li key={line} className="flex items-start gap-2.5">
+                  <CheckCircle2 className="h-4 w-4 text-brand-600 mt-0.5 shrink-0" />
+                  <span className="text-[13px] text-slate-700">{line}</span>
+                </li>
+              ))}
+              <li className="pt-2">
+                <Button
+                  asChild
+                  size="sm"
+                  className="w-full bg-slate-950 hover:bg-slate-800 text-white font-medium rounded-md"
+                >
+                  <Link href="/pricing">See plans</Link>
+                </Button>
+              </li>
+            </ul>
+          )}
         </section>
 
         {/* Live Q&A reminder */}
