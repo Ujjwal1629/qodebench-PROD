@@ -5,6 +5,22 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { AlertCircle } from 'lucide-react';
 
+// A ChunkLoadError means the browser is holding an old build and asked for a JS
+// chunk that no longer exists (typical right after a deploy while a tab stays
+// open, or after a dev rebuild). The fix is to reload so the browser fetches
+// the current build instead of showing a scary error.
+function isChunkLoadError(error: Error) {
+  return (
+    error.name === 'ChunkLoadError' ||
+    /Loading chunk [\w-]+ failed/i.test(error.message) ||
+    /Loading CSS chunk/i.test(error.message) ||
+    /import\(\) failed/i.test(error.message)
+  );
+}
+
+// Guard against a reload loop: only auto-reload once per stale-chunk episode.
+const RELOAD_FLAG = 'qb_chunk_reload_at';
+
 export default function DashboardError({
   error,
   reset,
@@ -12,10 +28,38 @@ export default function DashboardError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  const chunkError = isChunkLoadError(error);
+
   useEffect(() => {
-    // Log error to console for debugging
     console.error('Dashboard error:', error);
-  }, [error]);
+
+    if (!chunkError) return;
+
+    // Reload at most once every 10s so a genuinely broken build can't loop.
+    try {
+      const last = Number(sessionStorage.getItem(RELOAD_FLAG) || 0);
+      if (Date.now() - last > 10_000) {
+        sessionStorage.setItem(RELOAD_FLAG, String(Date.now()));
+        window.location.reload();
+      }
+    } catch {
+      // sessionStorage unavailable — fall back to a plain reload.
+      window.location.reload();
+    }
+  }, [error, chunkError]);
+
+  // While the auto-reload kicks in, show a neutral "updating" state rather than
+  // the scary error card.
+  if (chunkError) {
+    return (
+      <div className="flex min-h-[600px] items-center justify-center">
+        <div className="flex flex-col items-center gap-3 text-center">
+          <div className="h-6 w-6 animate-spin rounded-full border-2 border-slate-300 border-t-brand-600" />
+          <p className="text-sm text-slate-600">Updating to the latest version…</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-[600px] items-center justify-center">
