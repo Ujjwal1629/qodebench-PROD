@@ -62,10 +62,18 @@ export default async function DashboardHomePage() {
   const firstName =
     profile.full_name?.split(' ')[0] || profile.username || 'there';
 
+  // Slugs of courses that aren't open yet — never a resume target.
+  const comingSoonSlugs = new Set(
+    COURSES.filter((c) => c.comingSoon).map((c) => c.slug),
+  );
+
   // The course to resume: the one the learner touched most recently, else the
-  // one furthest along, else the first course. Only surfaced when enrolled.
+  // one furthest along, else the first course. Only surfaced when enrolled, and
+  // never a coming-soon course.
   const resumeCourse = isEnrolled
-    ? [...progress].sort((a, b) => {
+    ? [...progress]
+        .filter((c) => !comingSoonSlugs.has(c.slug))
+        .sort((a, b) => {
         if (a.lastActivityAt && b.lastActivityAt) {
           return b.lastActivityAt.localeCompare(a.lastActivityAt);
         }
@@ -158,7 +166,7 @@ export default async function DashboardHomePage() {
                     <p className="text-[13px] text-slate-600 leading-relaxed line-clamp-2 mb-2">
                       {course.description}
                     </p>
-                    {isEnrolled && p && p.totalPractice > 0 ? (
+                    {isEnrolled && !course.comingSoon && p && p.totalPractice > 0 ? (
                       <div className="flex items-center gap-2.5 max-w-xs">
                         <div className="flex-1 h-1.5 rounded-full bg-slate-100 overflow-hidden">
                           <div
@@ -178,7 +186,15 @@ export default async function DashboardHomePage() {
                   </div>
 
                   <div className="flex gap-2.5 shrink-0">
-                    {isEnrolled ? (
+                    {course.comingSoon ? (
+                      <Button
+                        size="sm"
+                        disabled
+                        className="bg-slate-100 text-slate-400 font-medium rounded-md cursor-not-allowed"
+                      >
+                        Coming soon
+                      </Button>
+                    ) : isEnrolled ? (
                       <Button
                         asChild
                         size="sm"
@@ -255,27 +271,34 @@ export default async function DashboardHomePage() {
 
           {isEnrolled ? (
             <div className="px-5 py-4 space-y-4">
-              {progress.map((p) => (
-                <div key={p.slug}>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <span className="text-[13px] font-medium text-slate-800 truncate pr-2">
-                      {p.title}
-                    </span>
-                    <span className="text-[12px] text-slate-500 shrink-0">
-                      {p.percent}%
-                    </span>
+              {progress.map((p) => {
+                const soon = comingSoonSlugs.has(p.slug);
+                return (
+                  <div key={p.slug}>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className="text-[13px] font-medium text-slate-800 truncate pr-2">
+                        {p.title}
+                      </span>
+                      <span className="text-[12px] text-slate-500 shrink-0">
+                        {soon ? 'Coming soon' : `${p.percent}%`}
+                      </span>
+                    </div>
+                    {!soon && (
+                      <>
+                        <div className="h-1.5 rounded-full bg-slate-100 overflow-hidden">
+                          <div
+                            className="h-full bg-brand-600 rounded-full"
+                            style={{ width: `${p.percent}%` }}
+                          />
+                        </div>
+                        <p className="text-[11.5px] text-slate-500 mt-1">
+                          {p.passedPractice} of {p.totalPractice} practice sets done
+                        </p>
+                      </>
+                    )}
                   </div>
-                  <div className="h-1.5 rounded-full bg-slate-100 overflow-hidden">
-                    <div
-                      className="h-full bg-brand-600 rounded-full"
-                      style={{ width: `${p.percent}%` }}
-                    />
-                  </div>
-                  <p className="text-[11.5px] text-slate-500 mt-1">
-                    {p.passedPractice} of {p.totalPractice} practice sets done
-                  </p>
-                </div>
-              ))}
+                );
+              })}
 
               {resumeCourse && resumeCourse.nextLessonTitle && (
                 <div className="pt-3 border-t border-slate-100">

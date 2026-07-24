@@ -38,7 +38,11 @@ export default async function DashboardCoursesPage() {
                   <span className="text-[12px] font-semibold tracking-wider uppercase text-slate-500">
                     {course.tag}
                   </span>
-                  {isEnrolled ? (
+                  {course.comingSoon ? (
+                    <span className="text-[12px] font-medium px-2.5 py-1 rounded-full border bg-slate-100 text-slate-600 border-slate-200">
+                      Coming soon
+                    </span>
+                  ) : isEnrolled ? (
                     <span className="inline-flex items-center gap-1.5 text-[12px] font-medium px-2.5 py-1 rounded-full border bg-emerald-50 text-emerald-700 border-emerald-200">
                       <CheckCircle2 className="h-3.5 w-3.5" />
                       Enrolled
@@ -106,7 +110,14 @@ export default async function DashboardCoursesPage() {
               </div>
 
               <div className="px-7 pb-7 flex gap-3">
-                {isEnrolled ? (
+                {course.comingSoon ? (
+                  <Button
+                    disabled
+                    className="flex-1 h-11 bg-slate-100 text-slate-400 font-semibold rounded-md cursor-not-allowed"
+                  >
+                    Coming soon
+                  </Button>
+                ) : isEnrolled ? (
                   <Button
                     asChild
                     className="flex-1 h-11 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-md"

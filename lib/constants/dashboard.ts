@@ -25,12 +25,13 @@ export type NavItem = {
 };
 
 export const NAV_ITEMS: NavItem[] = [
-  {
-    title: 'Learning',
-    href: '/dashboard/learning',
-    icon: BookOpen,
-    description: 'Structured learning paths',
-  },
+  // Hidden — QA platform, not a generic software-engineering learning path.
+  // {
+  //   title: 'Learning',
+  //   href: '/dashboard/learning',
+  //   icon: BookOpen,
+  //   description: 'Structured learning paths',
+  // },
   {
     title: 'Practice',
     href: '/dashboard/practice',
@@ -125,24 +126,26 @@ export const DRAWER_NAV_GROUPS: NavGroup[] = [
         icon: BookOpen,
         description: 'Your enrolled courses and syllabus',
       },
-      {
-        title: 'Learning Modules',
-        href: '/dashboard/learning',
-        icon: GraduationCap,
-        description: 'Free modules, lessons and quizzes',
-      },
+      // Hidden — QA platform, not generic software-engineering learning.
+      // {
+      //   title: 'Learning Modules',
+      //   href: '/dashboard/learning',
+      //   icon: GraduationCap,
+      //   description: 'Free modules, lessons and quizzes',
+      // },
       {
         title: 'Practice',
         href: '/dashboard/practice',
         icon: FlaskConical,
         description: 'JS & TypeScript coding challenges',
       },
-      {
-        title: 'Assignments',
-        href: '/dashboard/challenges',
-        icon: Code2,
-        description: 'Real-world QA scenarios',
-      },
+      // Hidden — assignments/challenges section removed from the QA platform.
+      // {
+      //   title: 'Assignments',
+      //   href: '/dashboard/challenges',
+      //   icon: Code2,
+      //   description: 'Real-world QA scenarios',
+      // },
       {
         title: 'Testing Tools',
         href: '/dashboard/testing-tools',
@@ -182,13 +185,15 @@ export const DRAWER_NAV_GROUPS: NavGroup[] = [
   },
 ];
 
-// Mobile navigation items (essential features)
+// Mobile navigation items (essential features). Looked up by title so the list
+// stays correct even as items are hidden from NAV_ITEMS.
 export const MOBILE_NAV_ITEMS: NavItem[] = [
-  NAV_ITEMS[0], // Learning
-  NAV_ITEMS[1], // Practice
-  NAV_ITEMS[2], // Testing Tools
-  NAV_ITEMS[3], // Interview Prep
-];
+  'Practice',
+  'Testing Tools',
+  'Interview Prep',
+]
+  .map((title) => NAV_ITEMS.find((item) => item.title === title))
+  .filter((item): item is NavItem => Boolean(item));
 
 // Experience levels and point thresholds
 export type ExperienceLevel = {

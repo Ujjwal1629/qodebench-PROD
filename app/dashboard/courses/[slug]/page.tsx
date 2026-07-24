@@ -39,6 +39,11 @@ export default async function CoursePlayerPage({
   const course = COURSES.find((c) => c.slug === slug);
   if (!course) notFound();
 
+  // Coming-soon courses aren't openable, even via a direct URL.
+  if (course.comingSoon) {
+    redirect('/dashboard/courses');
+  }
+
   const { isEnrolled } = await getSubscription();
   if (!isEnrolled) {
     redirect(`/pricing?course=${slug}`);

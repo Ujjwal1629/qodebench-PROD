@@ -29,14 +29,18 @@ export interface Course {
   description: string;
   meta: { label: string; value: string }[];
   phases: CoursePhase[];
+  /** When true the course is not yet open — cards show a "Coming soon" badge
+   *  and are not clickable, and the player route redirects away. */
+  comingSoon?: boolean;
 }
 
 export const COURSES: Course[] = [
   {
     slug: "playwright-test-automation",
     tag: "Flagship Course",
-    status: "Enrolling now",
-    statusColor: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    status: "Coming soon",
+    statusColor: "bg-slate-100 text-slate-600 border-slate-200",
+    comingSoon: true,
     title: "Playwright Test Automation",
     description:
       "Learn end-to-end testing with Playwright and TypeScript through hands-on practice — from your first test to locators, assertions, hooks, iframes and Page Object Model.",
