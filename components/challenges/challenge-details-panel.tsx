@@ -90,7 +90,7 @@ export function ChallengeDetailsPanel({
                   {metadata.acceptanceCriteria.map((criteria, index) => (
                     <li key={index} className="flex items-start gap-2 text-xs text-slate-600">
                       <div className="w-4 h-4 rounded-full border border-slate-300 flex items-center justify-center flex-shrink-0 mt-0.5">
-                        <span className="text-[10px] text-slate-400">{index + 1}</span>
+                        <span className="text-[0.625rem] text-slate-400">{index + 1}</span>
                       </div>
                       <span className="leading-relaxed">{criteria}</span>
                     </li>
@@ -141,7 +141,7 @@ export function ChallengeDetailsPanel({
                     <p className="text-xs font-medium text-slate-700 mb-2">
                       {testCase.description}
                     </p>
-                    <div className="space-y-1 text-[10px] font-mono">
+                    <div className="space-y-1 text-[0.625rem] font-mono">
                       <div>
                         <span className="text-slate-500">Input: </span>
                         <span className="text-slate-700">{testCase.input}</span>

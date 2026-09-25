@@ -139,7 +139,7 @@ export function InterviewReportClient({ data }: { data: ReportData }) {
                 <div key={stage.name} className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
                     <span className="min-w-[60px] sm:min-w-[100px] text-xs sm:text-sm font-medium truncate">{stage.name}</span>
-                    <Badge variant="outline" className="text-[10px] sm:text-xs flex-shrink-0">
+                    <Badge variant="outline" className="text-[0.625rem] sm:text-xs flex-shrink-0">
                       {stage.weight}
                     </Badge>
                   </div>
@@ -386,7 +386,7 @@ function ResponseCard({ response, index }: { response: any; index: number }) {
               <p className="font-medium text-xs sm:text-sm break-words">
                 {index + 1}. {question?.question_text || 'Question not found'}
               </p>
-              <p className="mt-1 text-[10px] sm:text-xs md:text-sm text-muted-foreground break-words">
+              <p className="mt-1 text-[0.625rem] sm:text-xs md:text-sm text-muted-foreground break-words">
                 {response.response_text?.substring(0, 150)}
                 {response.response_text?.length > 150 && '...'}
               </p>
@@ -408,7 +408,7 @@ function ResponseCard({ response, index }: { response: any; index: number }) {
         <div className="mt-3 sm:mt-4 space-y-3 sm:space-y-4 border-t pt-3 sm:pt-4">
           <div>
             <p className="text-xs sm:text-sm font-medium">Your Response:</p>
-            <p className="mt-1 whitespace-pre-wrap rounded-md bg-muted p-2 sm:p-3 text-[10px] sm:text-xs md:text-sm break-words">{response.response_text}</p>
+            <p className="mt-1 whitespace-pre-wrap rounded-md bg-muted p-2 sm:p-3 text-[0.625rem] sm:text-xs md:text-sm break-words">{response.response_text}</p>
           </div>
 
           {evaluation.strengths && evaluation.strengths.length > 0 && (
@@ -419,7 +419,7 @@ function ResponseCard({ response, index }: { response: any; index: number }) {
               </p>
               <ul className="mt-2 space-y-1 pl-4 sm:pl-6">
                 {evaluation.strengths.map((strength: string, i: number) => (
-                  <li key={i} className="text-[10px] sm:text-xs md:text-sm text-muted-foreground break-words">
+                  <li key={i} className="text-[0.625rem] sm:text-xs md:text-sm text-muted-foreground break-words">
                     • {strength}
                   </li>
                 ))}
@@ -435,7 +435,7 @@ function ResponseCard({ response, index }: { response: any; index: number }) {
               </p>
               <ul className="mt-2 space-y-1 pl-4 sm:pl-6">
                 {evaluation.improvements.map((improvement: string, i: number) => (
-                  <li key={i} className="text-[10px] sm:text-xs md:text-sm text-muted-foreground break-words">
+                  <li key={i} className="text-[0.625rem] sm:text-xs md:text-sm text-muted-foreground break-words">
                     • {improvement}
                   </li>
                 ))}
@@ -521,7 +521,7 @@ function CodingBreakdown({ submissions, score }: { submissions: any[]; score: nu
           {submission.ai_feedback && (
             <div className="mt-3 sm:mt-4 rounded-md bg-muted p-3 sm:p-4">
               <p className="text-xs sm:text-sm font-medium">AI Feedback:</p>
-              <p className="mt-2 text-[10px] sm:text-xs md:text-sm text-muted-foreground break-words">
+              <p className="mt-2 text-[0.625rem] sm:text-xs md:text-sm text-muted-foreground break-words">
                 {typeof submission.ai_feedback === 'string'
                   ? submission.ai_feedback
                   : submission.ai_feedback.feedback || JSON.stringify(submission.ai_feedback)}
@@ -533,7 +533,7 @@ function CodingBreakdown({ submissions, score }: { submissions: any[]; score: nu
         {/* Submitted Code */}
         <div>
           <h3 className="mb-2 font-semibold text-sm sm:text-base">Your Solution</h3>
-          <pre className="overflow-x-auto rounded-md bg-muted p-3 sm:p-4 text-[10px] sm:text-xs">
+          <pre className="overflow-x-auto rounded-md bg-muted p-3 sm:p-4 text-[0.625rem] sm:text-xs">
             <code className="break-all">{submission.submitted_code}</code>
           </pre>
         </div>

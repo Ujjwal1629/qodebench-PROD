@@ -35,21 +35,21 @@ export default async function DashboardCoursesPage() {
             >
               <div className="p-7 pb-0 flex-1">
                 <div className="flex items-center justify-between mb-4">
-                  <span className="text-[12px] font-semibold tracking-wider uppercase text-slate-500">
+                  <span className="text-[0.75rem] font-semibold tracking-wider uppercase text-slate-500">
                     {course.tag}
                   </span>
                   {course.comingSoon ? (
-                    <span className="text-[12px] font-medium px-2.5 py-1 rounded-full border bg-slate-100 text-slate-600 border-slate-200">
+                    <span className="text-[0.75rem] font-medium px-2.5 py-1 rounded-full border bg-slate-100 text-slate-600 border-slate-200">
                       Coming soon
                     </span>
                   ) : isEnrolled ? (
-                    <span className="inline-flex items-center gap-1.5 text-[12px] font-medium px-2.5 py-1 rounded-full border bg-emerald-50 text-emerald-700 border-emerald-200">
+                    <span className="inline-flex items-center gap-1.5 text-[0.75rem] font-medium px-2.5 py-1 rounded-full border bg-emerald-50 text-emerald-700 border-emerald-200">
                       <CheckCircle2 className="h-3.5 w-3.5" />
                       Enrolled
                     </span>
                   ) : (
                     <span
-                      className={`text-[12px] font-medium px-2.5 py-1 rounded-full border ${course.statusColor}`}
+                      className={`text-[0.75rem] font-medium px-2.5 py-1 rounded-full border ${course.statusColor}`}
                     >
                       {course.status}
                     </span>
@@ -57,36 +57,36 @@ export default async function DashboardCoursesPage() {
                 </div>
 
                 <h2 className="text-lg font-bold text-slate-950 mb-2">{course.title}</h2>
-                <p className="text-[13.5px] text-slate-600 leading-relaxed mb-5">
+                <p className="text-[0.8438rem] text-slate-600 leading-relaxed mb-5">
                   {course.description}
                 </p>
 
                 <dl className="flex flex-wrap gap-x-8 gap-y-2 pb-5 border-b border-slate-100">
                   {course.meta.map((m) => (
                     <div key={m.label}>
-                      <dt className="text-[11.5px] text-slate-500">{m.label}</dt>
-                      <dd className="text-[13.5px] font-semibold text-slate-900">{m.value}</dd>
+                      <dt className="text-[0.7188rem] text-slate-500">{m.label}</dt>
+                      <dd className="text-[0.8438rem] font-semibold text-slate-900">{m.value}</dd>
                     </div>
                   ))}
                 </dl>
 
                 {/* Syllabus preview */}
                 <div className="pt-5 pb-5">
-                  <p className="text-[11.5px] font-semibold tracking-wider uppercase text-slate-500 mb-3">
+                  <p className="text-[0.7188rem] font-semibold tracking-wider uppercase text-slate-500 mb-3">
                     {totalModules} modules
                     {course.phases.length > 1 && ` across ${course.phases.length} phases`}
                   </p>
                   <ul className="space-y-1.5">
                     {course.phases[0].modules.slice(0, 4).map((m, i) => (
-                      <li key={m.title} className="flex gap-3 text-[13px] text-slate-700">
-                        <span className="font-mono text-[11px] text-slate-400 w-5 shrink-0 mt-px">
+                      <li key={m.title} className="flex gap-3 text-[0.8125rem] text-slate-700">
+                        <span className="font-mono text-[0.6875rem] text-slate-400 w-5 shrink-0 mt-px">
                           {String(i + 1).padStart(2, '0')}
                         </span>
                         {m.title}
                       </li>
                     ))}
                     {totalModules > 4 && (
-                      <li className="text-[12.5px] text-slate-400 pl-8">
+                      <li className="text-[0.7812rem] text-slate-400 pl-8">
                         + {totalModules - 4} more modules
                       </li>
                     )}
@@ -99,7 +99,7 @@ export default async function DashboardCoursesPage() {
                     return (
                       <span
                         key={f.text}
-                        className="inline-flex items-center gap-1.5 text-[12px] text-slate-500"
+                        className="inline-flex items-center gap-1.5 text-[0.75rem] text-slate-500"
                       >
                         <Icon className="h-3.5 w-3.5 text-brand-600" />
                         {f.text}
@@ -134,7 +134,7 @@ export default async function DashboardCoursesPage() {
                       variant="outline"
                       className="flex-1 h-11 font-semibold border-slate-300 text-slate-800 hover:bg-slate-50 rounded-md"
                     >
-                      <Link href={`/courses#${course.slug}`}>View Curriculum</Link>
+                      <Link href={`/courses?syllabus=1#${course.slug}`}>View Curriculum</Link>
                     </Button>
                     <Button
                       asChild

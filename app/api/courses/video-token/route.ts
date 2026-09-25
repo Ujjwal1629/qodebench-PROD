@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Mux from '@mux/mux-node';
 import { getSubscription } from '@/lib/get-subscription';
+import { getCourseBatch } from '@/lib/get-course-batch';
+import { allowedPlaybackIds } from '@/lib/course-content/ai-testing-videos';
 
 // Issues a short-lived signed playback token for a Mux video, but only to an
 // enrolled (subscribed) user. This is what stops a non-paying user from copying
@@ -30,6 +32,13 @@ export async function POST(req: NextRequest) {
   }
   if (!playbackId) {
     return NextResponse.json({ error: 'Missing playbackId' }, { status: 400 });
+  }
+
+  // Only sign recordings that belong to this learner's batch (or the default
+  // recordings their batch falls back to) — not another batch's class videos.
+  const batch = await getCourseBatch('ai-powered-testing');
+  if (!allowedPlaybackIds(batch).has(playbackId)) {
+    return NextResponse.json({ error: 'Video not available for your batch' }, { status: 403 });
   }
 
   const signingKey = process.env.MUX_SIGNING_KEY;

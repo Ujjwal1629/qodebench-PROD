@@ -289,7 +289,7 @@ export default function TextQAStage({ sessionId, experienceLevel, onComplete }: 
                   {formatTime(timeLeft)}
                 </span>
               </div>
-              <p className="text-[10px] sm:text-xs text-muted-foreground">Time Remaining</p>
+              <p className="text-[0.625rem] sm:text-xs text-muted-foreground">Time Remaining</p>
             </div>
           </div>
         </div>
@@ -313,7 +313,7 @@ export default function TextQAStage({ sessionId, experienceLevel, onComplete }: 
             </p>
             <div className="flex flex-wrap gap-1.5 sm:gap-2">
               {currentQuestion.key_concepts.map((concept, idx) => (
-                <Badge key={idx} variant="secondary" className="text-[10px] sm:text-xs">
+                <Badge key={idx} variant="secondary" className="text-[0.625rem] sm:text-xs">
                   {concept}
                 </Badge>
               ))}

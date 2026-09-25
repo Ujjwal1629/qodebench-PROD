@@ -192,7 +192,7 @@ export function AvatarUpload({
               </button>
               <span className="text-slate-600"> or drag and drop</span>
             </div>
-            <p className="text-[10px] sm:text-xs text-slate-500">
+            <p className="text-[0.625rem] sm:text-xs text-slate-500">
               PNG or JPG up to 5MB
             </p>
           </div>

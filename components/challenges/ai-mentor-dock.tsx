@@ -165,7 +165,7 @@ export function AIMentorDock({
 
                 <div className="text-left">
                   <div className="text-white font-bold text-xs lg:text-sm whitespace-nowrap">Ask AI Senior Dev</div>
-                  <div className="text-sky-100 text-[10px] lg:text-xs whitespace-nowrap flex items-center gap-1">
+                  <div className="text-sky-100 text-[0.625rem] lg:text-xs whitespace-nowrap flex items-center gap-1">
                     <Sparkles className="h-2.5 w-2.5 lg:h-3 lg:w-3" />
                     <span>Always Available</span>
                   </div>
@@ -173,7 +173,7 @@ export function AIMentorDock({
 
                 {/* Message count badge */}
                 {messages.length > 0 && (
-                  <div className="bg-red-500 text-white text-[10px] lg:text-xs font-bold rounded-full w-5 h-5 lg:w-6 lg:h-6 flex items-center justify-center shadow-lg ml-1 lg:ml-2 animate-bounce">
+                  <div className="bg-red-500 text-white text-[0.625rem] lg:text-xs font-bold rounded-full w-5 h-5 lg:w-6 lg:h-6 flex items-center justify-center shadow-lg ml-1 lg:ml-2 animate-bounce">
                     {messages.length}
                   </div>
                 )}

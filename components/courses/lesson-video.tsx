@@ -75,7 +75,7 @@ export function LessonVideo({ playbackId, title, chapters = [] }: LessonVideoPro
         <div className="h-14 w-14 rounded-full bg-white/95 flex items-center justify-center shadow-xl">
           <Play className="h-5 w-5 text-slate-950 ml-0.5" fill="currentColor" />
         </div>
-        <p className="text-[12.5px] text-slate-500 px-6 text-center">
+        <p className="text-[0.7812rem] text-slate-500 px-6 text-center">
           Recording coming soon — {title}
         </p>
       </div>
@@ -93,7 +93,7 @@ export function LessonVideo({ playbackId, title, chapters = [] }: LessonVideoPro
   if (token.status === 'error') {
     return (
       <div className="relative aspect-video max-h-[52vh] w-full mx-auto flex items-center justify-center px-6">
-        <p className="text-[12.5px] text-slate-400 text-center">
+        <p className="text-[0.7812rem] text-slate-400 text-center">
           Couldn&apos;t load this recording. Refresh the page, or contact support if it persists.
         </p>
       </div>
@@ -117,7 +117,7 @@ export function LessonVideo({ playbackId, title, chapters = [] }: LessonVideoPro
         <div className="px-4 lg:px-5 py-2.5 border-t border-white/10">
           <div className="flex items-center gap-1.5 mb-2 text-slate-400">
             <ListVideo className="h-3.5 w-3.5" />
-            <span className="text-[11px] font-semibold uppercase tracking-wide">
+            <span className="text-[0.6875rem] font-semibold uppercase tracking-wide">
               In this session
             </span>
           </div>
@@ -128,10 +128,10 @@ export function LessonVideo({ playbackId, title, chapters = [] }: LessonVideoPro
                 onClick={() => seekTo(chapter.seconds)}
                 className="flex items-center gap-2 shrink-0 rounded-md bg-white/[0.06] hover:bg-white/[0.12] border border-white/10 px-2.5 py-1.5 transition-colors"
               >
-                <span className="text-[11px] font-mono font-semibold text-sky-400">
+                <span className="text-[0.6875rem] font-mono font-semibold text-sky-400">
                   {chapter.time}
                 </span>
-                <span className="text-[12px] text-slate-200 whitespace-nowrap">
+                <span className="text-[0.75rem] text-slate-200 whitespace-nowrap">
                   {chapter.title}
                 </span>
               </button>

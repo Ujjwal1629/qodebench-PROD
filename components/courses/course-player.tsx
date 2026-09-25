@@ -1,38 +1,38 @@
 'use client';
 
-import { useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import {
   ArrowLeft,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
   PlayCircle,
   FileText,
-  ListChecks,
   Lock,
   Dumbbell,
   CalendarClock,
   Mic,
+  Check,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { isPracticeTitle } from '@/lib/course-utils';
 import { CourseNotes } from '@/components/courses/course-notes';
 import { LessonVideo } from '@/components/courses/lesson-video';
-import { LessonQuiz } from '@/components/courses/lesson-quiz';
 import { LessonPractice } from '@/components/courses/lesson-practice';
+import { LessonAssignment } from '@/components/courses/lesson-assignment';
 import { LessonLiveQA } from '@/components/courses/lesson-live-qa';
 import { LessonMockInterview } from '@/components/courses/lesson-mock-interview';
 import type { Course, ModuleKind } from '@/lib/course-catalog';
-import type { MCQ } from '@/lib/course-content/ai-testing-mcqs';
 import type { VideoChapter } from '@/lib/course-content/ai-testing-videos';
 import type { PracticeSet } from '@/lib/course-content/ai-testing-practice';
+import type { AssignmentSet } from '@/lib/course-content/ai-testing-assignments';
 
 export interface ModuleNotes {
   title: string;
   content: string;
 }
-
-type LessonTab = 'notes' | 'mcq';
 
 // Parse a "phase:module:lesson" deep-link param into a valid [p, m, l] tuple,
 // clamped to the course structure. Returns [0, 0, 0] for anything malformed or
@@ -59,6 +59,51 @@ const KIND_ICON: Record<ModuleKind, typeof Dumbbell> = {
   'mock-interview': Mic,
 };
 
+// Sidebar rows show a short, uniform label ("Session 1", "Practice 2") instead of
+// the full lesson title, which wraps to 2-3 lines and makes the list hard to scan.
+// The full title still shows in the content header on the right.
+//
+// Each kind is numbered in its own sequence, so a module with 3 sessions + 3
+// practice items reads 1-3 and 1-3, not 1-3 and 4-6. Live Q&A and mock-interview
+// modules use their own noun — calling those "Session 1" would be misleading.
+function sessionLabels(lessons: string[], kind?: ModuleKind): string[] {
+  const counts = { session: 0, practice: 0, assignment: 0 };
+
+  return lessons.map((lesson) => {
+    if (/^Assignment:/i.test(lesson)) {
+      counts.assignment += 1;
+      return lessons.filter((l) => /^Assignment:/i.test(l)).length > 1
+        ? `Assignment ${counts.assignment}`
+        : 'Assignment';
+    }
+    if (/^Practice:/i.test(lesson)) {
+      counts.practice += 1;
+      // Practice sits right after its session, so number it to match that
+      // session (a session without practice would otherwise shift the count).
+      const sessionIdx = lessons
+        .filter((l) => !/^(?:Practice|Assignment):/i.test(l))
+        .indexOf(lessonTopic(lesson));
+      return `Practice ${sessionIdx >= 0 ? sessionIdx + 1 : counts.practice}`;
+    }
+
+    counts.session += 1;
+    if (kind === 'live-qa') return `Live Q&A ${counts.session}`;
+    if (kind === 'mock-interview') return `Mock Interview ${counts.session}`;
+    return `Session ${counts.session}`;
+  });
+}
+
+// The topic shown under a sidebar label. Only the leading "Practice:"/"Assignment:"
+// prefix is dropped — it's already conveyed by the label above it.
+//
+// The em-dash tail is deliberately KEPT: it's what distinguishes otherwise
+// identical titles ("Capstone — Full Test Pipeline" vs "— CI/CD Integration",
+// "Hallucination Detection — …" vs "… (Part 2)"). CSS truncation trims the
+// overflow per row without ever collapsing two entries into the same text.
+function lessonTopic(lesson: string): string {
+  return lesson.replace(/^(?:Practice|Assignment|Live Q&A|Career Counseling):\s*/i, '').trim();
+}
+
 interface CoursePlayerProps {
   course: Course;
   /** Revision notes per module of the first phase, index-aligned with the module list. */
@@ -69,10 +114,11 @@ interface CoursePlayerProps {
   videosBySession?: Record<string, string>;
   /** Video chapter lists keyed by "phase:module:lesson". Missing = no chapter UI. */
   chaptersBySession?: Record<string, VideoChapter[]>;
-  /** MCQ quizzes keyed by "phase:module:lesson". Missing = empty quiz. */
-  mcqsBySession?: Record<string, MCQ[]>;
   /** Interactive practice sets keyed by "phase:module:lesson". */
   practiceBySession?: Record<string, PracticeSet>;
+  assignmentsBySession?: Record<string, AssignmentSet>;
+  /** The learner's batch (e.g. "Evening batch"); recordings are that batch's. */
+  batchLabel?: string;
 }
 
 export function CoursePlayer({
@@ -81,8 +127,9 @@ export function CoursePlayer({
   notesBySession = {},
   videosBySession = {},
   chaptersBySession = {},
-  mcqsBySession = {},
   practiceBySession = {},
+  assignmentsBySession = {},
+  batchLabel,
 }: CoursePlayerProps) {
   // Deep link: ?lesson=phase:module:lesson opens straight to that item (used by
   // the dashboard's Resume / Next up links). Falls back to the first lesson.
@@ -93,8 +140,48 @@ export function CoursePlayer({
   const [openModule, setOpenModule] = useState<number | null>(initial[1]);
   // Selected session: [phaseIndex, moduleIndex, lessonIndex]
   const [selected, setSelected] = useState<[number, number, number]>(initial);
-  // Below-video tab; Revision Notes is the default.
-  const [tab, setTab] = useState<LessonTab>('notes');
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  // Best score per practice item, keyed by lesson title, so the sidebar can
+  // show which practice items the learner has already completed.
+  const [practiceProgress, setPracticeProgress] = useState<
+    Record<string, { score: number; passed: boolean; attempts: number }>
+  >({});
+
+  // Practice and assignment progress share one badge map, keyed by lesson
+  // title. The two endpoints never return the same title, so merging is safe.
+  const loadProgress = useCallback(() => {
+    const slug = encodeURIComponent(course.slug);
+    Promise.all([
+      fetch(`/api/courses/practice/progress?courseSlug=${slug}`).then((r) =>
+        r.ok ? r.json() : null
+      ),
+      fetch(`/api/courses/assignment/progress?courseSlug=${slug}`).then((r) =>
+        r.ok ? r.json() : null
+      ),
+    ])
+      .then(([practice, assignment]) => {
+        const merged: Record<string, { score: number; passed: boolean; attempts: number }> = {
+          ...(practice?.progress ?? {}),
+        };
+        for (const [title, a] of Object.entries(
+          (assignment?.progress ?? {}) as Record<
+            string,
+            { score: number; completed: boolean; attempts: number }
+          >
+        )) {
+          merged[title] = { score: a.score, passed: a.completed, attempts: a.attempts };
+        }
+        setPracticeProgress(merged);
+      })
+      .catch(() => {
+        /* non-blocking: the sidebar just shows no badges */
+      });
+  }, [course.slug]);
+
+  useEffect(() => {
+    loadProgress();
+  }, [loadProgress]);
 
   const phase = course.phases[activePhase] ?? course.phases[0];
   const [selPhase, selModule, selLesson] = selected;
@@ -107,17 +194,52 @@ export function CoursePlayer({
     notesBySession[sessionKey] ??
     (selPhase === 0 ? notesByModule[selModule] : undefined);
 
+  // Short label for the selected item, matching what the sidebar row shows.
+  const currentLabel = currentModule
+    ? sessionLabels(currentModule.lessons, currentModule.kind)[selLesson]
+    : undefined;
+
   const currentVideoId = videosBySession[sessionKey];
-  const currentMcqs = mcqsBySession[sessionKey] ?? [];
   const currentPractice = practiceBySession[sessionKey];
+  const currentAssignment = assignmentsBySession[sessionKey];
   const currentKind = currentModule?.kind;
   // Practice panel applies to whole practice modules and to Practice:/Assignment:
   // items living inside a content module (merged-module format).
+  const isAssignmentItem = /^Assignment:/i.test(currentLesson ?? '');
   const isPracticeItem =
-    currentKind === 'practice' || (!currentKind && isPracticeTitle(currentLesson ?? ''));
+    !isAssignmentItem &&
+    (currentKind === 'practice' || (!currentKind && isPracticeTitle(currentLesson ?? '')));
   // Progress-gated unlock isn't wired to per-user progress yet, so the mock
   // interview stays locked until Phase 1 completion tracking exists.
   const mockUnlocked = false;
+
+  // Flat running order of the current phase, so Prev/Next can cross module
+  // boundaries instead of dead-ending at the last lesson of a module.
+  const phaseItems = phase.modules.flatMap((m, mi) =>
+    m.lessons.map((lesson, li) => ({
+      lesson,
+      label: sessionLabels(m.lessons, m.kind)[li],
+      moduleIndex: mi,
+      lessonIndex: li,
+    })),
+  );
+  const currentFlatIndex =
+    selPhase === activePhase
+      ? phaseItems.findIndex((i) => i.moduleIndex === selModule && i.lessonIndex === selLesson)
+      : -1;
+  const prevItem = currentFlatIndex > 0 ? phaseItems[currentFlatIndex - 1] : undefined;
+  const nextItem =
+    currentFlatIndex >= 0 && currentFlatIndex < phaseItems.length - 1
+      ? phaseItems[currentFlatIndex + 1]
+      : undefined;
+
+  const goTo = (moduleIndex: number, lessonIndex: number) => {
+    setSelected([activePhase, moduleIndex, lessonIndex]);
+    setOpenModule(moduleIndex);
+    // Land at the top of the new item rather than keeping the previous scroll
+    // offset, which drops you mid-way into the notes.
+    contentRef.current?.scrollTo({ top: 0 });
+  };
 
   return (
     // Full-bleed workspace: breaks out of the dashboard content container and
@@ -132,21 +254,40 @@ export function CoursePlayer({
         >
           <ArrowLeft className="h-5 w-5" />
         </Link>
-        <span className="text-[14px] font-semibold text-slate-950 truncate">
+        <span className="text-[0.875rem] font-semibold text-slate-950 truncate">
           {course.title}
         </span>
-        {currentLesson && (
+        {currentModule && (
           <>
             <span className="text-slate-300">/</span>
-            <span className="text-[13px] text-slate-500 truncate hidden sm:block">
-              {currentLesson}
+            <span className="text-[0.8125rem] text-slate-500 truncate hidden sm:block">
+              {currentModule.title}
             </span>
           </>
+        )}
+
+        {batchLabel && (
+          <span className="ml-auto shrink-0 rounded-full border border-brand-200 bg-brand-50 px-2 py-0.5 text-[0.6875rem] font-semibold text-brand-700">
+            {batchLabel}
+          </span>
+        )}
+
+        {/* Position within the phase — the full title lives in the header below,
+            so repeating it here would just be noise. */}
+        {currentFlatIndex >= 0 && (
+          <span
+            className={cn(
+              'shrink-0 text-[0.75rem] font-medium text-slate-500 tabular-nums',
+              !batchLabel && 'ml-auto'
+            )}
+          >
+            {currentFlatIndex + 1} / {phaseItems.length}
+          </span>
         )}
       </div>
 
       {/* Workspace: curriculum + content, divided by a hairline */}
-      <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-[300px_minmax(0,1fr)]">
+      <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-[320px_minmax(0,1fr)]">
         {/* Left — curriculum */}
         <aside className="border-b lg:border-b-0 lg:border-r border-slate-200 flex flex-col min-h-0 max-h-[50vh] lg:max-h-none bg-slate-50/50">
           {course.phases.length > 1 && (
@@ -156,10 +297,12 @@ export function CoursePlayer({
                   key={p.name}
                   onClick={() => {
                     setActivePhase(pi);
-                    setOpenModule(0);
+                    // Returning to the phase you're studying reopens that module,
+                    // not module 0 — otherwise the current lesson looks lost.
+                    setOpenModule(pi === selPhase ? selModule : 0);
                   }}
                   className={cn(
-                    'flex-1 px-2 py-1.5 rounded text-[12px] font-medium truncate transition-colors',
+                    'flex-1 px-2 py-2 rounded text-[0.8125rem] font-medium truncate transition-colors',
                     activePhase === pi
                       ? 'bg-slate-950 text-white'
                       : 'text-slate-600 hover:bg-slate-200/60'
@@ -176,6 +319,7 @@ export function CoursePlayer({
               const isOpen = openModule === mi;
               const hasSessions = module.lessons.length > 0;
               const moduleActive = selPhase === activePhase && selModule === mi;
+              const labels = sessionLabels(module.lessons, module.kind);
               return (
                 <div key={module.title} className="border-b border-slate-200/70">
                   <button
@@ -186,14 +330,14 @@ export function CoursePlayer({
                     )}
                     aria-expanded={isOpen}
                   >
-                    <span className="font-mono text-[10.5px] text-slate-400 mt-[3px] shrink-0 w-4">
+                    <span className="font-mono text-[0.75rem] text-slate-400 mt-[3px] shrink-0 w-5">
                       {String(mi + 1).padStart(2, '0')}
                     </span>
                     <span className="flex-1 min-w-0">
-                      <span className="block text-[12.5px] font-semibold text-slate-900 leading-snug">
+                      <span className="block text-[0.875rem] font-semibold text-slate-900 leading-snug">
                         {module.title}
                       </span>
-                      <span className="block text-[11px] text-slate-500 mt-px">
+                      <span className="block text-[0.75rem] text-slate-500 mt-0.5">
                         {module.detail}
                       </span>
                     </span>
@@ -225,36 +369,67 @@ export function CoursePlayer({
                           return (
                             <button
                               key={lesson}
-                              onClick={() => {
-                                setSelected([activePhase, mi, li]);
-                                setTab('notes');
-                              }}
+                              onClick={() => goTo(mi, li)}
+                              title={lesson}
+                              aria-current={isActive ? 'true' : undefined}
                               className={cn(
-                                'w-full flex items-start gap-2 pl-[38px] pr-3 py-[7px] text-left border-l-2',
+                                'w-full flex items-start gap-2.5 pl-[34px] pr-3 py-2 text-left border-l-2 transition-colors',
                                 isActive
                                   ? 'border-brand-600 bg-brand-50/70'
-                                  : 'border-transparent hover:bg-slate-50'
+                                  : 'border-transparent hover:bg-slate-100/70'
                               )}
                             >
                               <ItemIcon
                                 className={cn(
-                                  'h-3.5 w-3.5 mt-[2px] shrink-0',
-                                  isActive ? 'text-brand-600' : 'text-slate-300'
+                                  'h-4 w-4 shrink-0 mt-px',
+                                  isActive ? 'text-brand-600' : 'text-slate-400'
                                 )}
                               />
-                              <span
-                                className={cn(
-                                  'text-[12px] leading-snug',
-                                  isActive ? 'font-semibold text-slate-950' : 'text-slate-600'
-                                )}
-                              >
-                                {lesson}
+                              <span className="flex-1 min-w-0">
+                                <span
+                                  className={cn(
+                                    'block text-[0.8125rem] leading-snug',
+                                    isActive
+                                      ? 'font-semibold text-brand-700'
+                                      : 'font-medium text-slate-800'
+                                  )}
+                                >
+                                  {labels[li]}
+                                </span>
+                                {/* Topic line: keeps the list scannable without
+                                    letting long titles wrap to three lines. */}
+                                <span
+                                  className={cn(
+                                    'block text-[0.75rem] leading-snug truncate mt-px',
+                                    isActive ? 'text-slate-700' : 'text-slate-500'
+                                  )}
+                                >
+                                  {lessonTopic(lesson)}
+                                </span>
                               </span>
+                              {/* Practice items the learner has attempted show
+                                  their best score, so progress is visible
+                                  without opening each one. */}
+                              {practiceProgress[lesson] && (
+                                <span
+                                  className={cn(
+                                    'shrink-0 mt-px inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[0.6875rem] font-semibold',
+                                    practiceProgress[lesson].passed
+                                      ? 'bg-emerald-100 text-emerald-800'
+                                      : 'bg-amber-100 text-amber-800'
+                                  )}
+                                >
+                                  {practiceProgress[lesson].passed && (
+                                    <Check className="h-3 w-3" />
+                                  )}
+                                  {practiceProgress[lesson].score}%
+                                </span>
+                              )}
                             </button>
                           );
                         })
                       ) : (
-                        <p className="flex items-center gap-1.5 pl-[38px] pr-3 py-1.5 text-[11.5px] text-slate-400">
+                        <p className="flex items-center gap-1.5 pl-[38px] pr-3 py-1.5 text-[0.7188rem] text-slate-400">
                           <Lock className="h-3 w-3" />
                           Sessions unlock with this phase
                         </p>
@@ -268,11 +443,30 @@ export function CoursePlayer({
         </aside>
 
         {/* Center — content area (kind-aware), one scroll area */}
-        <div className="min-h-0 overflow-y-auto border-b lg:border-b-0 border-slate-200">
-          {isPracticeItem ? (
+        <div
+          ref={contentRef}
+          className="min-h-0 overflow-y-auto border-b lg:border-b-0 border-slate-200"
+        >
+          {isAssignmentItem ? (
             <>
               <ItemHeader
-                title={currentLesson?.replace(/^Practice:\s*/, '') ?? ''}
+                label={currentLabel}
+                title={currentLesson?.replace(/^Assignment:\s*/, '') ?? ''}
+                subtitle={`${currentModule?.title} · ${course.phases[selPhase]?.name}`}
+              />
+              <LessonAssignment
+                key={sessionKey}
+                title={currentLesson ?? ''}
+                courseSlug={course.slug}
+                set={currentAssignment}
+                onSaved={loadProgress}
+              />
+            </>
+          ) : isPracticeItem ? (
+            <>
+              <ItemHeader
+                label={currentLabel}
+                title={currentLesson?.replace(/^(?:Practice|Assignment):\s*/, '') ?? ''}
                 subtitle={`${currentModule?.title} · ${course.phases[selPhase]?.name}`}
               />
               <LessonPractice
@@ -280,11 +474,13 @@ export function CoursePlayer({
                 title={currentLesson ?? ''}
                 courseSlug={course.slug}
                 set={currentPractice}
+                onSaved={loadProgress}
               />
             </>
           ) : currentKind === 'live-qa' ? (
             <>
               <ItemHeader
+                label={currentLabel}
                 title={currentLesson ?? ''}
                 subtitle={`${currentModule?.title} · ${course.phases[selPhase]?.name}`}
               />
@@ -293,6 +489,7 @@ export function CoursePlayer({
           ) : currentKind === 'mock-interview' ? (
             <>
               <ItemHeader
+                label={currentLabel}
                 title={currentLesson ?? ''}
                 subtitle={`${currentModule?.title} · ${course.phases[selPhase]?.name}`}
               />
@@ -318,62 +515,76 @@ export function CoursePlayer({
               {/* Session title */}
               {currentLesson && (
                 <ItemHeader
+                  label={currentLabel}
                   title={currentLesson}
                   subtitle={`${currentModule?.title} · ${course.phases[selPhase]?.name}`}
                 />
               )}
 
-              {/* Tabs: Revision Notes (default) + On-site MCQ */}
+              {/* Revision notes */}
               <div className="px-6 lg:px-8">
-                <div className="flex items-center gap-1 border-b border-slate-200">
-                  <button
-                    onClick={() => setTab('notes')}
-                    className={cn(
-                      'flex items-center gap-1.5 px-3 py-3 text-[13px] font-semibold border-b-2 -mb-px transition-colors',
-                      tab === 'notes'
-                        ? 'border-brand-600 text-slate-950'
-                        : 'border-transparent text-slate-500 hover:text-slate-800'
-                    )}
-                  >
-                    <FileText className="h-4 w-4" />
-                    Revision Notes
-                  </button>
-                  <button
-                    onClick={() => setTab('mcq')}
-                    className={cn(
-                      'flex items-center gap-1.5 px-3 py-3 text-[13px] font-semibold border-b-2 -mb-px transition-colors',
-                      tab === 'mcq'
-                        ? 'border-brand-600 text-slate-950'
-                        : 'border-transparent text-slate-500 hover:text-slate-800'
-                    )}
-                  >
-                    <ListChecks className="h-4 w-4" />
-                    MCQ
-                    {currentMcqs.length > 0 && (
-                      <span className="ml-0.5 text-[11px] font-mono text-slate-400">
-                        {currentMcqs.length}
-                      </span>
-                    )}
-                  </button>
+                <div className="flex items-center gap-1.5 px-3 py-3 text-[0.8125rem] font-semibold text-slate-950 border-b border-slate-200">
+                  <FileText className="h-4 w-4" />
+                  Revision Notes
                 </div>
               </div>
 
               <div className="px-6 lg:px-8 py-5">
-                {tab === 'notes' ? (
-                  currentNotes ? (
-                    // Strip the leading H1 — the session title is already shown above the tabs.
-                    <CourseNotes content={currentNotes.content.replace(/^#\s+.+$\n?/m, '')} />
-                  ) : (
-                    <p className="text-[13.5px] text-slate-500 leading-relaxed max-w-2xl">
-                      Revision notes for this session will appear here — key concepts, commands
-                      and code snippets from the lecture, ready to skim before interviews.
-                    </p>
-                  )
+                {currentNotes ? (
+                  // Strip the leading H1 — the session title is already shown above.
+                  <CourseNotes content={currentNotes.content.replace(/^#\s+.+$\n?/m, '')} />
                 ) : (
-                  <LessonQuiz key={sessionKey} questions={currentMcqs} />
+                  <p className="text-[0.8438rem] text-slate-500 leading-relaxed max-w-2xl">
+                    Revision notes for this session will appear here — key concepts, commands
+                    and code snippets from the lecture, ready to skim before interviews.
+                  </p>
                 )}
               </div>
             </>
+          )}
+
+          {/* Prev / Next — keeps the learner moving without going back to the
+              sidebar after every item. */}
+          {(prevItem || nextItem) && (
+            <div className="flex items-stretch gap-3 px-6 lg:px-8 py-6 mt-2 border-t border-slate-200">
+              {prevItem ? (
+                <button
+                  onClick={() => goTo(prevItem.moduleIndex, prevItem.lessonIndex)}
+                  className="group flex-1 min-w-0 flex items-center gap-3 rounded-lg border border-slate-200 px-4 py-3 text-left hover:border-slate-300 hover:bg-slate-50 transition-colors"
+                >
+                  <ChevronLeft className="h-4 w-4 text-slate-400 shrink-0 group-hover:text-slate-600" />
+                  <span className="min-w-0">
+                    <span className="block text-[0.6875rem] font-semibold uppercase tracking-wider text-slate-400">
+                      Previous
+                    </span>
+                    <span className="block text-[0.8125rem] font-medium text-slate-800 truncate">
+                      {prevItem.label} · {lessonTopic(prevItem.lesson)}
+                    </span>
+                  </span>
+                </button>
+              ) : (
+                <span className="flex-1" />
+              )}
+
+              {nextItem ? (
+                <button
+                  onClick={() => goTo(nextItem.moduleIndex, nextItem.lessonIndex)}
+                  className="group flex-1 min-w-0 flex items-center justify-end gap-3 rounded-lg border border-slate-200 px-4 py-3 text-right hover:border-slate-300 hover:bg-slate-50 transition-colors"
+                >
+                  <span className="min-w-0">
+                    <span className="block text-[0.6875rem] font-semibold uppercase tracking-wider text-slate-400">
+                      Next
+                    </span>
+                    <span className="block text-[0.8125rem] font-medium text-slate-800 truncate">
+                      {nextItem.label} · {lessonTopic(nextItem.lesson)}
+                    </span>
+                  </span>
+                  <ChevronRight className="h-4 w-4 text-slate-400 shrink-0 group-hover:text-slate-600" />
+                </button>
+              ) : (
+                <span className="flex-1" />
+              )}
+            </div>
           )}
         </div>
       </div>
@@ -383,11 +594,25 @@ export function CoursePlayer({
 
 // Shared title strip shown above every content area (video sessions, practice,
 // live Q&A, mock interview) so they read consistently.
-function ItemHeader({ title, subtitle }: { title: string; subtitle: string }) {
+function ItemHeader({
+  title,
+  subtitle,
+  label,
+}: {
+  title: string;
+  subtitle: string;
+  /** Short sidebar label ("Session 2") shown as an eyebrow above the full title. */
+  label?: string;
+}) {
   return (
-    <div className="px-6 lg:px-8 py-4 border-b border-slate-200">
-      <h1 className="text-[16px] font-bold text-slate-950 leading-snug">{title}</h1>
-      <p className="text-[12px] text-slate-500 mt-0.5">{subtitle}</p>
+    <div className="px-6 lg:px-8 py-5 border-b border-slate-200">
+      {label && (
+        <p className="text-[0.75rem] font-semibold uppercase tracking-wider text-brand-600 mb-1.5">
+          {label}
+        </p>
+      )}
+      <h1 className="text-[1.375rem] font-bold text-slate-950 leading-tight">{title}</h1>
+      <p className="text-[0.8125rem] text-slate-500 mt-1.5">{subtitle}</p>
     </div>
   );
 }

@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { TestTube, ArrowRight, LogIn, Table2, ListChecks, Bug, Scale, Activity, Bot } from 'lucide-react';
+import { TestTube, ArrowRight, LogIn, Table2, ListChecks, Bug, Scale, Activity, Bot, FlaskConical, FileCode2 } from 'lucide-react';
 
 const tools = [
   {
@@ -68,6 +68,24 @@ const tools = [
     tags: ['RAG', 'Prompt Testing', 'LLM QA'],
     difficulty: 'Advanced',
     color: 'bg-emerald-600',
+  },
+  {
+    id: 'python-playground',
+    icon: FileCode2,
+    title: 'Python Playground',
+    description: 'Write Python and run pytest right in the browser. No install, no virtual environment — the fastest way to get from zero to a passing test.',
+    tags: ['Python', 'pytest', 'Basics'],
+    difficulty: 'Beginner',
+    color: 'bg-sky-600',
+  },
+  {
+    id: 'eval-playground',
+    icon: FlaskConical,
+    title: 'Eval Playground',
+    description: 'Write a prompt, add test cases with assertions, and run a real eval in the browser. The PromptFoo workflow with nothing to install.',
+    tags: ['Eval', 'Assertions', 'PromptFoo'],
+    difficulty: 'Intermediate',
+    color: 'bg-violet-600',
   },
 ];
 

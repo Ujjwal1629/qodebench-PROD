@@ -4,9 +4,9 @@ import { useState } from "react";
 import { ArrowRight, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-// Replace with the QodeBench WhatsApp channel URL (https://whatsapp.com/channel/...).
-// Falls back to the business chat number until the channel link is added.
-export const WHATSAPP_CHANNEL_URL = "https://wa.me/919871462694";
+import { WHATSAPP_CHANNEL_URL } from "@/lib/constants/contact";
+
+export { WHATSAPP_CHANNEL_URL };
 
 export function WhatsAppIcon({ className }: { className?: string }) {
   return (
@@ -33,19 +33,19 @@ export function StayConnected() {
         <div className="grid md:grid-cols-2 bg-white rounded-xl border border-slate-200 divide-y md:divide-y-0 md:divide-x divide-slate-200 overflow-hidden">
           {/* Newsletter */}
           <div className="p-8 lg:p-10">
-            <p className="text-[12px] font-semibold tracking-[0.14em] uppercase text-slate-500 mb-3">
+            <p className="text-[0.75rem] font-semibold tracking-[0.14em] uppercase text-slate-500 mb-3">
               Newsletter
             </p>
             <h3 className="font-serif text-2xl text-slate-950 mb-2">
               New lessons, straight to your inbox.
             </h3>
-            <p className="text-[14.5px] text-slate-600 leading-relaxed mb-6">
+            <p className="text-[0.9062rem] text-slate-600 leading-relaxed mb-6">
               One email a week — new modules, batch openings and the weekend session
               schedule. No spam, unsubscribe anytime.
             </p>
 
             {subscribed ? (
-              <div className="flex items-center gap-2.5 text-[14px] font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-md px-4 py-3">
+              <div className="flex items-center gap-2.5 text-[0.875rem] font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-md px-4 py-3">
                 <CheckCircle2 className="h-4 w-4 shrink-0" />
                 You&apos;re on the list. See you in your inbox.
               </div>
@@ -57,7 +57,7 @@ export function StayConnected() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="you@example.com"
-                  className="flex-1 h-11 px-4 rounded-md border border-slate-300 text-[14px] text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+                  className="flex-1 h-11 px-4 rounded-md border border-slate-300 text-[0.875rem] text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
                 />
                 <Button
                   type="submit"
@@ -72,13 +72,13 @@ export function StayConnected() {
 
           {/* WhatsApp channel */}
           <div className="p-8 lg:p-10">
-            <p className="text-[12px] font-semibold tracking-[0.14em] uppercase text-slate-500 mb-3">
+            <p className="text-[0.75rem] font-semibold tracking-[0.14em] uppercase text-slate-500 mb-3">
               WhatsApp Channel
             </p>
             <h3 className="font-serif text-2xl text-slate-950 mb-2">
               Updates where you already are.
             </h3>
-            <p className="text-[14.5px] text-slate-600 leading-relaxed mb-6">
+            <p className="text-[0.9062rem] text-slate-600 leading-relaxed mb-6">
               Follow the QodeBench channel for batch announcements and live Q&amp;A
               reminders. It&apos;s a broadcast channel — your number stays private.
             </p>

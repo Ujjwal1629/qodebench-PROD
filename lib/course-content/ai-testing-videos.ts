@@ -9,6 +9,10 @@
 // The player picks it up automatically by title — no other change needed.
 // A session with no entry keeps the "recording coming soon" placeholder.
 
+import type { BatchId } from '@/lib/course-batches';
+
+// Default recordings — shown to every learner unless their batch has its own
+// recording for that session (see AI_TESTING_BATCH_VIDEOS below).
 export const AI_TESTING_VIDEOS: Record<string, string> = {
   // Paste each session's Mux Playback ID between the quotes. Empty string = the
   // lesson keeps its "Recording coming soon" placeholder until you fill it.
@@ -27,24 +31,30 @@ export const AI_TESTING_VIDEOS: Record<string, string> = {
   "PromptFoo Deep Dive — Setup, Config & First Eval": "RvNyLGfk6ufSUU00D502pONf00jg02bmIeSpe6KIzomT9y8", // Session 7
   "PromptFoo Advanced — Assertions, LLM-as-Judge & Model Comparison": "kpbRGaGXbf02FYWHI028fuPL027jy8jgnwkpXWnbmHQrbY", // Session 8
   "Python Foundations": "f6HbFyZ5jc602svqwEfk00avh02oe6m9TfQyx5w02vnbBjQ", // Session 9
-  "DeepEval — Pytest for LLMs": "", // Session 10
+  "DeepEval — Pytest for LLMs": "1iWxoes2Xgt8LK702YH002ypsbBYzubALW01KGryOVyCQM", // Session 10
   "Hallucination Detection — Techniques & Automation": "", // Session 11
   "Hallucination Detection — Techniques & Automation (Part 2)": "", // Session 11 Part 2
   "Model Comparison & Regression Testing": "", // Session 12
 
   // ── Module 4 · RAG, API & Automation Testing ──
-  "RAG Testing Fundamentals": "", // Session 12 (RAG)
-  "LLM API Testing — OpenAI, Anthropic, Gemini Endpoints": "", // Session 13
-  "Chatbot UI Testing with Playwright": "",
+  "RAG Testing Fundamentals": "WvsXIM1qZP02HDRg008vxBh1UzgubMbloQE3o2v9E9Tz00", // Session 12 (RAG)
+  "LLM API Testing — OpenAI, Anthropic, Gemini Endpoints": "hqdXK1WrXdZRWeBuW2dLJZ8ETNaKjc59poAZZbxtIpk", // Session 13
+  "Chatbot UI Testing with Playwright": "01zIMeShp00bCJn7xYNHHM4MfqKQT4AviBnD02HReW5Wig", // Session 14
 
   // ── Module · LangChain & LangGraph Testing ──
-  "LangChain Fundamentals & Testing Chains": "",
-  "LangGraph Agent Testing & Tracing": "",
+  "LangChain Fundamentals & Testing Chains": "3m01mHc9EgPZwi4sp1f96pmD5q1QL01EgRJJd02acZYnEo", // Session 15
+  "LangGraph Agent Testing & Tracing": "lRGetrEDXsYLAWy00xoL700OOpPVj9mcvdG8L02MYVRPP8", // Session 16
 
   // ── Module · Security, Safety & Red Teaming ──
-  "OWASP Top 10 for LLMs": "",
-  "Red Teaming with PromptFoo & Giskard": "",
-  "Guardrails, Output Validation & Bias Testing": "",
+  "OWASP Top 10 for LLMs": "5CweDGulBVNa2qw1hjyUkKifdeUenUbNn02c6i7rv418", // Session 17
+  "Red Teaming with PromptFoo & Giskard": "ljB01HINaVV016FEpCfm4Tt701n34jmC00LG00mLwQ00fmwFM", // Session 18
+  "Guardrails, Output Validation & Bias Testing": "wXt7l01GFuvJjyiQob01v01iH8vbf5ipWkZgUUQhl02Bhyk", // Session 19
+
+  // ── Module · AI Test Planning, Metrics & Observability ──
+  // Session 20 has no recording yet — the lesson keeps its placeholder.
+  "AI Test Strategy & Planning": "", // Session 20 (recording not yet available)
+  "AI Quality Metrics & Reporting": "YpzQ00XcflqyIzlh00JXuKBcjT00r3MssTD5TTMpEgYiQk", // Session 21
+  "AI Observability & Production Monitoring": "O2KLW3F1Ju5QcjZFSYIBjXVoVeYIS7X3DciGkMjVgxs", // Session 22
 };
 
 // ---------------------------------------------------------------------------
@@ -244,3 +254,64 @@ export const AI_TESTING_CHAPTERS: Record<string, VideoChapter[]> = {
     { time: "47:04", title: "Wrap-up & next session" },
   ],
 };
+
+// ---------------------------------------------------------------------------
+// Per-batch recordings (Morning / Afternoon / Evening).
+//
+// Each batch attends its own live class, so each has its own recording. A
+// learner's batch comes from the `course_enrollments` table (migration 075).
+//
+// Fill these in gradually: for any session a batch has no entry for, that
+// batch's learners fall back to the default in AI_TESTING_VIDEOS above. So you
+// can add one batch's videos module by module without breaking anything.
+//
+// Same convention as above: "Exact Session Title": "mux-playback-id".
+
+export const AI_TESTING_BATCH_VIDEOS: Record<BatchId, Record<string, string>> = {
+  morning: {},
+  afternoon: {},
+  evening: {},
+};
+
+// Chapters for batch recordings. Timestamps differ between recordings, so a
+// batch video only shows chapters listed here — never the default ones.
+export const AI_TESTING_BATCH_CHAPTERS: Record<BatchId, Record<string, VideoChapter[]>> = {
+  morning: {},
+  afternoon: {},
+  evening: {},
+};
+
+export interface ResolvedSessionVideo {
+  playbackId: string;
+  chapters: VideoChapter[];
+}
+
+/** The recording a learner in `batch` should see for a session, if any. */
+export function resolveSessionVideo(
+  title: string,
+  batch: BatchId | null
+): ResolvedSessionVideo | null {
+  const batchId = batch ? AI_TESTING_BATCH_VIDEOS[batch][title] : '';
+  if (batch && batchId) {
+    return { playbackId: batchId, chapters: AI_TESTING_BATCH_CHAPTERS[batch][title] ?? [] };
+  }
+  const defaultId = AI_TESTING_VIDEOS[title];
+  if (defaultId) {
+    return { playbackId: defaultId, chapters: AI_TESTING_CHAPTERS[title] ?? [] };
+  }
+  return null;
+}
+
+/** Every playback ID a learner in `batch` is allowed to stream. */
+export function allowedPlaybackIds(batch: BatchId | null): Set<string> {
+  const titles = new Set([
+    ...Object.keys(AI_TESTING_VIDEOS),
+    ...(batch ? Object.keys(AI_TESTING_BATCH_VIDEOS[batch]) : []),
+  ]);
+  const ids = new Set<string>();
+  for (const title of titles) {
+    const video = resolveSessionVideo(title, batch);
+    if (video) ids.add(video.playbackId);
+  }
+  return ids;
+}

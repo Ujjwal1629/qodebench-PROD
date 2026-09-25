@@ -182,7 +182,7 @@ export function TopBar({ user }: TopBarProps) {
                   className={cn(gi > 0 && 'mt-2 pt-4 border-t border-slate-100')}
                 >
                   {group.label && (
-                    <p className="px-6 pb-2 text-[11px] font-semibold tracking-[0.14em] uppercase text-slate-400">
+                    <p className="px-6 pb-2 text-[0.6875rem] font-semibold tracking-[0.14em] uppercase text-slate-400">
                       {group.label}
                     </p>
                   )}

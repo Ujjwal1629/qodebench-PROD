@@ -24,27 +24,27 @@ export function LessonLiveQA({ title }: LessonLiveQAProps) {
             <Icon className="h-5 w-5" />
           </span>
           <div>
-            <h2 className="text-[16px] font-bold text-slate-950 leading-snug">{title}</h2>
-            <p className="text-[12.5px] text-slate-500">Live session</p>
+            <h2 className="text-[1rem] font-bold text-slate-950 leading-snug">{title}</h2>
+            <p className="text-[0.7812rem] text-slate-500">Live session</p>
           </div>
         </div>
 
-        <p className="mt-5 text-[14px] leading-relaxed text-slate-700">{blurb}</p>
+        <p className="mt-5 text-[0.875rem] leading-relaxed text-slate-700">{blurb}</p>
 
         <div className="mt-6 flex items-center gap-2.5 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
           <CalendarClock className="h-5 w-5 text-amber-600 shrink-0" />
           <div>
-            <p className="text-[13.5px] font-semibold text-amber-900">
+            <p className="text-[0.8438rem] font-semibold text-amber-900">
               Schedule to be announced soon
             </p>
-            <p className="text-[12.5px] text-amber-800/90 leading-snug">
+            <p className="text-[0.7812rem] text-amber-800/90 leading-snug">
               The date, time and joining link will be shared here and in your student group
               before the session.
             </p>
           </div>
         </div>
 
-        <div className="mt-5 flex items-center gap-2 text-[12.5px] text-slate-500">
+        <div className="mt-5 flex items-center gap-2 text-[0.7812rem] text-slate-500">
           <Video className="h-4 w-4 text-slate-400" />
           Held live over video · recording added here afterwards
         </div>

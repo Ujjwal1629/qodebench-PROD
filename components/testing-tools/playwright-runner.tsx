@@ -95,7 +95,7 @@ export function PlaywrightRunner({ starterCode, containerSelector }: PlaywrightR
           className="w-full h-64 bg-slate-900 text-slate-100 font-mono text-xs p-4 rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-sky-500 resize-y leading-relaxed"
           placeholder="Write your Playwright test code here..."
         />
-        <div className="absolute top-2 right-2 text-[10px] text-slate-500 font-mono">
+        <div className="absolute top-2 right-2 text-[0.625rem] text-slate-500 font-mono">
           playwright test
         </div>
       </div>

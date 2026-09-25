@@ -55,23 +55,23 @@ export function SubscribePopup() {
       <DialogContent className="max-w-md p-0 gap-0 overflow-hidden rounded-xl">
         {/* Top band */}
         <div className="bg-white px-7 pt-7 pb-5 border-b border-slate-100">
-          <p className="text-[11px] font-semibold tracking-[0.16em] uppercase text-brand-600 mb-2">
+          <p className="text-[0.6875rem] font-semibold tracking-[0.16em] uppercase text-brand-600 mb-2">
             Stay in the loop
           </p>
-          <DialogTitle className="font-serif text-[22px] leading-snug text-slate-950 font-normal">
+          <DialogTitle className="font-serif text-[1.375rem] leading-snug text-slate-950 font-normal">
             New lessons, batch openings and live Q&amp;A schedules.
           </DialogTitle>
         </div>
 
         <div className="px-7 py-6">
           {subscribed ? (
-            <div className="flex items-center gap-2.5 text-[14px] font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-md px-4 py-3 mb-5">
+            <div className="flex items-center gap-2.5 text-[0.875rem] font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-md px-4 py-3 mb-5">
               <CheckCircle2 className="h-4 w-4 shrink-0" />
               You&apos;re on the list. See you in your inbox.
             </div>
           ) : (
             <>
-              <p className="text-[13.5px] text-slate-600 leading-relaxed mb-4">
+              <p className="text-[0.8438rem] text-slate-600 leading-relaxed mb-4">
                 One email a week — no spam, unsubscribe anytime.
               </p>
               <form onSubmit={handleSubscribe} className="flex gap-2.5 mb-5">
@@ -81,7 +81,7 @@ export function SubscribePopup() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="you@example.com"
-                  className="flex-1 h-10 px-3.5 rounded-md border border-slate-300 text-[13.5px] text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+                  className="flex-1 h-10 px-3.5 rounded-md border border-slate-300 text-[0.8438rem] text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
                 />
                 <Button
                   type="submit"
@@ -96,7 +96,7 @@ export function SubscribePopup() {
 
           <div className="flex items-center gap-3 mb-5">
             <span className="h-px flex-1 bg-slate-200" />
-            <span className="text-[11px] font-medium uppercase tracking-wider text-slate-400">
+            <span className="text-[0.6875rem] font-medium uppercase tracking-wider text-slate-400">
               or
             </span>
             <span className="h-px flex-1 bg-slate-200" />
@@ -113,7 +113,7 @@ export function SubscribePopup() {
             </a>
           </Button>
 
-          <p className="text-[11.5px] text-slate-400 mt-4 text-center">
+          <p className="text-[0.7188rem] text-slate-400 mt-4 text-center">
             Batch announcements and live session reminders. Your number stays private.
           </p>
         </div>

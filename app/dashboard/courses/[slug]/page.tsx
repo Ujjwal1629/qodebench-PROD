@@ -3,9 +3,14 @@ import { createClient } from '@/lib/supabase/server';
 import { getSubscription } from '@/lib/get-subscription';
 import { COURSES, type Course } from '@/lib/course-catalog';
 import { AI_TESTING_NOTES } from '@/lib/course-content/ai-testing-notes';
-import { AI_TESTING_VIDEOS, AI_TESTING_CHAPTERS, SESSION_COVERS, type VideoChapter } from '@/lib/course-content/ai-testing-videos';
-import { AI_TESTING_MCQS, type MCQ } from '@/lib/course-content/ai-testing-mcqs';
+import { resolveSessionVideo, SESSION_COVERS, type VideoChapter } from '@/lib/course-content/ai-testing-videos';
+import { getCourseBatch } from '@/lib/get-course-batch';
+import { BATCHES } from '@/lib/course-batches';
 import { AI_TESTING_PRACTICE, type PracticeSet } from '@/lib/course-content/ai-testing-practice';
+import {
+  AI_TESTING_ASSIGNMENTS,
+  type AssignmentSet,
+} from '@/lib/course-content/ai-testing-assignments';
 import { CoursePlayer, type ModuleNotes } from '@/components/courses/course-player';
 
 // The Playwright course content lives in the learning-module lessons. The player's
@@ -54,17 +59,22 @@ export default async function CoursePlayerPage({
   let notesBySession: Record<string, ModuleNotes> = {};
   let videosBySession: Record<string, string> = {};
   let chaptersBySession: Record<string, VideoChapter[]> = {};
-  let mcqsBySession: Record<string, MCQ[]> = {};
   let practiceBySession: Record<string, PracticeSet> = {};
+  let assignmentsBySession: Record<string, AssignmentSet> = {};
+  let batchLabel: string | undefined;
 
   if (slug === 'ai-powered-testing') {
-    // Session-level notes + videos + MCQs + practice, matched by item title against the catalog
+    // Each batch (morning/afternoon/evening) sees its own class recordings.
+    const batch = await getCourseBatch(slug);
+    batchLabel = batch ? BATCHES[batch].label : undefined;
+
+    // Session-level notes + videos + practice, matched by item title against the catalog
     course.phases.forEach((phase, pi) => {
       phase.modules.forEach((module, mi) => {
         module.lessons.forEach((lesson, li) => {
           const key = `${pi}:${mi}:${li}`;
           // A full-session item may cover several topics (SESSION_COVERS) —
-          // merge those topics' notes and MCQs under the session.
+          // merge those topics' notes under the session.
           const covered = SESSION_COVERS[lesson] ?? [lesson];
           const content = covered
             .map((topic) => AI_TESTING_NOTES[topic])
@@ -73,21 +83,20 @@ export default async function CoursePlayerPage({
           if (content) {
             notesBySession[key] = { title: lesson, content };
           }
-          const playbackId = AI_TESTING_VIDEOS[lesson];
-          if (playbackId) {
-            videosBySession[key] = playbackId;
-          }
-          const videoChapters = AI_TESTING_CHAPTERS[lesson];
-          if (videoChapters?.length) {
-            chaptersBySession[key] = videoChapters;
-          }
-          const mcqs = covered.flatMap((topic) => AI_TESTING_MCQS[topic] ?? []);
-          if (mcqs.length) {
-            mcqsBySession[key] = mcqs;
+          const video = resolveSessionVideo(lesson, batch);
+          if (video) {
+            videosBySession[key] = video.playbackId;
+            if (video.chapters.length) {
+              chaptersBySession[key] = video.chapters;
+            }
           }
           const practice = AI_TESTING_PRACTICE[lesson];
           if (practice) {
             practiceBySession[key] = practice;
+          }
+          const assignment = AI_TESTING_ASSIGNMENTS[lesson];
+          if (assignment) {
+            assignmentsBySession[key] = assignment;
           }
         });
       });
@@ -127,8 +136,9 @@ export default async function CoursePlayerPage({
       notesBySession={notesBySession}
       videosBySession={videosBySession}
       chaptersBySession={chaptersBySession}
-      mcqsBySession={mcqsBySession}
       practiceBySession={practiceBySession}
+      assignmentsBySession={assignmentsBySession}
+      batchLabel={batchLabel}
     />
   );
 }

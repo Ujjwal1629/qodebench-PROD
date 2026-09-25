@@ -178,7 +178,8 @@ export const COURSES: Course[] = [
         modules: [
           // Module format: every recorded live session is its own lesson
           // (matching the recordings in Drive — one ~1h video per session),
-          // followed by the module's practice sets + assignment inline.
+          // immediately followed by its "Practice:" set; the module's
+          // "Assignment:" items come last, after every session + practice.
           // Practice:/Assignment: items render the practice panel; everything
           // else renders as a content session (video + notes + MCQ).
           {
@@ -186,10 +187,10 @@ export const COURSES: Course[] = [
             detail: "Weeks 1–2 · 3 sessions + practice",
             lessons: [
               "What is AI/ML — The Tester's Perspective",
-              "How LLMs Actually Work — Tokens, Probabilities & Temperature",
-              "AI Application Architectures — What You'll Be Testing",
               "Practice: What is AI/ML — The Tester's Perspective",
+              "How LLMs Actually Work — Tokens, Probabilities & Temperature",
               "Practice: How LLMs Actually Work — Tokens, Probabilities & Temperature",
+              "AI Application Architectures — What You'll Be Testing",
               "Practice: AI Application Architectures — What You'll Be Testing",
               "Assignment: Foundations of AI Testing",
             ],
@@ -199,11 +200,14 @@ export const COURSES: Course[] = [
             detail: "Weeks 2–3 · 3 sessions + practice",
             lessons: [
               "Prompt Engineering Fundamentals",
-              "Prompt Testing — Finding Where Prompts Break",
-              "Structured Outputs & Output Validation",
               "Practice: Prompt Engineering Fundamentals",
+              "Prompt Testing — Finding Where Prompts Break",
               "Practice: Prompt Testing — Finding Where Prompts Break",
+              "Structured Outputs & Output Validation",
               "Practice: Structured Outputs & Output Validation",
+              "Assignment: Prompt Engineering Fundamentals",
+              "Assignment: Prompt Testing — Finding Where Prompts Break",
+              "Assignment: Structured Outputs & Output Validation",
             ],
           },
           {
@@ -211,18 +215,24 @@ export const COURSES: Course[] = [
             detail: "Weeks 3–5 · 7 sessions + practice",
             lessons: [
               "PromptFoo Deep Dive — Setup, Config & First Eval",
+              "Practice: PromptFoo Deep Dive — Setup, Config & First Eval",
               "PromptFoo Advanced — Assertions, LLM-as-Judge & Model Comparison",
+              "Practice: PromptFoo Advanced — Assertions, LLM-as-Judge & Model Comparison",
               "Python Foundations",
+              "Practice: Python Foundations",
               "DeepEval — Pytest for LLMs",
+              "Practice: DeepEval — Pytest for LLMs",
               "Hallucination Detection — Techniques & Automation",
+              "Practice: Hallucination Detection — Techniques & Automation",
               "Hallucination Detection — Techniques & Automation (Part 2)",
               "Model Comparison & Regression Testing",
-              "Practice: PromptFoo Deep Dive — Setup, Config & First Eval",
-              "Practice: PromptFoo Advanced — Assertions, LLM-as-Judge & Model Comparison",
-              "Practice: Python Foundations",
-              "Practice: DeepEval — Pytest for LLMs",
-              "Practice: Hallucination Detection — Techniques & Automation",
               "Practice: Model Comparison & Regression Testing",
+              "Assignment: PromptFoo Deep Dive — Setup, Config & First Eval",
+              "Assignment: PromptFoo Advanced — Assertions, LLM-as-Judge & Model Comparison",
+              "Assignment: Python Foundations",
+              "Assignment: DeepEval — Pytest for LLMs",
+              "Assignment: Hallucination Detection — Techniques & Automation",
+              "Assignment: Model Comparison & Regression Testing",
             ],
           },
           {
@@ -230,11 +240,14 @@ export const COURSES: Course[] = [
             detail: "Weeks 5–6 · 3 sessions + practice",
             lessons: [
               "RAG Testing Fundamentals",
-              "LLM API Testing — OpenAI, Anthropic, Gemini Endpoints",
-              "Chatbot UI Testing with Playwright",
               "Practice: RAG Testing Fundamentals",
+              "LLM API Testing — OpenAI, Anthropic, Gemini Endpoints",
               "Practice: LLM API Testing — OpenAI, Anthropic, Gemini Endpoints",
+              "Chatbot UI Testing with Playwright",
               "Practice: Chatbot UI Testing with Playwright",
+              "Assignment: RAG Testing Fundamentals",
+              "Assignment: LLM API Testing — OpenAI, Anthropic, Gemini Endpoints",
+              "Assignment: Chatbot UI Testing with Playwright",
             ],
           },
           {
@@ -260,9 +273,11 @@ export const COURSES: Course[] = [
             detail: "Week 6 · 2 sessions + practice",
             lessons: [
               "LangChain Fundamentals & Testing Chains",
-              "LangGraph Agent Testing & Tracing",
               "Practice: LangChain Fundamentals & Testing Chains",
+              "LangGraph Agent Testing & Tracing",
               "Practice: LangGraph Agent Testing & Tracing",
+              "Assignment: LangChain Fundamentals & Testing Chains",
+              "Assignment: LangGraph Agent Testing & Tracing",
             ],
           },
           {
@@ -270,11 +285,14 @@ export const COURSES: Course[] = [
             detail: "Week 7 · 3 sessions + practice",
             lessons: [
               "OWASP Top 10 for LLMs",
-              "Red Teaming with PromptFoo & Giskard",
-              "Guardrails, Output Validation & Bias Testing",
               "Practice: OWASP Top 10 for LLMs",
+              "Red Teaming with PromptFoo & Giskard",
               "Practice: Red Teaming with PromptFoo & Giskard",
+              "Guardrails, Output Validation & Bias Testing",
               "Practice: Guardrails, Output Validation & Bias Testing",
+              "Assignment: OWASP Top 10 for LLMs",
+              "Assignment: Red Teaming with PromptFoo & Giskard",
+              "Assignment: Guardrails, Output Validation & Bias Testing",
             ],
           },
           {
@@ -282,11 +300,14 @@ export const COURSES: Course[] = [
             detail: "Week 8 · 3 sessions + practice",
             lessons: [
               "AI Test Strategy & Planning",
-              "AI Quality Metrics & Reporting",
-              "AI Observability & Production Monitoring",
               "Practice: AI Test Strategy & Planning",
+              "AI Quality Metrics & Reporting",
               "Practice: AI Quality Metrics & Reporting",
+              "AI Observability & Production Monitoring",
               "Practice: AI Observability & Production Monitoring",
+              "Assignment: AI Test Strategy & Planning",
+              "Assignment: AI Quality Metrics & Reporting",
+              "Assignment: AI Observability & Production Monitoring",
             ],
           },
           {
@@ -294,12 +315,12 @@ export const COURSES: Course[] = [
             detail: "Weeks 9–10 · 4 sessions + practice",
             lessons: [
               "Capstone — Project Setup: Build the AI App",
-              "Capstone — Full Test Pipeline",
-              "Capstone — CI/CD Integration & Demo",
-              "AI Testing Career Kit — Resume, Portfolio & Interviews",
               "Practice: Capstone — Project Setup: Build the AI App",
+              "Capstone — Full Test Pipeline",
               "Practice: Capstone — Full Test Pipeline",
+              "Capstone — CI/CD Integration & Demo",
               "Practice: Capstone — CI/CD Integration & Demo",
+              "AI Testing Career Kit — Resume, Portfolio & Interviews",
               "Practice: AI Testing Career Kit — Resume, Portfolio & Interviews",
             ],
           },

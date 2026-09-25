@@ -1,15 +1,27 @@
 'use client';
 
-import { useState } from 'react';
-import { Dumbbell, Check, X, HelpCircle, Lightbulb, Loader2, RotateCcw } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import {
+  Dumbbell,
+  Check,
+  X,
+  HelpCircle,
+  Lightbulb,
+  Loader2,
+  RotateCcw,
+  ExternalLink,
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getCSRFHeaders } from '@/lib/utils/csrf-client';
+import { InlineMd } from '@/components/courses/inline-md';
 import type { PracticeSet, PracticeTask } from '@/lib/course-content/ai-testing-practice';
 
 interface LessonPracticeProps {
   title: string;
   courseSlug: string;
   set?: PracticeSet;
+  /** Called after an attempt saves, so the sidebar can refresh its score badge. */
+  onSaved?: () => void;
 }
 
 type Answer = number[] | string; // multi/mcq → indices; text kinds → string
@@ -41,22 +53,54 @@ function completedSelfCheck(task: PracticeTask, answer: Answer | undefined): boo
   return text.length >= (task.minLength ?? 1);
 }
 
-export function LessonPractice({ title, courseSlug, set }: LessonPracticeProps) {
+export function LessonPractice({ title, courseSlug, set, onSaved }: LessonPracticeProps) {
   const [answers, setAnswers] = useState<Record<string, Answer>>({});
   const [graded, setGraded] = useState(false);
   const [hints, setHints] = useState<Record<string, boolean>>({});
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  // Restoring the last attempt: 'loading' until we know, then whether one existed.
+  const [loading, setLoading] = useState(true);
+  const [restored, setRestored] = useState(false);
+
+  // Load the learner's most recent attempt so returning to a practice item
+  // shows their answers and grade instead of an empty form.
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    fetch(
+      `/api/courses/practice/latest?courseSlug=${encodeURIComponent(
+        courseSlug
+      )}&itemTitle=${encodeURIComponent(title)}`
+    )
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (cancelled || !data?.attempt) return;
+        setAnswers(data.attempt.answers ?? {});
+        setGraded(true);
+        setRestored(true);
+      })
+      .catch(() => {
+        /* non-blocking: fall back to a blank form */
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [courseSlug, title]);
 
   if (!set) {
     return (
       <div className="px-6 lg:px-8 py-6">
         <PracticeHeader />
         <div className="max-w-2xl rounded-xl border border-dashed border-slate-300 bg-slate-50/60 px-6 py-8 text-center">
-          <p className="text-[14px] font-semibold text-slate-800">
+          <p className="text-[0.875rem] font-semibold text-slate-800">
             Practice for this lesson is on the way
           </p>
-          <p className="mt-1.5 text-[13px] text-slate-500 leading-relaxed">
+          <p className="mt-1.5 text-[0.8125rem] text-slate-500 leading-relaxed">
             Interactive, auto-graded tasks for{' '}
             <span className="font-medium text-slate-700">{title.replace(/^Practice:\s*/, '')}</span>{' '}
             will unlock here as this module&apos;s lessons go live.
@@ -116,9 +160,22 @@ export function LessonPractice({ title, courseSlug, set }: LessonPracticeProps) 
           passedTasks: pc,
         }),
       });
-      if (res.ok) setSaved(true);
+      if (res.ok) {
+        setSaved(true);
+        setSaveError(null);
+        onSaved?.();
+      } else {
+        // Surface the reason instead of a bare "Not saved" the learner
+        // can't act on (a stale session is the usual cause).
+        const body = await res.json().catch(() => null);
+        setSaveError(
+          res.status === 401
+            ? 'Not saved: please sign in again'
+            : `Not saved: ${body?.error ?? `error ${res.status}`}`
+        );
+      }
     } catch {
-      /* non-blocking */
+      setSaveError('Not saved: you appear to be offline');
     } finally {
       setSaving(false);
     }
@@ -129,14 +186,18 @@ export function LessonPractice({ title, courseSlug, set }: LessonPracticeProps) 
     setGraded(false);
     setHints({});
     setSaved(false);
+    setSaveError(null);
+    setRestored(false);
   };
 
   return (
     <div className="px-6 lg:px-8 py-6">
       <PracticeHeader />
-      <p className="max-w-3xl text-[14px] leading-relaxed text-slate-600 mb-5">{set.intro}</p>
+      <p className="max-w-none text-[0.9375rem] leading-relaxed text-slate-600 mb-5">
+        <InlineMd>{set.intro}</InlineMd>
+      </p>
 
-      <div className="max-w-3xl space-y-4">
+      <div className="max-w-none space-y-4">
         {tasks.map((task, ti) => {
           const selfCheck = SELF_CHECK(task.kind);
           const ok = graded && !selfCheck ? gradeTask(task, answers[task.id]) : undefined;
@@ -153,27 +214,44 @@ export function LessonPractice({ title, courseSlug, set }: LessonPracticeProps) 
               )}
             >
               <div className="flex items-start gap-2">
-                <span className="font-mono text-[12px] text-slate-400 mt-px shrink-0">
+                <span className="font-mono text-[0.75rem] text-slate-400 mt-px shrink-0">
                   {ti + 1}.
                 </span>
                 <div className="flex-1 min-w-0">
-                  <p className="text-[14px] font-semibold text-slate-900 leading-snug whitespace-pre-line">
-                    {task.prompt}
+                  <p className="text-[0.9375rem] font-normal text-slate-800 leading-relaxed whitespace-pre-line">
+                    <InlineMd>{task.prompt}</InlineMd>
                   </p>
 
-                  {/* Lab steps: what to run in the learner's own AI tool */}
+                  {/* Lab steps: the hands-on run-through, usually on a QodeBench tool */}
                   {task.kind === 'lab' && task.labSteps && (
                     <div className="mt-3 rounded-lg border border-slate-200 bg-slate-50/70 px-3.5 py-3">
-                      <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400 mb-1.5">
-                        Do this in your AI tool
+                      <p className="text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-400 mb-1.5">
+                        {!task.toolLink
+                          ? 'Do this in your AI tool'
+                          : task.toolLink.href.startsWith('/')
+                            ? 'Run this on QodeBench'
+                            : 'Run this'}
                       </p>
                       <ol className="list-decimal pl-4 space-y-1 marker:text-slate-400">
                         {task.labSteps.map((step, si) => (
-                          <li key={si} className="text-[12.5px] text-slate-600 leading-snug">
-                            {step}
+                          <li key={si} className="text-[0.7812rem] text-slate-600 leading-snug">
+                            <InlineMd>{step}</InlineMd>
                           </li>
                         ))}
                       </ol>
+                      {/* Opens in a new tab so the learner keeps the assignment
+                          open alongside the tool they're testing. */}
+                      {task.toolLink && (
+                        <a
+                          href={task.toolLink.href}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="mt-3 inline-flex items-center gap-1.5 rounded-md bg-brand-600 px-3 py-1.5 text-[0.75rem] font-semibold text-white hover:bg-brand-700 transition-colors"
+                        >
+                          {task.toolLink.label}
+                          <ExternalLink className="h-3.5 w-3.5" />
+                        </a>
+                      )}
                     </div>
                   )}
 
@@ -190,7 +268,7 @@ export function LessonPractice({ title, courseSlug, set }: LessonPracticeProps) 
                               onClick={() => setMcq(task.id, oi, task.kind === 'multi')}
                               disabled={graded}
                               className={cn(
-                                'w-full flex items-start gap-2.5 rounded-md border px-3 py-2 text-left text-[13px] leading-snug transition-colors',
+                                'w-full flex items-start gap-2.5 rounded-md border px-3.5 py-2.5 text-left text-[0.875rem] leading-snug transition-colors',
                                 !graded &&
                                   (picked
                                     ? 'border-brand-400 bg-brand-50'
@@ -207,7 +285,7 @@ export function LessonPractice({ title, courseSlug, set }: LessonPracticeProps) 
                             >
                               <span
                                 className={cn(
-                                  'mt-px flex h-4 w-4 shrink-0 items-center justify-center border text-[10px] font-semibold',
+                                  'mt-px flex h-4 w-4 shrink-0 items-center justify-center border text-[0.625rem] font-semibold',
                                   task.kind === 'multi' ? 'rounded-[4px]' : 'rounded-full',
                                   !graded && picked && 'border-brand-500 bg-brand-500 text-white',
                                   !graded && !picked && 'border-slate-300 text-slate-400',
@@ -226,7 +304,9 @@ export function LessonPractice({ title, courseSlug, set }: LessonPracticeProps) 
                                   String.fromCharCode(65 + oi)
                                 )}
                               </span>
-                              <span>{opt}</span>
+                              <span>
+                                <InlineMd>{opt}</InlineMd>
+                              </span>
                             </button>
                           );
                         })}
@@ -240,8 +320,8 @@ export function LessonPractice({ title, courseSlug, set }: LessonPracticeProps) 
                         rows={task.kind === 'code' ? 8 : task.kind === 'short' ? 4 : 5}
                         spellCheck={task.kind !== 'code'}
                         className={cn(
-                          'w-full rounded-md border border-slate-300 px-3 py-2 text-[13px] text-slate-900 placeholder:text-slate-400 resize-y focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 disabled:bg-slate-50 disabled:text-slate-600',
-                          task.kind === 'code' && 'font-mono text-[12.5px] leading-relaxed'
+                          'w-full rounded-md border border-slate-300 px-3.5 py-2.5 text-[0.875rem] text-slate-900 placeholder:text-slate-400 resize-y focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 disabled:bg-slate-50 disabled:text-slate-600',
+                          task.kind === 'code' && 'font-mono text-[0.8125rem] leading-relaxed'
                         )}
                       />
                     )}
@@ -251,14 +331,14 @@ export function LessonPractice({ title, courseSlug, set }: LessonPracticeProps) 
                   {task.hint && !graded && (
                     <div className="mt-2">
                       {hints[task.id] ? (
-                        <p className="flex items-start gap-1.5 text-[12px] text-amber-700">
+                        <p className="flex items-start gap-1.5 text-[0.75rem] text-amber-700">
                           <Lightbulb className="h-3.5 w-3.5 shrink-0 mt-px" />
-                          {task.hint}
+                          <InlineMd>{task.hint}</InlineMd>
                         </p>
                       ) : (
                         <button
                           onClick={() => setHints((h) => ({ ...h, [task.id]: true }))}
-                          className="inline-flex items-center gap-1 text-[12px] font-medium text-slate-500 hover:text-slate-700"
+                          className="inline-flex items-center gap-1 text-[0.75rem] font-medium text-slate-500 hover:text-slate-700"
                         >
                           <Lightbulb className="h-3.5 w-3.5" />
                           Show hint
@@ -272,12 +352,12 @@ export function LessonPractice({ title, courseSlug, set }: LessonPracticeProps) 
                   {graded && selfCheck && (
                     <div className="mt-3 space-y-2.5">
                       {done ? (
-                        <p className="inline-flex items-center gap-1.5 text-[12px] font-medium text-emerald-700">
+                        <p className="inline-flex items-center gap-1.5 text-[0.75rem] font-medium text-emerald-700">
                           <Check className="h-3.5 w-3.5" /> Answer recorded — now compare with the
                           expert answer below.
                         </p>
                       ) : (
-                        <p className="inline-flex items-center gap-1.5 text-[12px] font-medium text-amber-700">
+                        <p className="inline-flex items-center gap-1.5 text-[0.75rem] font-medium text-amber-700">
                           <Lightbulb className="h-3.5 w-3.5" /> Try writing a fuller answer, then
                           compare with the expert answer below.
                         </p>
@@ -285,28 +365,28 @@ export function LessonPractice({ title, courseSlug, set }: LessonPracticeProps) 
 
                       {task.modelAnswer && (
                         <div className="rounded-lg border border-brand-200 bg-brand-50/50 px-3.5 py-3">
-                          <p className="text-[11px] font-semibold uppercase tracking-wide text-brand-700 mb-1">
+                          <p className="text-[0.6875rem] font-semibold uppercase tracking-wide text-brand-700 mb-1">
                             Expert answer
                           </p>
-                          <p className="text-[13px] text-slate-700 leading-relaxed">
-                            {task.modelAnswer}
+                          <p className="text-[0.8125rem] text-slate-700 leading-relaxed">
+                            <InlineMd>{task.modelAnswer}</InlineMd>
                           </p>
                         </div>
                       )}
 
                       {task.selfCheck && (
                         <div className="rounded-lg border border-slate-200 px-3.5 py-3">
-                          <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400 mb-1.5">
+                          <p className="text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-400 mb-1.5">
                             Self-check — did your answer cover this?
                           </p>
                           <ul className="space-y-1">
                             {task.selfCheck.map((c, ci) => (
                               <li
                                 key={ci}
-                                className="flex items-start gap-2 text-[12.5px] text-slate-600 leading-snug"
+                                className="flex items-start gap-2 text-[0.7812rem] text-slate-600 leading-snug"
                               >
                                 <Check className="h-3.5 w-3.5 text-slate-300 shrink-0 mt-px" />
-                                {c}
+                                <InlineMd>{c}</InlineMd>
                               </li>
                             ))}
                           </ul>
@@ -314,8 +394,8 @@ export function LessonPractice({ title, courseSlug, set }: LessonPracticeProps) 
                       )}
 
                       {task.explanation && (
-                        <p className="text-[12px] text-slate-500 leading-relaxed italic">
-                          {task.explanation}
+                        <p className="text-[0.75rem] text-slate-500 leading-relaxed italic">
+                          <InlineMd>{task.explanation}</InlineMd>
                         </p>
                       )}
                     </div>
@@ -324,11 +404,11 @@ export function LessonPractice({ title, courseSlug, set }: LessonPracticeProps) 
                   {graded && !selfCheck && (
                     <div className="mt-3 flex gap-2 rounded-md bg-white/70 border border-slate-100 px-3 py-2.5">
                       <HelpCircle className="h-4 w-4 text-brand-600 shrink-0 mt-px" />
-                      <p className="text-[12.5px] text-slate-700 leading-relaxed">
+                      <p className="text-[0.7812rem] text-slate-700 leading-relaxed">
                         <span className="font-semibold text-slate-900">
                           {ok ? 'Correct. ' : 'Review this. '}
                         </span>
-                        {task.explanation}
+                        <InlineMd>{task.explanation}</InlineMd>
                       </p>
                     </div>
                   )}
@@ -340,11 +420,16 @@ export function LessonPractice({ title, courseSlug, set }: LessonPracticeProps) 
       </div>
 
       {/* Footer: submit / result */}
-      <div className="max-w-3xl mt-5">
-        {!graded ? (
+      <div className="max-w-none mt-5">
+        {loading ? (
+          <span className="inline-flex items-center gap-2 text-[0.8125rem] text-slate-500">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            Loading your last attempt...
+          </span>
+        ) : !graded ? (
           <button
             onClick={submit}
-            className="inline-flex items-center gap-2 rounded-lg bg-brand-600 px-5 py-2.5 text-[13.5px] font-semibold text-white hover:bg-brand-700 transition-colors"
+            className="inline-flex items-center gap-2 rounded-lg bg-brand-600 px-5 py-2.5 text-[0.8438rem] font-semibold text-white hover:bg-brand-700 transition-colors"
           >
             Submit practice
           </button>
@@ -352,7 +437,7 @@ export function LessonPractice({ title, courseSlug, set }: LessonPracticeProps) 
           <div className="flex flex-wrap items-center gap-3 rounded-xl border border-slate-200 bg-slate-50/70 px-4 py-3">
             <span
               className={cn(
-                'inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[12.5px] font-semibold',
+                'inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[0.7812rem] font-semibold',
                 passed
                   ? 'bg-emerald-100 text-emerald-800'
                   : 'bg-amber-100 text-amber-800'
@@ -364,24 +449,28 @@ export function LessonPractice({ title, courseSlug, set }: LessonPracticeProps) 
                 : 'Assignment complete'}
             </span>
             {hasAuto && autoTasks.length < tasks.length && (
-              <span className="text-[12px] text-slate-500">
+              <span className="text-[0.75rem] text-slate-500">
                 + {tasks.length - autoTasks.length} self-checked
               </span>
             )}
-            <span className="text-[12.5px] text-slate-500">
+            <span className="text-[0.7812rem] text-slate-500">
               {saving ? (
                 <span className="inline-flex items-center gap-1.5">
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" /> saving…
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" /> saving...
                 </span>
+              ) : saveError ? (
+                <span className="text-amber-700">{saveError}</span>
               ) : saved ? (
                 'Attempt saved'
+              ) : restored ? (
+                'Your last attempt'
               ) : (
                 'Not saved'
               )}
             </span>
             <button
               onClick={reset}
-              className="ml-auto inline-flex items-center gap-1.5 text-[12.5px] font-medium text-brand-600 hover:text-brand-700"
+              className="ml-auto inline-flex items-center gap-1.5 text-[0.7812rem] font-medium text-brand-600 hover:text-brand-700"
             >
               <RotateCcw className="h-3.5 w-3.5" />
               Try again
@@ -399,7 +488,7 @@ function PracticeHeader() {
       <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-brand-50 text-brand-600">
         <Dumbbell className="h-4 w-4" />
       </span>
-      <h2 className="text-[13px] font-semibold tracking-wide uppercase text-slate-500">
+      <h2 className="text-[0.8125rem] font-semibold tracking-wide uppercase text-slate-500">
         Practice Set
       </h2>
     </div>

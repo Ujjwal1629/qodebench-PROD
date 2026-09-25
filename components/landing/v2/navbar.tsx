@@ -35,6 +35,9 @@ export function Navbar() {
   const [subscriptionTier, setSubscriptionTier] = useState<string>("free");
   const [loading, setLoading] = useState(true);
 
+  // Logged-in users belong in the dashboard course list, not the sales catalog.
+  const coursesHref = user ? "/dashboard/courses" : "/courses";
+
   const shouldHideNavbar =
     pathname?.startsWith("/dashboard") ||
     pathname?.startsWith("/signin") ||
@@ -124,8 +127,8 @@ export function Navbar() {
         }`}
       >
         <Link
-          href="/courses"
-          className="flex items-center justify-center gap-2 px-4 py-2.5 text-[13px] font-medium tracking-wide hover:bg-slate-900 transition-colors"
+          href={coursesHref}
+          className="flex items-center justify-center gap-2 px-4 py-2.5 text-[0.8125rem] font-medium tracking-wide hover:bg-slate-900 transition-colors"
         >
           <span className="hidden sm:inline text-slate-400">New batch —</span>
           <span>Playwright Automation + AI Testing is now live</span>
@@ -163,15 +166,15 @@ export function Navbar() {
                     key={link.name}
                     href={link.href}
                     onClick={(e) => scrollToSection(e, link.href)}
-                    className="text-[14px] font-medium text-slate-700 hover:text-slate-950 transition-colors"
+                    className="text-[0.875rem] font-medium text-slate-700 hover:text-slate-950 transition-colors"
                   >
                     {link.name}
                   </a>
                 ) : (
                   <Link
                     key={link.name}
-                    href={link.href}
-                    className="text-[14px] font-medium text-slate-700 hover:text-slate-950 transition-colors"
+                    href={link.href === "/courses" ? coursesHref : link.href}
+                    className="text-[0.875rem] font-medium text-slate-700 hover:text-slate-950 transition-colors"
                   >
                     {link.name}
                   </Link>
@@ -285,7 +288,7 @@ export function Navbar() {
                 ) : (
                   <Link
                     key={link.name}
-                    href={link.href}
+                    href={link.href === "/courses" ? coursesHref : link.href}
                     onClick={() => setIsMobileMenuOpen(false)}
                     className="text-base font-medium text-slate-700 hover:text-slate-950 transition-colors"
                   >

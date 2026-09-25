@@ -16,32 +16,32 @@ interface CourseNotesProps {
 // from EnhancedMarkdownRenderer so the other learning pages are unaffected.
 export function CourseNotes({ content, className }: CourseNotesProps) {
   return (
-    <div className={cn('max-w-3xl text-slate-700', className)}>
+    <div className={cn('max-w-4xl text-slate-700', className)}>
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         components={{
           h1: ({ children }) => (
-            <h1 className="text-[26px] font-bold tracking-tight text-slate-950 mt-0 mb-4 leading-tight">
+            <h1 className="text-[1.625rem] font-bold tracking-tight text-slate-950 mt-0 mb-4 leading-tight">
               {children}
             </h1>
           ),
           h2: ({ children }) => (
-            <h2 className="text-[19px] font-bold tracking-tight text-slate-900 mt-9 mb-3 pb-1.5 border-b border-slate-200 leading-snug">
+            <h2 className="text-[1.1875rem] font-bold tracking-tight text-slate-900 mt-9 mb-3 pb-1.5 border-b border-slate-200 leading-snug">
               {children}
             </h2>
           ),
           h3: ({ children }) => (
-            <h3 className="text-[15.5px] font-semibold text-slate-900 mt-6 mb-2.5 leading-snug">
+            <h3 className="text-[0.9688rem] font-semibold text-slate-900 mt-6 mb-2.5 leading-snug">
               {children}
             </h3>
           ),
           h4: ({ children }) => (
-            <h4 className="text-[14px] font-semibold text-slate-800 mt-5 mb-2">
+            <h4 className="text-[0.875rem] font-semibold text-slate-800 mt-5 mb-2">
               {children}
             </h4>
           ),
           p: ({ children }) => (
-            <p className="text-[14.5px] leading-[1.7] text-slate-700 my-3.5">{children}</p>
+            <p className="text-[0.9062rem] leading-[1.7] text-slate-700 my-3.5">{children}</p>
           ),
           ul: ({ children }) => (
             <ul className="my-3.5 space-y-1.5 list-disc marker:text-slate-400 pl-5">
@@ -54,7 +54,7 @@ export function CourseNotes({ content, className }: CourseNotesProps) {
             </ol>
           ),
           li: ({ children }) => (
-            <li className="text-[14.5px] leading-[1.65] text-slate-700 pl-1">{children}</li>
+            <li className="text-[0.9062rem] leading-[1.65] text-slate-700 pl-1">{children}</li>
           ),
           strong: ({ children }) => (
             <strong className="font-semibold text-slate-950">{children}</strong>
@@ -71,7 +71,7 @@ export function CourseNotes({ content, className }: CourseNotesProps) {
             </a>
           ),
           blockquote: ({ children }) => (
-            <blockquote className="my-5 rounded-r-lg border-l-[3px] border-brand-500 bg-brand-50/60 px-4 py-3 text-[14px] leading-[1.65] text-slate-800 [&>p]:my-0 [&>p]:text-slate-800">
+            <blockquote className="my-5 rounded-r-lg border-l-[3px] border-brand-500 bg-brand-50/60 px-4 py-3 text-[0.875rem] leading-[1.65] text-slate-800 [&>p]:my-0 [&>p]:text-slate-800">
               {children}
             </blockquote>
           ),
@@ -84,7 +84,7 @@ export function CourseNotes({ content, className }: CourseNotesProps) {
             }
             return (
               <code
-                className="rounded-[5px] bg-slate-100 px-1.5 py-0.5 text-[13px] font-mono font-medium text-brand-700 border border-slate-200"
+                className="rounded-[5px] bg-slate-100 px-1.5 py-0.5 text-[0.8125rem] font-mono font-medium text-brand-700 border border-slate-200"
                 {...props}
               >
                 {children}
@@ -93,7 +93,7 @@ export function CourseNotes({ content, className }: CourseNotesProps) {
           },
           table: ({ children }) => (
             <div className="my-5 overflow-x-auto rounded-lg border border-slate-200">
-              <table className="w-full border-collapse text-[13.5px]">{children}</table>
+              <table className="w-full border-collapse text-[0.8438rem]">{children}</table>
             </div>
           ),
           thead: ({ children }) => <thead className="bg-slate-50">{children}</thead>,

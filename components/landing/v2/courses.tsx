@@ -16,7 +16,7 @@ export function Courses() {
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         {/* Section header */}
         <div className="text-center max-w-2xl mx-auto mb-10">
-          <p className="text-[13px] font-semibold tracking-[0.16em] uppercase text-brand-600 mb-4">
+          <p className="text-[0.8125rem] font-semibold tracking-[0.16em] uppercase text-brand-600 mb-4">
             Courses
           </p>
           <h2 className="font-serif text-3xl sm:text-4xl text-slate-950 tracking-tight mb-4">
@@ -29,7 +29,7 @@ export function Courses() {
           {format.map((f) => {
             const Icon = f.icon;
             return (
-              <div key={f.text} className="flex items-center gap-2.5 text-[14px] text-slate-700">
+              <div key={f.text} className="flex items-center gap-2.5 text-[0.875rem] text-slate-700">
                 <Icon className="h-5 w-5 text-brand-600 shrink-0" />
                 {f.text}
               </div>
@@ -46,18 +46,18 @@ export function Courses() {
             >
               <div className="p-8 pb-0">
                 <div className="flex items-center justify-between mb-5">
-                  <span className="text-[12px] font-semibold tracking-wider uppercase text-slate-500">
+                  <span className="text-[0.75rem] font-semibold tracking-wider uppercase text-slate-500">
                     {course.tag}
                   </span>
                   <span
-                    className={`text-[12px] font-medium px-2.5 py-1 rounded-full border ${course.statusColor}`}
+                    className={`text-[0.75rem] font-medium px-2.5 py-1 rounded-full border ${course.statusColor}`}
                   >
                     {course.status}
                   </span>
                 </div>
 
                 <h3 className="font-serif text-2xl text-slate-950 mb-3">{course.title}</h3>
-                <p className="text-[15px] text-slate-600 leading-relaxed mb-6">
+                <p className="text-[0.9375rem] text-slate-600 leading-relaxed mb-6">
                   {course.description}
                 </p>
 
@@ -65,8 +65,8 @@ export function Courses() {
                 <dl className="flex gap-8 pb-6 border-b border-slate-100">
                   {course.meta.map((m) => (
                     <div key={m.label}>
-                      <dt className="text-[12px] text-slate-500 mb-0.5">{m.label}</dt>
-                      <dd className="text-[14px] font-semibold text-slate-900">{m.value}</dd>
+                      <dt className="text-[0.75rem] text-slate-500 mb-0.5">{m.label}</dt>
+                      <dd className="text-[0.875rem] font-semibold text-slate-900">{m.value}</dd>
                     </div>
                   ))}
                 </dl>
@@ -74,7 +74,7 @@ export function Courses() {
 
               {/* Curriculum preview — capped height with fade, full syllabus lives on /courses */}
               <div className="px-8 pt-6 relative">
-                <p className="text-[12px] font-semibold tracking-wider uppercase text-slate-500 mb-4">
+                <p className="text-[0.75rem] font-semibold tracking-wider uppercase text-slate-500 mb-4">
                   Curriculum
                 </p>
                 <div className="h-[280px] overflow-hidden">
@@ -82,10 +82,10 @@ export function Courses() {
                     <div key={phase.name} className="mb-2">
                       {course.phases.length > 1 && (
                         <p className="flex items-baseline justify-between gap-3 pt-2 pb-1.5">
-                          <span className="text-[13px] font-semibold text-brand-700">
+                          <span className="text-[0.8125rem] font-semibold text-brand-700">
                             {phase.name}
                           </span>
-                          <span className="text-[11.5px] text-slate-400 shrink-0">
+                          <span className="text-[0.7188rem] text-slate-400 shrink-0">
                             {phase.detail}
                           </span>
                         </p>
@@ -96,13 +96,13 @@ export function Courses() {
                             key={module.title}
                             className="flex items-baseline gap-4 py-2.5 border-b border-slate-100 last:border-0"
                           >
-                            <span className="font-mono text-[12px] text-slate-400 w-5 shrink-0">
+                            <span className="font-mono text-[0.75rem] text-slate-400 w-5 shrink-0">
                               {String(i + 1).padStart(2, "0")}
                             </span>
-                            <span className="flex-1 text-[14px] font-medium text-slate-800">
+                            <span className="flex-1 text-[0.875rem] font-medium text-slate-800">
                               {module.title}
                             </span>
-                            <span className="text-[12px] text-slate-500 shrink-0 hidden sm:block">
+                            <span className="text-[0.75rem] text-slate-500 shrink-0 hidden sm:block">
                               {module.detail}
                             </span>
                           </li>
@@ -115,8 +115,8 @@ export function Courses() {
                 {/* Fade + view more */}
                 <div className="absolute bottom-0 left-0 right-0 h-28 bg-gradient-to-t from-white via-white/90 to-transparent flex items-end justify-center pb-1">
                   <Link
-                    href={`/courses#${course.slug}`}
-                    className="inline-flex items-center gap-1.5 px-5 py-2 rounded-full border border-slate-300 bg-white text-[13px] font-semibold text-slate-700 hover:border-slate-400 hover:text-slate-950 shadow-sm transition-colors"
+                    href={`/courses?syllabus=1#${course.slug}`}
+                    className="inline-flex items-center gap-1.5 px-5 py-2 rounded-full border border-slate-300 bg-white text-[0.8125rem] font-semibold text-slate-700 hover:border-slate-400 hover:text-slate-950 shadow-sm transition-colors"
                   >
                     View Full Curriculum
                     <ArrowRight className="h-3.5 w-3.5" />
@@ -125,7 +125,7 @@ export function Courses() {
               </div>
 
               <div className="mt-auto p-8 pt-6">
-                <EnrollButton className="w-full h-11 bg-slate-950 hover:bg-slate-800 text-white font-semibold rounded-md" />
+                <EnrollButton courseSlug={course.slug} className="w-full h-11 bg-slate-950 hover:bg-slate-800 text-white font-semibold rounded-md" />
               </div>
             </article>
           ))}

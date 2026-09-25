@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
+import { CoursesLink } from "@/components/courses/courses-link";
 
 const tools = [
   "Playwright",
@@ -33,7 +34,7 @@ export function Hero() {
       />
 
       <div className="relative max-w-5xl mx-auto px-6 lg:px-8 text-center">
-        <p className="text-[13px] font-semibold tracking-[0.16em] uppercase text-brand-600 mb-6">
+        <p className="text-[0.8125rem] font-semibold tracking-[0.16em] uppercase text-brand-600 mb-6">
           Online QA Engineering Courses
         </p>
 
@@ -52,25 +53,25 @@ export function Hero() {
           <Button
             asChild
             size="lg"
-            className="h-12 px-8 text-[15px] font-semibold bg-brand-600 hover:bg-brand-700 text-white rounded-md"
+            className="h-12 px-8 text-[0.9375rem] font-semibold bg-brand-600 hover:bg-brand-700 text-white rounded-md"
           >
-            <Link href="/courses">
+            <CoursesLink>
               View Courses
               <ArrowRight className="ml-2 h-4 w-4" />
-            </Link>
+            </CoursesLink>
           </Button>
           <Button
             asChild
             size="lg"
             variant="outline"
-            className="h-12 px-8 text-[15px] font-semibold border-slate-300 text-slate-800 hover:bg-slate-50 rounded-md"
+            className="h-12 px-8 text-[0.9375rem] font-semibold border-slate-300 text-slate-800 hover:bg-slate-50 rounded-md"
           >
             <Link href="/signup">Start Learning Free</Link>
           </Button>
         </div>
 
         {/* Courses line — Scaler-style program listing */}
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-0 text-[13px]">
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-0 text-[0.8125rem]">
           <span className="font-semibold tracking-[0.14em] uppercase text-slate-400 sm:mr-5">
             Courses
           </span>
@@ -87,7 +88,7 @@ export function Hero() {
       {/* Tools marquee — anchors the hero and hints there's more below */}
       <div className="relative mt-14 lg:mt-16 border-t border-slate-200 bg-slate-50/60">
         <div className="max-w-7xl mx-auto flex items-center">
-          <span className="hidden md:block shrink-0 pl-6 lg:pl-8 pr-8 py-5 text-[11px] font-semibold tracking-[0.16em] uppercase text-slate-400 bg-slate-50/60 relative z-10">
+          <span className="hidden md:block shrink-0 pl-6 lg:pl-8 pr-8 py-5 text-[0.6875rem] font-semibold tracking-[0.16em] uppercase text-slate-400 bg-slate-50/60 relative z-10">
             Tools you&apos;ll master
           </span>
 
@@ -100,7 +101,7 @@ export function Hero() {
               {[...tools, ...tools].map((tool, i) => (
                 <span
                   key={`${tool}-${i}`}
-                  className="flex items-center gap-10 text-[14px] font-semibold text-slate-500 whitespace-nowrap"
+                  className="flex items-center gap-10 text-[0.875rem] font-semibold text-slate-500 whitespace-nowrap"
                 >
                   {tool}
                   <span className="h-1 w-1 rounded-full bg-slate-300" />

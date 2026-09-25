@@ -27,7 +27,7 @@ export function Testimonials() {
     <section id="reviews" className="bg-white py-20 lg:py-28 border-b border-slate-200">
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         <div className="max-w-2xl mb-14">
-          <p className="text-[13px] font-semibold tracking-[0.14em] uppercase text-brand-600 mb-4">
+          <p className="text-[0.8125rem] font-semibold tracking-[0.14em] uppercase text-brand-600 mb-4">
             Learner Stories
           </p>
           <h2 className="font-serif text-3xl sm:text-4xl text-slate-950 tracking-tight">
@@ -41,16 +41,16 @@ export function Testimonials() {
               key={t.name}
               className="flex flex-col justify-between bg-white border border-slate-200 rounded-xl p-8"
             >
-              <blockquote className="font-serif text-[17px] leading-relaxed text-slate-800 mb-8">
+              <blockquote className="font-serif text-[1.0625rem] leading-relaxed text-slate-800 mb-8">
                 &ldquo;{t.quote}&rdquo;
               </blockquote>
               <figcaption className="flex items-center gap-3 pt-6 border-t border-slate-100">
-                <span className="h-10 w-10 rounded-full bg-slate-950 text-white text-[13px] font-semibold flex items-center justify-center shrink-0">
+                <span className="h-10 w-10 rounded-full bg-slate-950 text-white text-[0.8125rem] font-semibold flex items-center justify-center shrink-0">
                   {t.initials}
                 </span>
                 <span>
-                  <span className="block text-[14px] font-semibold text-slate-950">{t.name}</span>
-                  <span className="block text-[13px] text-slate-500">{t.role}</span>
+                  <span className="block text-[0.875rem] font-semibold text-slate-950">{t.name}</span>
+                  <span className="block text-[0.8125rem] text-slate-500">{t.role}</span>
                 </span>
               </figcaption>
             </figure>

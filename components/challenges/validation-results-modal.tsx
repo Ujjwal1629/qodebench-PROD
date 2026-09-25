@@ -201,7 +201,7 @@ export function ValidationResultsModal({
                 >
                   {animatedScore}
                 </motion.div>
-                <div className="text-[10px] sm:text-xs font-semibold opacity-75">/{maxPoints}</div>
+                <div className="text-[0.625rem] sm:text-xs font-semibold opacity-75">/{maxPoints}</div>
               </div>
             </motion.div>
           </div>
@@ -260,14 +260,14 @@ export function ValidationResultsModal({
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1 flex-wrap">
-                      <span className={`text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded ${
+                      <span className={`text-[0.625rem] sm:text-xs font-bold px-2 py-0.5 rounded ${
                         test.passed
                           ? 'bg-green-200 text-green-800'
                           : 'bg-red-200 text-red-800'
                       }`}>
                         Test #{index + 1}
                       </span>
-                      <span className={`text-[10px] sm:text-xs font-semibold ${
+                      <span className={`text-[0.625rem] sm:text-xs font-semibold ${
                         test.passed ? 'text-green-700' : 'text-red-700'
                       }`}>
                         {test.passed ? 'PASSED' : 'FAILED'}
@@ -283,7 +283,7 @@ export function ValidationResultsModal({
                 <div className="space-y-2 sm:space-y-3 ml-0 sm:ml-14">
                   {/* Input */}
                   <div className="bg-white rounded-lg p-2 sm:p-3 border border-gray-200">
-                    <div className="text-[10px] sm:text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">
+                    <div className="text-[0.625rem] sm:text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">
                       Input:
                     </div>
                     <code className="text-xs sm:text-sm text-gray-900 font-mono break-all">
@@ -294,7 +294,7 @@ export function ValidationResultsModal({
                   {/* Expected vs Actual */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
                     <div className="bg-white rounded-lg p-2 sm:p-3 border border-green-200">
-                      <div className="text-[10px] sm:text-xs font-semibold text-green-600 mb-1 uppercase tracking-wide">
+                      <div className="text-[0.625rem] sm:text-xs font-semibold text-green-600 mb-1 uppercase tracking-wide">
                         Expected:
                       </div>
                       <code className="text-xs sm:text-sm text-gray-900 font-mono break-all">
@@ -304,7 +304,7 @@ export function ValidationResultsModal({
                     <div className={`bg-white rounded-lg p-2 sm:p-3 border ${
                       test.passed ? 'border-green-200' : 'border-red-200'
                     }`}>
-                      <div className={`text-[10px] sm:text-xs font-semibold mb-1 uppercase tracking-wide ${
+                      <div className={`text-[0.625rem] sm:text-xs font-semibold mb-1 uppercase tracking-wide ${
                         test.passed ? 'text-green-600' : 'text-red-600'
                       }`}>
                         Your Output:
@@ -320,7 +320,7 @@ export function ValidationResultsModal({
                   {/* Error Message */}
                   {test.error && (
                     <div className="bg-red-100 border border-red-300 rounded-lg p-2 sm:p-3">
-                      <div className="text-[10px] sm:text-xs font-semibold text-red-800 mb-1 uppercase tracking-wide">
+                      <div className="text-[0.625rem] sm:text-xs font-semibold text-red-800 mb-1 uppercase tracking-wide">
                         Error:
                       </div>
                       <code className="text-xs sm:text-sm text-red-700 font-mono break-all">

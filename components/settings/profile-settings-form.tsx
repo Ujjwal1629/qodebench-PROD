@@ -237,7 +237,7 @@ export function ProfileSettingsForm({ initialData }: ProfileSettingsFormProps) {
                   </FormDescription>
                   <div className="flex justify-between items-center">
                     <FormMessage className="text-xs" />
-                    <span className="text-[10px] sm:text-xs text-slate-500">
+                    <span className="text-[0.625rem] sm:text-xs text-slate-500">
                       {(field.value?.length || 0)}/500
                     </span>
                   </div>

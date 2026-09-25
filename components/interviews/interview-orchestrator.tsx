@@ -172,7 +172,7 @@ export default function InterviewOrchestrator({ sessionId }: InterviewOrchestrat
             {stageInfo.map((stage, index) => (
               <div
                 key={stage.key}
-                className={`text-center p-1.5 sm:p-2 rounded-lg text-[10px] sm:text-xs ${
+                className={`text-center p-1.5 sm:p-2 rounded-lg text-[0.625rem] sm:text-xs ${
                   index < completedStages
                     ? 'bg-green-100 text-green-700'
                     : index === completedStages

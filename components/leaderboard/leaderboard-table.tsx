@@ -97,7 +97,7 @@ export function LeaderboardTable({ users, isLoading, onUserClick, currentUserId 
                 <div className="flex items-center gap-1 sm:gap-2 mb-0.5 sm:mb-1">
                   <p className="font-semibold text-sm sm:text-lg truncate">{user.username}</p>
                   {user.experience_level && (
-                    <Badge variant="outline" className="capitalize text-[10px] sm:text-xs py-0 px-1 sm:px-2">
+                    <Badge variant="outline" className="capitalize text-[0.625rem] sm:text-xs py-0 px-1 sm:px-2">
                       {user.experience_level}
                     </Badge>
                   )}
@@ -168,11 +168,11 @@ export function LeaderboardTable({ users, isLoading, onUserClick, currentUserId 
                   <div className="flex items-center gap-1 sm:gap-2 mb-0.5 sm:mb-1 flex-wrap">
                     <p className="font-semibold text-sm sm:text-lg truncate">{currentUserData.username}</p>
                     {currentUserData.experience_level && (
-                      <Badge variant="outline" className="capitalize text-[10px] sm:text-xs py-0 px-1 sm:px-2">
+                      <Badge variant="outline" className="capitalize text-[0.625rem] sm:text-xs py-0 px-1 sm:px-2">
                         {currentUserData.experience_level}
                       </Badge>
                     )}
-                    <Badge className="bg-brand-600 text-white text-[10px] sm:text-xs py-0 px-1 sm:px-2">You</Badge>
+                    <Badge className="bg-brand-600 text-white text-[0.625rem] sm:text-xs py-0 px-1 sm:px-2">You</Badge>
                   </div>
                   {currentUserData.full_name && (
                     <p className="text-xs sm:text-sm text-muted-foreground truncate">{currentUserData.full_name}</p>

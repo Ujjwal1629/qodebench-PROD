@@ -170,7 +170,7 @@ function ProfileContent({ data, badges }: { data: any; badges: BadgeType[] }) {
                   <Calendar className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
                   <div className="flex-1 min-w-0">
                     <p className="text-xs sm:text-sm break-words">Completed a challenge</p>
-                    <p className="text-[10px] sm:text-xs text-muted-foreground">
+                    <p className="text-[0.625rem] sm:text-xs text-muted-foreground">
                       {new Date(activity.completed_at).toLocaleDateString()}
                     </p>
                   </div>
@@ -188,7 +188,7 @@ function StatCard({ icon, label, value }: { icon: React.ReactNode; label: string
     <div className="p-2 sm:p-4 rounded-xl bg-slate-50 border">
       <div className="flex items-center gap-1 sm:gap-2 mb-1">
         {icon}
-        <p className="text-[10px] sm:text-xs text-muted-foreground break-words">{label}</p>
+        <p className="text-[0.625rem] sm:text-xs text-muted-foreground break-words">{label}</p>
       </div>
       <p className="text-base sm:text-2xl font-bold break-words">{value}</p>
     </div>

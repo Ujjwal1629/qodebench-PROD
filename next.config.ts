@@ -6,6 +6,13 @@ const nextConfig: NextConfig = {
     // workspace root; pin it to this project.
     root: __dirname,
   },
+  experimental: {
+    serverActions: {
+      // Server Actions default to a 1MB body. Avatar uploads (uploadAvatar in
+      // app/actions/settings.ts) allow images up to 5MB, plus multipart overhead.
+      bodySizeLimit: '6mb',
+    },
+  },
   images: {
     remotePatterns: [
       {

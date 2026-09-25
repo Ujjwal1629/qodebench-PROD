@@ -1,12 +1,13 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Github, Linkedin, Twitter } from "lucide-react";
+import { CoursesLink } from "@/components/courses/courses-link";
 
 const footerLinks = {
   programs: [
     { name: "All Courses", href: "/courses" },
-    { name: "Playwright Test Automation", href: "/courses#playwright-test-automation" },
-    { name: "AI-Powered Testing", href: "/courses#ai-powered-testing" },
+    { name: "Playwright Test Automation", href: "/courses?syllabus=1#playwright-test-automation" },
+    { name: "AI-Powered Testing", href: "/courses?syllabus=1#ai-powered-testing" },
     { name: "Reviews", href: "/#reviews" },
   ],
   platform: [
@@ -51,7 +52,7 @@ export function Footer() {
                 className="object-contain h-10 w-auto"
               />
             </Link>
-            <p className="text-[14px] text-slate-600 leading-relaxed mb-6 max-w-xs">
+            <p className="text-[0.875rem] text-slate-600 leading-relaxed mb-6 max-w-xs">
               Structured QA engineering courses — video lessons, written theory, Q&amp;A
               under every topic, and live doubt-clearing every weekend.
             </p>
@@ -84,18 +85,24 @@ export function Footer() {
             ] as const
           ).map(([heading, links]) => (
             <div key={heading}>
-              <h3 className="text-slate-950 font-semibold mb-4 text-[13px] tracking-wide uppercase">
+              <h3 className="text-slate-950 font-semibold mb-4 text-[0.8125rem] tracking-wide uppercase">
                 {heading}
               </h3>
               <ul className="space-y-3">
                 {links.map((link) => (
                   <li key={link.name}>
-                    <Link
-                      href={link.href}
-                      className="text-slate-600 hover:text-slate-950 transition-colors text-[14px]"
-                    >
-                      {link.name}
-                    </Link>
+                    {link.href === "/courses" ? (
+                      <CoursesLink className="text-slate-600 hover:text-slate-950 transition-colors text-[0.875rem]">
+                        {link.name}
+                      </CoursesLink>
+                    ) : (
+                      <Link
+                        href={link.href}
+                        className="text-slate-600 hover:text-slate-950 transition-colors text-[0.875rem]"
+                      >
+                        {link.name}
+                      </Link>
+                    )}
                   </li>
                 ))}
               </ul>
@@ -104,10 +111,10 @@ export function Footer() {
         </div>
 
         <div className="border-t border-slate-200 pt-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <span className="text-[13px] text-slate-500">
+          <span className="text-[0.8125rem] text-slate-500">
             © {new Date().getFullYear()} Qodebench Technologies Pvt. Ltd. All rights reserved.
           </span>
-          <span className="text-[13px] text-slate-500">
+          <span className="text-[0.8125rem] text-slate-500">
             Made for QA engineers, in India.
           </span>
         </div>

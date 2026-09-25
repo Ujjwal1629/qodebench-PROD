@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
 
 interface EnrollButtonProps {
+  /** Course being enrolled in — the pricing page shows that course's details. */
+  courseSlug?: string;
   label?: string;
   className?: string;
 }
@@ -15,7 +17,7 @@ interface EnrollButtonProps {
  * Enroll CTA: logged-in users go straight to the payment/pricing page,
  * logged-out users sign in first and are redirected there after.
  */
-export function EnrollButton({ label = "Enroll Now", className }: EnrollButtonProps) {
+export function EnrollButton({ courseSlug, label = "Enroll Now", className }: EnrollButtonProps) {
   const router = useRouter();
   const [checking, setChecking] = useState(false);
 
@@ -26,10 +28,13 @@ export function EnrollButton({ label = "Enroll Now", className }: EnrollButtonPr
       data: { user },
     } = await supabase.auth.getUser();
 
+    const target = courseSlug
+      ? `/pricing?course=${encodeURIComponent(courseSlug)}`
+      : "/pricing";
     if (user) {
-      router.push("/pricing");
+      router.push(target);
     } else {
-      router.push(`/signin?redirect=${encodeURIComponent("/pricing")}`);
+      router.push(`/signin?redirect=${encodeURIComponent(target)}`);
     }
   };
 

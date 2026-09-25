@@ -305,7 +305,7 @@ export default function CodingStage({ sessionId, experienceLevel, onComplete }: 
                   {formatTime(timeLeft)}
                 </span>
               </div>
-              <p className="text-[10px] sm:text-xs text-muted-foreground">Time Remaining</p>
+              <p className="text-[0.625rem] sm:text-xs text-muted-foreground">Time Remaining</p>
             </div>
           </div>
         </div>
@@ -457,17 +457,17 @@ export default function CodingStage({ sessionId, experienceLevel, onComplete }: 
                         )}
                         <span className="font-medium text-xs sm:text-sm">Test {idx + 1}</span>
                       </div>
-                      <p className="text-muted-foreground text-[10px] sm:text-xs break-all">
+                      <p className="text-muted-foreground text-[0.625rem] sm:text-xs break-all">
                         Input: {JSON.stringify(result.input)}
                       </p>
-                      <p className="text-muted-foreground text-[10px] sm:text-xs break-all">
+                      <p className="text-muted-foreground text-[0.625rem] sm:text-xs break-all">
                         Expected: {JSON.stringify(result.expected)}
                       </p>
-                      <p className="text-muted-foreground text-[10px] sm:text-xs break-all">
+                      <p className="text-muted-foreground text-[0.625rem] sm:text-xs break-all">
                         Got: {JSON.stringify(result.actual)}
                       </p>
                       {result.error && (
-                        <p className="text-red-600 text-[10px] sm:text-xs mt-1 break-all">{result.error}</p>
+                        <p className="text-red-600 text-[0.625rem] sm:text-xs mt-1 break-all">{result.error}</p>
                       )}
                     </div>
                   ))}
@@ -479,7 +479,7 @@ export default function CodingStage({ sessionId, experienceLevel, onComplete }: 
           {consoleOutput.length > 0 && (
             <Card className="p-3 sm:p-4">
               <h3 className="text-sm sm:text-base font-semibold mb-2">Console Output</h3>
-              <div className="bg-black text-green-400 p-2 sm:p-3 rounded font-mono text-[10px] sm:text-xs max-h-[150px] overflow-y-auto overflow-x-auto">
+              <div className="bg-black text-green-400 p-2 sm:p-3 rounded font-mono text-[0.625rem] sm:text-xs max-h-[150px] overflow-y-auto overflow-x-auto">
                 {consoleOutput.map((line, idx) => (
                   <div key={idx} className="break-all">{line}</div>
                 ))}

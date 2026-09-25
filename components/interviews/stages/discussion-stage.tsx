@@ -295,7 +295,7 @@ export default function DiscussionStage({
                   {formatTime(timeLeft)}
                 </span>
               </div>
-              <p className="text-[10px] sm:text-xs text-muted-foreground">Time Remaining</p>
+              <p className="text-[0.625rem] sm:text-xs text-muted-foreground">Time Remaining</p>
             </div>
           </div>
         </div>

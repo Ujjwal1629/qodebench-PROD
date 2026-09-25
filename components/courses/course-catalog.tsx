@@ -35,7 +35,7 @@ export function CourseCatalog() {
         {format.map((f) => {
           const Icon = f.icon;
           return (
-            <div key={f.text} className="flex items-center gap-2.5 text-[14px] text-slate-700">
+            <div key={f.text} className="flex items-center gap-2.5 text-[0.875rem] text-slate-700">
               <Icon className="h-5 w-5 text-brand-600 shrink-0" />
               {f.text}
             </div>
@@ -60,11 +60,11 @@ export function CourseCatalog() {
                 <div className="flex flex-col lg:flex-row lg:items-start gap-8">
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-4">
-                      <span className="text-[12px] font-semibold tracking-wider uppercase text-slate-500">
+                      <span className="text-[0.75rem] font-semibold tracking-wider uppercase text-slate-500">
                         {course.tag}
                       </span>
                       <span
-                        className={`text-[12px] font-medium px-2.5 py-1 rounded-full border ${course.statusColor}`}
+                        className={`text-[0.75rem] font-medium px-2.5 py-1 rounded-full border ${course.statusColor}`}
                       >
                         {course.status}
                       </span>
@@ -72,23 +72,23 @@ export function CourseCatalog() {
                     <h2 className="font-serif text-2xl sm:text-3xl text-slate-950 mb-3">
                       {course.title}
                     </h2>
-                    <p className="text-[15px] text-slate-600 leading-relaxed max-w-2xl mb-6">
+                    <p className="text-[0.9375rem] text-slate-600 leading-relaxed max-w-2xl mb-6">
                       {course.description}
                     </p>
                     <dl className="flex flex-wrap gap-x-10 gap-y-3">
                       {course.meta.map((m) => (
                         <div key={m.label}>
-                          <dt className="text-[12px] text-slate-500 mb-0.5">{m.label}</dt>
-                          <dd className="text-[14px] font-semibold text-slate-900">{m.value}</dd>
+                          <dt className="text-[0.75rem] text-slate-500 mb-0.5">{m.label}</dt>
+                          <dd className="text-[0.875rem] font-semibold text-slate-900">{m.value}</dd>
                         </div>
                       ))}
                     </dl>
                   </div>
 
                   <div className="shrink-0">
-                    <EnrollButton className="h-12 px-8 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-md" />
-                    <p className="text-[12px] text-slate-500 mt-2.5 text-center">
-                      Included in every paid plan
+                    <EnrollButton courseSlug={course.slug} className="h-12 px-8 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-md" />
+                    <p className="text-[0.75rem] text-slate-500 mt-2.5 text-center">
+                      Pricing announced soon
                     </p>
                   </div>
                 </div>
@@ -97,7 +97,7 @@ export function CourseCatalog() {
               {/* Curriculum */}
               <div className="p-8 lg:p-10 pt-6 lg:pt-8">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
-                  <p className="text-[12px] font-semibold tracking-wider uppercase text-slate-500">
+                  <p className="text-[0.75rem] font-semibold tracking-wider uppercase text-slate-500">
                     Curriculum
                     <span className="normal-case tracking-normal font-normal text-slate-400 ml-2">
                       {phase.detail}
@@ -114,7 +114,7 @@ export function CourseCatalog() {
                             setActivePhases((prev) => ({ ...prev, [course.slug]: pi }))
                           }
                           className={cn(
-                            "px-4 py-1.5 rounded-full text-[13px] font-medium border transition-colors",
+                            "px-4 py-1.5 rounded-full text-[0.8125rem] font-medium border transition-colors",
                             phaseIndex === pi
                               ? "bg-brand-600 border-brand-600 text-white"
                               : "bg-white border-slate-300 text-slate-600 hover:border-slate-400"
@@ -141,15 +141,15 @@ export function CourseCatalog() {
                           )}
                           aria-expanded={isOpen}
                         >
-                          <span className="font-mono text-[13px] text-slate-400 group-hover:text-brand-600 transition-colors w-6 shrink-0">
+                          <span className="font-mono text-[0.8125rem] text-slate-400 group-hover:text-brand-600 transition-colors w-6 shrink-0">
                             {String(i + 1).padStart(2, "0")}
                           </span>
                           <span className="flex-1">
-                            <span className="block text-[15px] font-semibold text-slate-950">
+                            <span className="block text-[0.9375rem] font-semibold text-slate-950">
                               {module.title}
                             </span>
                           </span>
-                          <span className="text-[13px] text-slate-500 shrink-0 hidden sm:block">
+                          <span className="text-[0.8125rem] text-slate-500 shrink-0 hidden sm:block">
                             {module.detail}
                           </span>
                           {expandable && (
@@ -166,7 +166,7 @@ export function CourseCatalog() {
                             {module.lessons.map((lesson) => (
                               <li
                                 key={lesson}
-                                className="flex gap-3 text-[14px] text-slate-600 leading-snug"
+                                className="flex gap-3 text-[0.875rem] text-slate-600 leading-snug"
                               >
                                 <PlayCircle className="h-4 w-4 text-slate-300 mt-0.5 shrink-0" />
                                 {lesson}
