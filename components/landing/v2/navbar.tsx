@@ -41,7 +41,8 @@ export function Navbar() {
   const shouldHideNavbar =
     pathname?.startsWith("/dashboard") ||
     pathname?.startsWith("/signin") ||
-    pathname?.startsWith("/signup");
+    pathname?.startsWith("/signup") ||
+    pathname?.startsWith("/qodebench-chatbot");
 
   useEffect(() => {
     const checkAuth = async () => {

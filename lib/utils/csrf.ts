@@ -177,6 +177,7 @@ const CSRF_EXEMPT_PATHS = [
   '/api/drift-testing',
   '/api/drift-testing/investigate',
   '/api/hr-chatbot',
+  '/api/qodebench-chatbot',
 ];
 
 /**

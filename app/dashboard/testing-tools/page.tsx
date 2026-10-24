@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { TestTube, ArrowRight, LogIn, Table2, ListChecks, Bug, Scale, Activity, Bot, FlaskConical, FileCode2 } from 'lucide-react';
+import { TestTube, ArrowRight, LogIn, Table2, ListChecks, Bug, Scale, Activity, Bot, FlaskConical, FileCode2, MessageSquare } from 'lucide-react';
 
 const tools = [
   {
@@ -59,6 +59,15 @@ const tools = [
     tags: ['AI Drift', 'Eval', 'LLM QA'],
     difficulty: 'Advanced',
     color: 'bg-brand-600',
+  },
+  {
+    id: 'qodebench-chatbot',
+    icon: MessageSquare,
+    title: 'QodeBench Chatbot',
+    description: 'Chat with the QodeBench senior dev tutor about JavaScript, TypeScript and QA automation. Shareable via a public link — no login needed.',
+    tags: ['Chatbot', 'Prompt Injection', 'LLM QA'],
+    difficulty: 'Beginner',
+    color: 'bg-indigo-500',
   },
   {
     id: 'hr-chatbot',

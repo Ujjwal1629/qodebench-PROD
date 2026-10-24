@@ -117,6 +117,8 @@ export async function updateSession(request: NextRequest) {
     '/pricing', // Pricing page is public so expired users can upgrade
     '/courses', // Public course catalog with curriculum
     '/llm-bug-hunter',
+    '/qodebench-chatbot', // Shareable no-login chatbot
+    '/api/qodebench-chatbot',
   ];
 
   const isPublicRoute = publicRoutes.some(route =>
