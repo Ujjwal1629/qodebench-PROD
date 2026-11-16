@@ -36,7 +36,7 @@ const tools = [
   {
     id: 'llm-bug-hunter',
     icon: Bug,
-    title: 'LLM Bug Practice',
+    title: 'Hallucination Testing',
     description: 'Spot hallucinations, prompt injections, factual errors, and context leakage in AI responses. Test your eye for AI bugs.',
     tags: ['AI', 'Hallucination', 'QA'],
     difficulty: 'Intermediate',
@@ -63,7 +63,7 @@ const tools = [
   {
     id: 'hr-chatbot',
     icon: Bot,
-    title: 'HR Chatbot Tester',
+    title: 'RAG Chatbot',
     description: 'Build a system prompt for an HR assistant, then run a suite of test questions — including prompt-injection attacks — to check whether your prompt holds.',
     tags: ['RAG', 'Prompt Testing', 'LLM QA'],
     difficulty: 'Advanced',
@@ -94,7 +94,7 @@ export default function TestingToolsPage() {
             100% Free
           </Badge>
           <Badge variant="outline">{tools.length} Tools</Badge>
-          <Badge variant="secondary" className="bg-sky-100 text-sky-700 border-sky-200">New: HR Chatbot Tester</Badge>
+          <Badge variant="secondary" className="bg-sky-100 text-sky-700 border-sky-200">New: RAG Chatbot</Badge>
         </div>
       </div>
 
