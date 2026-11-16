@@ -114,7 +114,7 @@ export default function LLMBugHunterTool() {
 
   return (
     <ToolLayout
-      title="LLM Bug Practice"
+      title="Hallucination Testing"
       description="Interact with a real AI and practise spotting hallucinations, factual errors, prompt injections, and context leakage."
       difficulty="Intermediate"
       scenarios={SCENARIOS}

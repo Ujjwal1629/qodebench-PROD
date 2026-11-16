@@ -220,7 +220,7 @@ export default function HRChatbotTesterTool() {
 
   return (
     <ToolLayout
-      title="HR Chatbot Tester"
+      title="RAG Chatbot"
       description="Build a RAG-style HR assistant — a system prompt plus a knowledge base (the handbook) — then run test questions, including prompt-injection attacks, to check whether the bot answers from your data and follows the rules."
       difficulty="Advanced"
       scenarios={SCENARIOS_LIST}
