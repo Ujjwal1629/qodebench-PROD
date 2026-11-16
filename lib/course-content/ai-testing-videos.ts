@@ -269,7 +269,12 @@ export const AI_TESTING_CHAPTERS: Record<string, VideoChapter[]> = {
 
 export const AI_TESTING_BATCH_VIDEOS: Record<BatchId, Record<string, string>> = {
   morning: {},
-  afternoon: {},
+  afternoon: {
+    // ── Module 1 · AI/ML Fundamentals (Oct–Nov cohort) ──
+    "What is AI/ML — The Tester's Perspective": "v4VPPQ3BPAaiYVtV7Rz7HK2Ic5qDf1jhCnln4xn4x7M", // Afternoon S1, 31 Oct
+    "How LLMs Actually Work — Tokens, Probabilities & Temperature": "EeqCTR02V2Ht02GcYJg01ORlSLg4eZUe602z200ZzrGHjZa4", // Afternoon S2, 3 Nov
+    "AI Application Architectures — What You'll Be Testing": "ssZ024oP4kBR01jCsCwOAEbhejNWw01VtZFLr1yg2KFPKg", // Afternoon S3, 5 Nov
+  },
   evening: {
     // ── Module 1 · AI/ML Fundamentals ──
     "What is AI/ML — The Tester's Perspective": "f8zhSaJ1PzfoRkYlJBGFzkGWgJ01PJyK3qq014jJmShMo", // Evening S1, 18 Jun
