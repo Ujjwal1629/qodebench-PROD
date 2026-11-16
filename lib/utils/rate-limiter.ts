@@ -42,6 +42,13 @@ export const RATE_LIMIT_CONFIGS = {
 
   // Learning chat - moderate limit
   learningChat: { maxRequests: 30, windowMs: 60 * 1000 }, // 30 per minute
+
+  // Public testing tools, visitors who are NOT signed in (per IP). Every call
+  // costs OpenAI money, so these are deliberately tight; signing up lifts them.
+  publicHallucination: { maxRequests: 15, windowMs: 60 * 60 * 1000 }, // 15 prompts per hour
+  publicRag: { maxRequests: 3, windowMs: 60 * 60 * 1000 }, // 3 suite runs per hour
+  // Ceiling across ALL guests on one server instance, in case of a traffic spike or abuse.
+  publicGuestsTotal: { maxRequests: 400, windowMs: 60 * 60 * 1000 },
 } as const;
 
 type RateLimitType = keyof typeof RATE_LIMIT_CONFIGS;

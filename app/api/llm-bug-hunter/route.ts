@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getOpenAIClient } from '@/lib/openai-client';
+import { guardPublicTool } from '@/lib/utils/public-tool-guard';
 
 function stripMarkdown(text: string): string {
   return text
@@ -43,6 +44,10 @@ OUTPUT RULES — NO EXCEPTIONS:
 
 export async function POST(request: NextRequest) {
   try {
+    // Public tool (/testing-tools/hallucination-testing): guests are rate limited.
+    const { limited } = await guardPublicTool(request, 'publicHallucination');
+    if (limited) return limited;
+
     const { prompt, systemContext, mode, temperature } = await request.json();
 
     if (!prompt || typeof prompt !== 'string' || prompt.trim().length === 0) {
@@ -61,7 +66,7 @@ export async function POST(request: NextRequest) {
     if (isHallucinated) {
       systemPrompt = HALLUCINATED_SYSTEM_PROMPT;
     } else if (systemContext?.trim()) {
-      systemPrompt = systemContext.trim() + '\n\nKeep your answer to 3-5 sentences. Write plain text only — no markdown, no headers, no bullet points, no backticks, no bold. Just clean sentences.';
+      systemPrompt = systemContext.trim().slice(0, 2000) + '\n\nKeep your answer to 3-5 sentences. Write plain text only — no markdown, no headers, no bullet points, no backticks, no bold. Just clean sentences.';
     } else {
       systemPrompt = NORMAL_SYSTEM_PROMPT;
     }

@@ -20,6 +20,8 @@ import type { User as SupabaseUser } from "@supabase/supabase-js";
 
 const navLinks = [
   { name: "Courses", href: "/courses", isAnchor: false },
+  { name: "Free Tools", href: "/testing-tools", isAnchor: false },
+  { name: "Blog", href: "/blog", isAnchor: false },
   { name: "Reviews", href: "#reviews", isAnchor: true },
   { name: "Pricing", href: "/pricing", isAnchor: false },
   { name: "About", href: "/about", isAnchor: false },

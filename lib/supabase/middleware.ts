@@ -116,9 +116,13 @@ export async function updateSession(request: NextRequest) {
     '/auth/callback',
     '/pricing', // Pricing page is public so expired users can upgrade
     '/courses', // Public course catalog with curriculum
-    '/llm-bug-hunter',
+    '/llm-bug-hunter', // Old public URL, redirects to /testing-tools/hallucination-testing
     '/qodebench-chatbot', // Shareable no-login chatbot
     '/api/qodebench-chatbot',
+    '/testing-tools', // Public tool pages (lib/public-tools.ts)
+    '/api/llm-bug-hunter', // Hallucination Testing; guests are rate limited in the route
+    '/api/hr-chatbot', // RAG Chatbot; guests are rate limited in the route
+    '/sitemap.xml',
   ];
 
   const isPublicRoute = publicRoutes.some(route =>

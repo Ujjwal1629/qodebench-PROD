@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getOpenAIClient } from '@/lib/openai-client';
+import { guardPublicTool } from '@/lib/utils/public-tool-guard';
 
 function stripMarkdown(text: string): string {
   return text
@@ -36,6 +37,12 @@ interface TestCase {
 
 export async function POST(request: NextRequest) {
   try {
+    // Public tool (/testing-tools/rag-chatbot): guests are rate limited, and
+    // each run costs two AI calls per test case, so guests get fewer cases.
+    const { isGuest, limited } = await guardPublicTool(request, 'publicRag');
+    if (limited) return limited;
+    const maxCases = isGuest ? 8 : 20;
+
     const { systemPrompt, knowledgeBase, testCases } = await request.json();
 
     if (!systemPrompt || typeof systemPrompt !== 'string' || !systemPrompt.trim()) {
@@ -52,7 +59,7 @@ export async function POST(request: NextRequest) {
 
     const cases: TestCase[] = testCases
       .filter((t) => t && typeof t.question === 'string' && t.question.trim())
-      .slice(0, 20)
+      .slice(0, maxCases)
       .map((t, i) => ({
         id: typeof t.id === 'string' ? t.id : `tc-${i}`,
         question: String(t.question).slice(0, 1000),

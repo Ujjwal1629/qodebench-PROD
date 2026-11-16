@@ -49,6 +49,8 @@ next-env.d.ts
 .env.staging
 .env.production
 *.md    
+# Blog posts are site content, not notes: keep them tracked
+!content/blog/*.md
 *.sql
 # Local junk - not for repo
 .playwright-mcp/
