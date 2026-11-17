@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { PAYWALL_ENABLED } from "@/lib/config/features";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -22,9 +23,6 @@ const navLinks = [
   { name: "Courses", href: "/courses", isAnchor: false },
   { name: "Free Tools", href: "/testing-tools", isAnchor: false },
   { name: "Blog", href: "/blog", isAnchor: false },
-  { name: "Reviews", href: "#reviews", isAnchor: true },
-  { name: "Pricing", href: "/pricing", isAnchor: false },
-  { name: "About", href: "/about", isAnchor: false },
 ];
 
 export function Navbar() {
@@ -221,7 +219,7 @@ export function Navbar() {
                       <BookOpen className="mr-2 h-4 w-4" />
                       Dashboard
                     </DropdownMenuItem>
-                    {subscriptionTier === "free" && (
+                    {PAYWALL_ENABLED && subscriptionTier === "free" && (
                       <>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem onClick={() => router.push("/pricing")}>

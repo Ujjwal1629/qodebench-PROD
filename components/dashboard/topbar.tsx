@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { PAYWALL_ENABLED } from '@/lib/config/features';
 import { Settings, HelpCircle, LogOut, Menu, Crown, Home } from 'lucide-react';
 import Image from 'next/image';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -81,7 +82,7 @@ export function TopBar({ user }: TopBarProps) {
 
         {/* Right: upgrade hint + user menu */}
         <div className="flex items-center gap-3">
-          {user?.subscription_tier === 'free' && (
+          {PAYWALL_ENABLED && user?.subscription_tier === 'free' && (
             <Button
               asChild
               size="sm"
@@ -140,7 +141,7 @@ export function TopBar({ user }: TopBarProps) {
                 <Settings className="mr-2 h-4 w-4" />
                 <span>Settings</span>
               </DropdownMenuItem>
-              {user?.subscription_tier === 'free' && (
+              {PAYWALL_ENABLED && user?.subscription_tier === 'free' && (
                 <DropdownMenuItem onClick={() => router.push('/pricing')}>
                   <Crown className="mr-2 h-4 w-4" />
                   <span>Enroll Now</span>

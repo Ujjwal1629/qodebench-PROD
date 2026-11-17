@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server';
+import { PAYWALL_ENABLED } from '@/lib/config/features';
 
 export interface SubscriptionInfo {
   tier: string;
@@ -27,6 +28,6 @@ export async function getSubscription(): Promise<SubscriptionInfo> {
   return {
     tier,
     status,
-    isEnrolled: tier !== 'free' && ['active', 'trial'].includes(status),
+    isEnrolled: !PAYWALL_ENABLED || (tier !== 'free' && ['active', 'trial'].includes(status)),
   };
 }

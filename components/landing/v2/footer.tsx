@@ -14,7 +14,8 @@ const footerLinks = {
     { name: "Practice Challenges", href: "/dashboard/challenges" },
     { name: "Learning Modules", href: "/dashboard/learning" },
     { name: "Mock Interviews", href: "/dashboard/interviews" },
-    { name: "Pricing", href: "/pricing" },
+    // Paywall off, restore later
+    // { name: "Pricing", href: "/pricing" },
   ],
   company: [
     { name: "About", href: "/about" },

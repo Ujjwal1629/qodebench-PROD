@@ -49,6 +49,23 @@ function practiceItemKeys(course: Course): {
   return out;
 }
 
+// All lessons in list order.
+function allLessonKeys(course: Course): {
+  key: string;
+  title: string;
+  moduleTitle: string;
+}[] {
+  const out: { key: string; title: string; moduleTitle: string }[] = [];
+  course.phases.forEach((phase, pi) => {
+    phase.modules.forEach((mod, mi) => {
+      mod.lessons.forEach((lesson, li) => {
+        out.push({ key: `${pi}:${mi}:${li}`, title: lesson, moduleTitle: mod.title });
+      });
+    });
+  });
+  return out;
+}
+
 // The first lesson in the course, used as the resume target for a learner who
 // hasn't passed anything yet (so "Next up" always points somewhere real).
 function firstLessonKey(course: Course): {
@@ -108,10 +125,15 @@ export async function getCourseProgress(): Promise<CourseProgress[]> {
     const passedPractice = items.filter((it) => passedSet.has(it.title)).length;
     const totalPractice = items.length;
 
-    const nextItem = items.find((it) => !passedSet.has(it.title)) ?? null;
-    // If every practice item is passed (or there are none), fall back to the
-    // course's first lesson so the resume link still works.
-    const resume = nextItem ?? firstLessonKey(course);
+    // Resume after the furthest passed item, else the first lesson.
+    const allLessons = allLessonKeys(course);
+    let furthestPassed = -1;
+    allLessons.forEach((it, i) => {
+      if (passedSet.has(it.title)) furthestPassed = i;
+    });
+    const resume =
+      (furthestPassed >= 0 ? allLessons[furthestPassed + 1] : undefined) ??
+      firstLessonKey(course);
 
     return {
       slug: course.slug,

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { PAYWALL_ENABLED } from '@/lib/config/features';
 import { Button } from '@/components/ui/button';
 import { Lightbulb, Loader2, AlertCircle, Crown } from 'lucide-react';
 import Link from 'next/link';
@@ -100,7 +101,7 @@ export function HintSection({ challengeId, currentCode }: HintSectionProps) {
               <p className={`text-sm ${error.requiresUpgrade ? 'text-amber-800' : 'text-red-800'}`}>
                 {error.message}
               </p>
-              {error.requiresUpgrade && (
+              {PAYWALL_ENABLED && error.requiresUpgrade && (
                 <Link href="/pricing">
                   <Button size="sm" variant="outline" className="mt-3 bg-white hover:bg-amber-50 border-amber-300">
                     <Crown className="h-4 w-4 mr-2" />

@@ -1,6 +1,7 @@
 'use client';
 
 import { ProfileSettingsForm } from './profile-settings-form';
+import { PAYWALL_ENABLED } from '@/lib/config/features';
 import { AccountSettingsForm } from './account-settings-form';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { User, Lock, Crown } from 'lucide-react';
@@ -39,7 +40,7 @@ export function SettingsClient({ profile, email }: SettingsClientProps) {
 
   return (
     <Tabs defaultValue="profile" className="space-y-4 sm:space-y-6">
-      <TabsList className="grid w-full max-w-md grid-cols-3">
+      <TabsList className={`grid w-full max-w-md ${PAYWALL_ENABLED ? 'grid-cols-3' : 'grid-cols-2'}`}>
         <TabsTrigger value="profile" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
           <User className="h-3 w-3 sm:h-4 sm:w-4" />
           <span className="hidden sm:inline">Profile</span>
@@ -50,11 +51,13 @@ export function SettingsClient({ profile, email }: SettingsClientProps) {
           <span className="hidden sm:inline">Account</span>
           <span className="sm:hidden">Account</span>
         </TabsTrigger>
+        {PAYWALL_ENABLED && (
         <TabsTrigger value="subscription" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
           <Crown className="h-3 w-3 sm:h-4 sm:w-4" />
           <span className="hidden sm:inline">Subscription</span>
           <span className="sm:hidden">Sub</span>
         </TabsTrigger>
+        )}
       </TabsList>
 
       <TabsContent value="profile" className="space-y-6">
@@ -65,6 +68,7 @@ export function SettingsClient({ profile, email }: SettingsClientProps) {
         <AccountSettingsForm currentEmail={email} username={profile.username} />
       </TabsContent>
 
+      {PAYWALL_ENABLED && (
       <TabsContent value="subscription" className="space-y-4 sm:space-y-6">
         <Card>
           <CardHeader className="p-4 sm:p-6">
@@ -159,6 +163,7 @@ export function SettingsClient({ profile, email }: SettingsClientProps) {
           </CardContent>
         </Card>
       </TabsContent>
+      )}
     </Tabs>
   );
 }

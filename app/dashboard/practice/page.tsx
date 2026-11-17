@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { PAYWALL_ENABLED } from '@/lib/config/features';
 import { useRouter } from 'next/navigation';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -2272,7 +2273,7 @@ export default function PracticePage() {
   const [view, setView]                   = useState<View>('landing');
   const [openChallenge, setOpenChallenge] = useState<Challenge | null>(null);
   const [completed, setCompleted]         = useState<Set<number>>(new Set());
-  const [isPaidUser, setIsPaidUser]       = useState(false);
+  const [isPaidUser, setIsPaidUser]       = useState(!PAYWALL_ENABLED);
 
   // Load persisted completed state from localStorage on mount
   useEffect(() => {
@@ -2281,6 +2282,7 @@ export default function PracticePage() {
 
   // Fetch subscription status on mount
   useEffect(() => {
+    if (!PAYWALL_ENABLED) return;
     fetch('/api/payments/subscription-status')
       .then(res => res.ok ? res.json() : null)
       .then(data => {

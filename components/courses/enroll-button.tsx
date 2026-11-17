@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { ArrowRight, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
+import { PAYWALL_ENABLED } from "@/lib/config/features";
 
 interface EnrollButtonProps {
   /** Course being enrolled in — the pricing page shows that course's details. */
@@ -17,7 +18,11 @@ interface EnrollButtonProps {
  * Enroll CTA: logged-in users go straight to the payment/pricing page,
  * logged-out users sign in first and are redirected there after.
  */
-export function EnrollButton({ courseSlug, label = "Enroll Now", className }: EnrollButtonProps) {
+export function EnrollButton({
+  courseSlug,
+  label = PAYWALL_ENABLED ? "Enroll Now" : "Start Learning",
+  className,
+}: EnrollButtonProps) {
   const router = useRouter();
   const [checking, setChecking] = useState(false);
 
@@ -28,9 +33,13 @@ export function EnrollButton({ courseSlug, label = "Enroll Now", className }: En
       data: { user },
     } = await supabase.auth.getUser();
 
-    const target = courseSlug
-      ? `/pricing?course=${encodeURIComponent(courseSlug)}`
-      : "/pricing";
+    const target = !PAYWALL_ENABLED
+      ? courseSlug
+        ? `/dashboard/courses/${encodeURIComponent(courseSlug)}`
+        : "/dashboard/courses"
+      : courseSlug
+        ? `/pricing?course=${encodeURIComponent(courseSlug)}`
+        : "/pricing";
     if (user) {
       router.push(target);
     } else {

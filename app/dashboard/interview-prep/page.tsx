@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { PAYWALL_ENABLED } from '@/lib/config/features';
 import { useRouter } from 'next/navigation';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -303,10 +304,11 @@ export default function InterviewPrepPage() {
   const [view, setView] = useState<View>('home');
   const [activeBank, setActiveBank] = useState<QuestionBank>('js-ts');
   const [activeSection, setActiveSection] = useState<InterviewSection | null>(null);
-  const [isPaidUser, setIsPaidUser] = useState(false);
+  const [isPaidUser, setIsPaidUser] = useState(!PAYWALL_ENABLED);
 
   // Fetch subscription status on mount
   useEffect(() => {
+    if (!PAYWALL_ENABLED) return;
     fetch('/api/payments/subscription-status')
       .then(res => res.ok ? res.json() : null)
       .then(data => {

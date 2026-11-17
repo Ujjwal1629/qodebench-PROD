@@ -1,6 +1,13 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Remove when PAYWALL_ENABLED is true.
+  async redirects() {
+    return [
+      { source: '/pricing', destination: '/courses', permanent: false },
+      { source: '/dashboard/settings/subscription', destination: '/dashboard/settings', permanent: false },
+    ];
+  },
   turbopack: {
     // A stray lockfile in the home directory makes Next.js guess the wrong
     // workspace root; pin it to this project.

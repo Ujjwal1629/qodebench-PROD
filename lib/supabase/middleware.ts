@@ -1,4 +1,5 @@
 import { createServerClient } from '@supabase/ssr';
+import { PAYWALL_ENABLED } from '@/lib/config/features';
 import { NextResponse, type NextRequest } from 'next/server';
 
 // Profile cache duration (1 minute - short TTL for security)
@@ -263,7 +264,7 @@ export async function updateSession(request: NextRequest) {
           isChallengesRoute;
 
         // Redirect expired users away from paid content (but not from allowed routes)
-        if (isExpired && !allowedRoutesWhenExpired) {
+        if (PAYWALL_ENABLED && isExpired && !allowedRoutesWhenExpired) {
           const url = request.nextUrl.clone();
           url.pathname = '/pricing';
           url.searchParams.set('expired', 'true');
